@@ -773,6 +773,7 @@ export type elementNode = {
   tagName: string;
   attributes: attributes;
   childNodes: serializedNodeWithId[];
+  isVisible?: boolean;
   isSVG?: true;
   needBlock?: boolean;
   // This is a custom element or not.
@@ -782,6 +783,7 @@ export type elementNode = {
 export type textNode = {
   type: NodeType.Text;
   textContent: string;
+  isVisible?: boolean;
   /**
    * @deprecated styles are now always snapshotted against parent <style> element
    * style mutations can still happen via an added textNode, but they don't need this attribute for correct replay

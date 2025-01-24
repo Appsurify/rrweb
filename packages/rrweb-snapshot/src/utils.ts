@@ -21,6 +21,40 @@ export function isElement(n: Node): n is Element {
   return n.nodeType === n.ELEMENT_NODE;
 }
 
+export function isTextVisible(n: Text): boolean {
+  // const parentElement = n.parentElement;
+
+  // The parent node may not be a html element which has a tagName attribute.
+  // So just let it be undefined which is ok in this use case.
+  const parent = dom.parentNode(n);
+  const parentElement = parent && (parent as Element);
+  if (!parentElement) {
+    return false;
+  }
+  const isParentVisible = isElementVisible(parentElement);
+  if (!isParentVisible) {
+    return false;
+  }
+  const textContent = n.textContent?.trim();
+  return textContent !== '';
+}
+
+export function isElementVisible(n: Element): boolean {
+  return isStyleVisible(n) && isRectVisible(n.getBoundingClientRect());
+}
+
+function isStyleVisible(n: Element): boolean {
+  const style = window.getComputedStyle(n);
+  return style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) !== 0;
+}
+
+function isRectVisible(rect: DOMRect): boolean {
+  return rect.width > 0 && rect.height > 0 &&
+    rect.top >= 0 && rect.left >= 0 &&
+    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+}
+
 export function isShadowRoot(n: Node): n is ShadowRoot {
   const hostEl: Element | null =
     // anchor and textarea elements also have a `host` property

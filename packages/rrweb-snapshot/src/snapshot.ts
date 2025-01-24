@@ -30,6 +30,8 @@ import {
   extractFileExtension,
   absolutifyURLs,
   markCssSplits,
+  isElementVisible,
+  isTextVisible
 } from './utils';
 import dom from '@rrweb/utils';
 
@@ -532,10 +534,13 @@ function serializeTextNode(
       : textContent.replace(/[\S]/g, '*');
   }
 
+  const isVisible = isTextVisible(n)
+
   return {
     type: NodeType.Text,
     textContent: textContent || '',
     rootId,
+    isVisible: isVisible
   };
 }
 
@@ -783,6 +788,8 @@ function serializeElementNode(
     // In case old browsers don't support customElements
   }
 
+  const isVisible = isElementVisible(n)
+
   return {
     type: NodeType.Element,
     tagName,
@@ -792,6 +799,7 @@ function serializeElementNode(
     needBlock,
     rootId,
     isCustom: isCustomElement,
+    isVisible: isVisible
   };
 }
 
