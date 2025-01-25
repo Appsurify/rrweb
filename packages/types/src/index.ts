@@ -718,6 +718,7 @@ export type documentNode = {
   type: NodeType.Document;
   childNodes: serializedNodeWithId[];
   compatMode?: string;
+  xPath: string;
 };
 
 export type documentTypeNode = {
@@ -725,6 +726,7 @@ export type documentTypeNode = {
   name: string;
   publicId: string;
   systemId: string;
+  xPath: string;
 };
 
 type cssTextKeyAttr = {
@@ -773,7 +775,8 @@ export type elementNode = {
   tagName: string;
   attributes: attributes;
   childNodes: serializedNodeWithId[];
-  isVisible?: boolean;
+  xPath: string;
+  isVisible: boolean;
   isSVG?: true;
   needBlock?: boolean;
   // This is a custom element or not.
@@ -783,7 +786,8 @@ export type elementNode = {
 export type textNode = {
   type: NodeType.Text;
   textContent: string;
-  isVisible?: boolean;
+  xPath: string;
+  isVisible: boolean;
   /**
    * @deprecated styles are now always snapshotted against parent <style> element
    * style mutations can still happen via an added textNode, but they don't need this attribute for correct replay
@@ -794,11 +798,13 @@ export type textNode = {
 export type cdataNode = {
   type: NodeType.CDATA;
   textContent: '';
+  xPath: string;
 };
 
 export type commentNode = {
   type: NodeType.Comment;
   textContent: string;
+  xPath: string;
 };
 
 export type serializedNode = (

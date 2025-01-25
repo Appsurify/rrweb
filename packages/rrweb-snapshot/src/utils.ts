@@ -17,6 +17,39 @@ import type {
 } from '@rrweb/types';
 import dom from '@rrweb/utils';
 
+// const parentNode = n.parentNode;
+// if (!parentNode || !(parentNode instanceof Element)) {
+//   return ''; // Убедимся, что это действительно элемент
+// }
+
+
+
+
+export function getXPath(n: Element): string {
+  if (n.id) {
+    return `//*[@id="${n.id}"]`;
+  }
+
+  if (n === document.body) {
+    return "/html/body";
+  }
+
+  const parentNode = dom.parentNode(n);
+  if (!parentNode || !(parentNode instanceof Element)) {
+    return '';
+  }
+
+  const siblings = Array.from(parentNode.children).filter(
+    (node) => node.tagName === n.tagName
+  );
+
+  const index = siblings.length > 1 ? `[${siblings.indexOf(n) + 1}]` : "";
+
+  const path = getXPath(parentNode) + "/" + n.tagName.toLowerCase() + index;
+
+  return path;
+}
+
 export function isElement(n: Node): n is Element {
   return n.nodeType === n.ELEMENT_NODE;
 }

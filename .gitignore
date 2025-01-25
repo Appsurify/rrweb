@@ -35,3 +35,4 @@ dist
 # for vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+/builds/

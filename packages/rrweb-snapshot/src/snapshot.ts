@@ -31,7 +31,8 @@ import {
   absolutifyURLs,
   markCssSplits,
   isElementVisible,
-  isTextVisible
+  isTextVisible,
+  getXPath
 } from './utils';
 import dom from '@rrweb/utils';
 
@@ -430,18 +431,22 @@ function serializeNode(
   } = options;
   // Only record root id when document object is not the base document
   const rootId = getRootId(doc, mirror);
+  const xPath = getXPath(n as Element);
+
   switch (n.nodeType) {
     case n.DOCUMENT_NODE:
       if ((n as Document).compatMode !== 'CSS1Compat') {
         return {
           type: NodeType.Document,
           childNodes: [],
-          compatMode: (n as Document).compatMode, // probably "BackCompat"
+          xPath: xPath,
+          compatMode: (n as Document).compatMode
         };
       } else {
         return {
           type: NodeType.Document,
           childNodes: [],
+          xPath: xPath
         };
       }
     case n.DOCUMENT_TYPE_NODE:
@@ -451,6 +456,7 @@ function serializeNode(
         publicId: (n as DocumentType).publicId,
         systemId: (n as DocumentType).systemId,
         rootId,
+        xPath: xPath
       };
     case n.ELEMENT_NODE:
       return serializeElementNode(n as HTMLElement, {
@@ -466,6 +472,7 @@ function serializeNode(
         keepIframeSrcFn,
         newlyAddedElement,
         rootId,
+        xPath,
       });
     case n.TEXT_NODE:
       return serializeTextNode(n as Text, {
@@ -474,18 +481,21 @@ function serializeNode(
         maskTextFn,
         rootId,
         cssCaptured,
+        xPath,
       });
     case n.CDATA_SECTION_NODE:
       return {
         type: NodeType.CDATA,
         textContent: '',
         rootId,
+        xPath: xPath
       };
     case n.COMMENT_NODE:
       return {
         type: NodeType.Comment,
         textContent: dom.textContent(n as Comment) || '',
         rootId,
+        xPath: xPath
       };
     default:
       return false;
@@ -506,9 +516,10 @@ function serializeTextNode(
     maskTextFn: MaskTextFn | undefined;
     rootId: number | undefined;
     cssCaptured?: boolean;
+    xPath: string;
   },
 ): serializedNode {
-  const { needsMask, maskTextFn, rootId, cssCaptured } = options;
+  const { needsMask, maskTextFn, rootId, cssCaptured, xPath } = options;
   // The parent node may not be a html element which has a tagName attribute.
   // So just let it be undefined which is ok in this use case.
   const parent = dom.parentNode(n);
@@ -540,7 +551,8 @@ function serializeTextNode(
     type: NodeType.Text,
     textContent: textContent || '',
     rootId,
-    isVisible: isVisible
+    isVisible: isVisible,
+    xPath: xPath
   };
 }
 
@@ -562,6 +574,7 @@ function serializeElementNode(
      */
     newlyAddedElement?: boolean;
     rootId: number | undefined;
+    xPath: string;
   },
 ): serializedNode | false {
   const {
@@ -577,6 +590,7 @@ function serializeElementNode(
     keepIframeSrcFn,
     newlyAddedElement = false,
     rootId,
+    xPath
   } = options;
   const needBlock = _isBlockedElement(n, blockClass, blockSelector);
   const tagName = getValidTagName(n);
@@ -799,7 +813,8 @@ function serializeElementNode(
     needBlock,
     rootId,
     isCustom: isCustomElement,
-    isVisible: isVisible
+    isVisible: isVisible,
+    xPath: xPath
   };
 }
 
