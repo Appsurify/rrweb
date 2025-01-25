@@ -1,9 +1,10 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  // These root workspace files are reused in workspaces and may affect their build output
+
   "globalDependencies": [
     ".eslintrc.js",
     ".prettierrc",
+    "lerna.json",
     "vite.config.defaults.ts",
     "tsconfig.json"
   ],
