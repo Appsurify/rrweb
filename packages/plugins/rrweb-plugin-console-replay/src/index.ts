@@ -2,10 +2,10 @@ import {
   type LogLevel,
   type LogData,
   PLUGIN_NAME,
-} from '@rrweb/rrweb-plugin-console-record';
-import type { eventWithTime } from '@rrweb/types';
-import { EventType, IncrementalSource } from '@rrweb/types';
-import type { ReplayPlugin, Replayer } from 'rrweb';
+} from '@appsurify-testmap/rrweb-rrweb-plugin-console-record';
+import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
+import { EventType, IncrementalSource } from '@appsurify-testmap/rrweb-types';
+import type { ReplayPlugin, Replayer } from '@appsurify-testmap/rrweb';
 
 /**
  * define an interface to replay log records

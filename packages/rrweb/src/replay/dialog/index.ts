@@ -1,5 +1,5 @@
-import type { attributeMutation } from '@rrweb/types';
-import { RRNode } from 'rrdom';
+import type { attributeMutation } from '@appsurify-testmap/rrweb-types';
+import { RRNode } from '@appsurify-testmap/rrdom';
 
 /**
  * Checks if the dialog is a top level dialog and applies the dialog to the top level

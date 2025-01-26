@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "rrweb",
+    "name": "appsurify-testmap-rrweb",
     "content_scripts": [
       {
         "matches": ["<all_urls>"],

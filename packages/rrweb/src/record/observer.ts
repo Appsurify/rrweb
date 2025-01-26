@@ -4,7 +4,7 @@ import {
   Mirror,
   getInputType,
   toLowerCase,
-} from 'rrweb-snapshot';
+} from '@appsurify-testmap/rrweb-snapshot';
 import type { FontFaceSet } from 'css-font-loading-module';
 import {
   throttle,
@@ -25,7 +25,7 @@ import {
   MouseInteractions,
   PointerTypes,
   MediaInteractions,
-} from '@rrweb/types';
+} from '@appsurify-testmap/rrweb-types';
 import type {
   mutationCallBack,
   mousemoveCallBack,
@@ -49,10 +49,10 @@ import type {
   SelectionRange,
   selectionCallback,
   customElementCallback,
-} from '@rrweb/types';
+} from '@appsurify-testmap/rrweb-types';
 import MutationBuffer from './mutation';
 import { callbackWrapper } from './error-handler';
-import dom, { mutationObserverCtor } from '@rrweb/utils';
+import dom, { mutationObserverCtor } from '@appsurify-testmap/rrweb-utils';
 
 export const mutationBuffers: MutationBuffer[] = [];
 

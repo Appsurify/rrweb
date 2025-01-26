@@ -7,8 +7,8 @@ import type {
   listenerHandler,
   eventWithTime,
   mutationData,
-} from '@rrweb/types';
-import { EventType, IncrementalSource } from '@rrweb/types';
+} from '@appsurify-testmap/rrweb-types';
+import { EventType, IncrementalSource } from '@appsurify-testmap/rrweb-types';
 import {
   assertSnapshot,
   getServerURL,

@@ -1,6 +1,6 @@
-import type { eventWithTime } from '@rrweb/types';
-import type { Replayer, playerConfig } from '@rrweb/replay';
-import type { Mirror } from 'rrweb-snapshot';
+import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
+import type { Replayer, playerConfig } from '@appsurify-testmap/rrweb-replay';
+import type { Mirror } from '@appsurify-testmap/rrweb-snapshot';
 
 export type RRwebPlayerOptions = {
   target: HTMLElement;

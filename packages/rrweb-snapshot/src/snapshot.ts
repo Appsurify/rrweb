@@ -7,7 +7,7 @@ import type {
   ICanvas,
   DialogAttributes,
 } from './types';
-import { NodeType } from '@rrweb/types';
+import { NodeType } from '@appsurify-testmap/rrweb-types';
 import type {
   serializedNode,
   serializedNodeWithId,
@@ -16,7 +16,7 @@ import type {
   attributes,
   mediaAttributes,
   DataURLOptions,
-} from '@rrweb/types';
+} from '@appsurify-testmap/rrweb-types';
 import {
   Mirror,
   is2DCanvasBlank,
@@ -34,7 +34,7 @@ import {
   isTextVisible,
   getXPath
 } from './utils';
-import dom from '@rrweb/utils';
+import dom from '@appsurify-testmap/rrweb-utils';
 
 let _id = 1;
 const tagNameRegex = new RegExp('[^a-z0-9-_:]');

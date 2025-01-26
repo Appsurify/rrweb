@@ -1,5 +1,5 @@
 {
-  "name": "rrweb-snapshot",
+  "name": "@appsurify-testmap/rrweb-snapshot",
   "version": "2.0.0-alpha.21",
   "description": "rrweb's component to take a snapshot of DOM, aka DOM serializer",
   "scripts": {
@@ -12,7 +12,7 @@
     "test:update": "yarn build && vitest run --update",
     "bench": "vite build && vitest bench",
     "dev": "vite build --watch",
-    "build": "yarn turbo prepublish -F rrweb-snapshot",
+    "build": "yarn turbo prepublish -F @appsurify-testmap/rrweb-snapshot",
     "build:tarball": "yarn pack",
     "check-types": "tsc --noEmit",
     "prepublish": "yarn check-types && vite build",
@@ -55,8 +55,8 @@
   },
   "homepage": "https://github.com/rrweb-io/rrweb/tree/master/packages/rrweb-snapshot#readme",
   "devDependencies": {
-    "@rrweb/types": "^2.0.0-alpha.21",
-    "@rrweb/utils": "^2.0.0-alpha.21",
+    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.21",
+    "@appsurify-testmap/rrweb-utils": "^2.0.0-alpha.21",
     "@types/jsdom": "^20.0.0",
     "@types/node": "^18.15.11",
     "@types/puppeteer": "^5.4.4",

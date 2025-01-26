@@ -1,5 +1,5 @@
-import { EventType } from '@rrweb/types';
-import type { eventWithTime } from '@rrweb/types';
+import { EventType } from '@appsurify-testmap/rrweb-types';
+import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 
 const now = Date.now();
 const events: eventWithTime[] = [

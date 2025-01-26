@@ -5,7 +5,7 @@ import type {
   nodeMetaMap,
 } from './types';
 
-import { NodeType } from '@rrweb/types';
+import { NodeType } from '@appsurify-testmap/rrweb-types';
 import type {
   IMirror,
   serializedNodeWithId,
@@ -14,8 +14,8 @@ import type {
   documentTypeNode,
   textNode,
   elementNode,
-} from '@rrweb/types';
-import dom from '@rrweb/utils';
+} from '@appsurify-testmap/rrweb-types';
+import dom from '@appsurify-testmap/rrweb-utils';
 
 // const parentNode = n.parentNode;
 // if (!parentNode || !(parentNode instanceof Element)) {

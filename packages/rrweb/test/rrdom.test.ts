@@ -3,9 +3,9 @@
  */
 import { EventType, IncrementalSource, Replayer, eventWithTime } from '../src';
 import { vi, type MockInstance } from 'vitest';
-import type { styleDeclarationData, styleSheetRuleData } from '@rrweb/types';
-import { createMirror, Mirror as NodeMirror } from 'rrweb-snapshot';
-import type { ReplayerHandler } from 'rrdom';
+import type { styleDeclarationData, styleSheetRuleData } from '@appsurify-testmap/rrweb-types';
+import { createMirror, Mirror as NodeMirror } from '@appsurify-testmap/rrweb-snapshot';
+import type { ReplayerHandler } from '@appsurify-testmap/rrdom';
 
 describe('diff algorithm for rrdom', () => {
   let mirror: NodeMirror;

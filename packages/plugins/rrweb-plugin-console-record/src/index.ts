@@ -1,5 +1,5 @@
-import type { listenerHandler, RecordPlugin, IWindow } from '@rrweb/types';
-import { utils } from 'rrweb';
+import type { listenerHandler, RecordPlugin, IWindow } from '@appsurify-testmap/rrweb-types';
+import { utils } from '@appsurify-testmap/rrweb';
 import { ErrorStackParser, StackFrame } from './error-stack-parser';
 import { stringify } from './stringify';
 

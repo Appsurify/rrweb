@@ -15,7 +15,7 @@ import {
   EventType,
   eventWithTime,
   listenerHandler,
-} from '@rrweb/types';
+} from '@appsurify-testmap/rrweb-types';
 import { recordOptions } from '../../src/types';
 
 interface IWindow extends Window {

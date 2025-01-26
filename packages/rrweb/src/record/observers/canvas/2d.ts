@@ -4,7 +4,7 @@ import {
   type canvasManagerMutationCallback,
   type IWindow,
   type listenerHandler,
-} from '@rrweb/types';
+} from '@appsurify-testmap/rrweb-types';
 import { hookSetter, isBlocked, patch } from '../../../utils';
 import { serializeArgs } from './serialize-args';
 

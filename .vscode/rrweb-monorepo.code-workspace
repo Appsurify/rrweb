@@ -13,60 +13,60 @@
       "path": "../packages/rrdom-nodejs"
     },
     {
-      "name": "rrweb (package)",
+      "name": @appsurify-testmap/"rrweb (package)",
       "path": "../packages/rrweb"
     },
     {
-      "name": "rrweb-player (package)",
+      "name": "@appsurify-testmap/rrweb-player (package)",
       "path": "../packages/rrweb-player"
     },
     {
-      "name": "rrweb-snapshot (package)",
+      "name": "@appsurify-testmap/rrweb-snapshot (package)",
       "path": "../packages/rrweb-snapshot"
     },
     {
-      "name": "@rrweb/all",
+      "name": "@appsurify-testmap/rrweb-all",
       "path": "../packages/all"
     },
     {
-      "name": "@rrweb/record",
+      "name": "@appsurify-testmap/rrweb-record",
       "path": "../packages/record"
     },
     {
-      "name": "@rrweb/replay",
+      "name": "@appsurify-testmap/rrweb-replay",
       "path": "../packages/replay"
     },
     {
-      "name": "@rrweb/types",
+      "name": "@appsurify-testmap/rrweb-types",
       "path": "../packages/types"
     },
     {
-      "name": "@rrweb/utils",
+      "name": "@appsurify-testmap/rrweb-utils",
       "path": "../packages/utils"
     },
     {
-      "name": "@rrweb/packer",
+      "name": "@appsurify-testmap/rrweb-packer",
       "path": "../packages/packer"
     },
     {
-      "name": "web-extension (package)",
+      "name": "@appsurify-testmap/web-extension (package)",
       "path": "../packages/web-extension"
     },
-    { "name": "rrvideo (package)", "path": "../packages/rrvideo" },
+    { "name": "@appsurify-testmap/rrvideo (package)", "path": "../packages/rrvideo" },
     {
-      "name": "@rrweb/rrweb-plugin-console-record",
+      "name": "@appsurify-testmap/rrweb-rrweb-plugin-console-record",
       "path": "../packages/plugins/rrweb-plugin-console-record"
     },
     {
-      "name": "@rrweb/rrweb-plugin-console-replay",
+      "name": "@appsurify-testmap/rrweb-rrweb-plugin-console-replay",
       "path": "../packages/plugins/rrweb-plugin-console-replay"
     },
     {
-      "name": "@rrweb/rrweb-plugin-sequential-id-record",
+      "name": "@appsurify-testmap/rrweb-rrweb-plugin-sequential-id-record",
       "path": "../packages/plugins/rrweb-plugin-sequential-id-record"
     },
     {
-      "name": "@rrweb/rrweb-plugin-sequential-id-replay",
+      "name": "@appsurify-testmap/rrweb-rrweb-plugin-sequential-id-replay",
       "path": "../packages/plugins/rrweb-plugin-sequential-id-replay"
     },
     {
@@ -74,7 +74,7 @@
       "path": "../packages/plugins/rrweb-plugin-canvas-webrtc-record"
     },
     {
-      "name": "@rrweb/rrweb-plugin-canvas-webrtc-replay",
+      "name": "@appsurify-testmap/rrweb-rrweb-plugin-canvas-webrtc-replay",
       "path": "../packages/plugins/rrweb-plugin-canvas-webrtc-replay"
     }
   ],
@@ -83,22 +83,22 @@
     "vitest.commandLine": "yarn vitest",
     "jest.disabledWorkspaceFolders": [
       " rrweb monorepo",
-      "rrweb (package)",
-      "rrweb-player (package)",
-      "rrweb-snapshot (package)",
-      "rrdom (package)",
-      "rrdom-nodejs (package)",
-      "@rrweb/all",
-      "@rrweb/record",
-      "@rrweb/replay",
-      "@rrweb/types",
-      "@rrweb/utils",
-      "@rrweb/packer",
-      "@rrweb/rrweb-plugin-console-record",
-      "@rrweb/rrweb-plugin-console-replay",
-      "@rrweb/rrweb-plugin-sequential-id",
-      "@rrweb/rrweb-plugin-canvas-webrtc-record",
-      "@rrweb/rrweb-plugin-canvas-webrtc-replay"
+      "@appsurify-testmap/rrweb (package)",
+      "@appsurify-testmap/rrweb-player (package)",
+      "@appsurify-testmap/rrweb-snapshot (package)",
+      "@appsurify-testmap/rrdom (package)",
+      "@appsurify-testmap/rrdom-nodejs (package)",
+      "@appsurify-testmap/rrweb-all",
+      "@appsurify-testmap/rrweb-record",
+      "@appsurify-testmap/rrweb-replay",
+      "@appsurify-testmap/rrweb-types",
+      "@appsurify-testmap/rrweb-utils",
+      "@appsurify-testmap/rrweb-packer",
+      "@appsurify-testmap/rrweb-rrweb-plugin-console-record",
+      "@appsurify-testmap/rrweb-rrweb-plugin-console-replay",
+      "@appsurify-testmap/rrweb-rrweb-plugin-sequential-id",
+      "@appsurify-testmap/rrweb-rrweb-plugin-canvas-webrtc-record",
+      "@appsurify-testmap/rrweb-rrweb-plugin-canvas-webrtc-replay"
     ],
     "typescript.tsdk": " rrweb monorepo/node_modules/typescript/lib"
   }
