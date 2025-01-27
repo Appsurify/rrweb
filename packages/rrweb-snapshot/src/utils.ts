@@ -5,24 +5,22 @@ import type {
   nodeMetaMap,
 } from './types';
 
-import { NodeType } from '@appsurify-testmap/rrweb-types';
 import type {
-  IMirror,
-  serializedNodeWithId,
-  serializedNode,
   documentNode,
   documentTypeNode,
-  textNode,
   elementNode,
+  IMirror,
+  serializedNode,
+  serializedNodeWithId,
+  textNode,
 } from '@appsurify-testmap/rrweb-types';
+import { NodeType } from '@appsurify-testmap/rrweb-types';
 import dom from '@appsurify-testmap/rrweb-utils';
 
 // const parentNode = n.parentNode;
 // if (!parentNode || !(parentNode instanceof Element)) {
 //   return ''; // Убедимся, что это действительно элемент
 // }
-
-
 
 
 export function getXPath(n: Element): string {
@@ -34,20 +32,22 @@ export function getXPath(n: Element): string {
     return "/html/body";
   }
 
+  if (!n.tagName) {
+    return '';
+  }
+
   const parentNode = dom.parentNode(n);
   if (!parentNode || !(parentNode instanceof Element)) {
     return '';
   }
 
   const siblings = Array.from(parentNode.children).filter(
-    (node) => node.tagName === n.tagName
+    (node) => node.tagName && node.tagName === n.tagName
   );
 
   const index = siblings.length > 1 ? `[${siblings.indexOf(n) + 1}]` : "";
 
-  const path = getXPath(parentNode) + "/" + n.tagName.toLowerCase() + index;
-
-  return path;
+  return getXPath(parentNode) + "/" + n.tagName.toLowerCase() + index;
 }
 
 export function isElement(n: Node): n is Element {
@@ -80,6 +80,7 @@ function isStyleVisible(n: Element): boolean {
   const style = window.getComputedStyle(n);
   return style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) !== 0;
 }
+
 
 function isRectVisible(rect: DOMRect): boolean {
   return rect.width > 0 && rect.height > 0 &&

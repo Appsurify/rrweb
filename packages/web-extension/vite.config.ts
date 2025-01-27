@@ -73,6 +73,7 @@ export default defineConfig({
       process.env.TARGET_BROWSER as string,
     ),
     emptyOutDir,
+    sourcemap: true,
   },
   // Add the webExtension plugin
   plugins: [
@@ -113,7 +114,7 @@ export default defineConfig({
       },
       browser: process.env.TARGET_BROWSER,
       webExtConfig: {
-        startUrl: ['github.com/rrweb-io/rrweb'],
+        startUrl: ['api.testmap.appsurify.com/test-demo/'],
         watchIgnored: ['*.md', '*.log'],
       },
       additionalInputs: ['pages/index.html', 'content/inject.ts'],
@@ -134,6 +135,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '~': path.resolve(__dirname, './src'),
+      '@appsurify-testmap/rrweb': path.resolve(__dirname, '../rrweb/src'),
     },
   },
 });
