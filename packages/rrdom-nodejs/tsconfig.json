@@ -9,10 +9,10 @@
   },
   "references": [
     {
-      "path": "../types"
+      "path": "../rrdom"
     },
     {
-      "path": "../rrdom"
+      "path": "../types"
     }
   ]
 }
