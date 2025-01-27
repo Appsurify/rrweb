@@ -17,38 +17,129 @@ import type {
 import { NodeType } from '@appsurify-testmap/rrweb-types';
 import dom from '@appsurify-testmap/rrweb-utils';
 
-// const parentNode = n.parentNode;
-// if (!parentNode || !(parentNode instanceof Element)) {
-//   return ''; // Убедимся, что это действительно элемент
-// }
 
+export function getXPath(node: Node): string {
+  // console.info(node.nodeType, node);
 
-export function getXPath(n: Element): string {
-  if (n.id) {
-    return `//*[@id="${n.id}"]`;
+  if (node.nodeType === Node.DOCUMENT_NODE) {
+    // Корневой узел документа всегда возвращает "/"
+    return '/';
   }
 
-  if (n === document.body) {
-    return "/html/body";
+  if (node.nodeType === Node.DOCUMENT_TYPE_NODE) {
+    // Узел типа документа (DOCTYPE)
+    return '/html/doctype';
   }
 
-  if (!n.tagName) {
-    return '';
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    const element = node as Element;
+
+    if (element.id) {
+      // Если у элемента есть уникальный ID, используем его
+      return `//*[@id="${element.id}"]`;
+    }
+
+    if (element.tagName && element.tagName.toLowerCase() === 'html') {
+      return '/html'
+    }
+
+    if (element === document.head) {
+      return '/html/head'
+    }
+
+    if (element === document.body) {
+      // Узел body
+      return '/html/body';
+    }
+
+    const parentNode = element.parentNode;
+    if (!parentNode || !(parentNode instanceof Element)) {
+      // Если родительский узел недоступен или не является элементом, путь построить нельзя
+      return '';
+    }
+
+    const siblings = Array.from(parentNode.children).filter(
+      (sibling) => sibling.tagName === element.tagName
+    );
+
+    const index = siblings.length > 1 ? `[${siblings.indexOf(element) + 1}]` : '';
+
+    // Рекурсивное построение пути
+    return `${getXPath(parentNode)}/${element.tagName.toLowerCase()}${index}`;
   }
 
-  const parentNode = dom.parentNode(n);
-  if (!parentNode || !(parentNode instanceof Element)) {
-    return '';
+  if (node.nodeType === Node.TEXT_NODE) {
+    const parent = node.parentNode;
+    if (!parent) {
+      // Если текстовый узел не имеет родителя, путь построить нельзя
+      return '';
+    }
+
+    const textSiblings = Array.from(parent.childNodes).filter(
+      (sibling) => sibling.nodeType === Node.TEXT_NODE
+    );
+
+    const index = textSiblings.length > 1 ? `[${textSiblings.indexOf((node as Element)) + 1}]` : '';
+
+    return `${getXPath(parent)}/text()${index}`;
   }
 
-  const siblings = Array.from(parentNode.children).filter(
-    (node) => node.tagName && node.tagName === n.tagName
-  );
+  if (node.nodeType === Node.CDATA_SECTION_NODE) {
+    const parent = node.parentNode;
+    if (!parent) {
+      return '';
+    }
 
-  const index = siblings.length > 1 ? `[${siblings.indexOf(n) + 1}]` : "";
+    const cdataSiblings = Array.from(parent.childNodes).filter(
+      (sibling) => sibling.nodeType === Node.CDATA_SECTION_NODE
+    );
 
-  return getXPath(parentNode) + "/" + n.tagName.toLowerCase() + index;
+    const index = cdataSiblings.length > 1 ? `[${cdataSiblings.indexOf((node as Element)) + 1}]` : '';
+
+    return `${getXPath(parent)}/text()${index}`;
+  }
+
+  if (node.nodeType === Node.COMMENT_NODE) {
+    const parent = node.parentNode;
+    if (!parent) {
+      return '';
+    }
+
+    const commentSiblings = Array.from(parent.childNodes).filter(
+      (sibling) => sibling.nodeType === Node.COMMENT_NODE
+    );
+
+    const index = commentSiblings.length > 1 ? `[${commentSiblings.indexOf((node as Element)) + 1}]` : '';
+
+    return `${getXPath(parent)}/comment()${index}`;
+  }
+
+  return ''; // Если тип узла не поддерживается
 }
+
+// export function getXPath(n: Element): string {
+//   if (n.id) {
+//     return `//*[@id="${n.id}"]`;
+//   }
+//
+//   if (n === document.body) {
+//     return "/html/body";
+//   }
+//
+//   const parentNode = dom.parentNode(n);
+//   if (!parentNode || !(parentNode instanceof Element)) {
+//     return '';
+//   }
+//
+//   const siblings = Array.from(parentNode.children).filter(
+//     (node) => node.tagName && node.tagName === n.tagName
+//   );
+//   console.info(n, n.tagName)
+//
+//   const index = siblings.length > 1 ? `[${siblings.indexOf(n) + 1}]` : "";
+//
+//   return getXPath(parentNode) + "/" + n.tagName.toLowerCase() + index;
+// }
 
 export function isElement(n: Node): n is Element {
   return n.nodeType === n.ELEMENT_NODE;

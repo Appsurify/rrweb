@@ -8,7 +8,8 @@
     "incremental": true,
     "resolveJsonModule": true,
     "paths": {
-      "~/*": ["src/*"]
+      "~/*": ["src/*"],
+      "@appsurify-testmap/rrweb": ["../rrweb/src/*"]
     },
     "jsx": "react-jsx"
   },
