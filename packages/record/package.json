@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-record",
-  "version": "2.0.0-alpha.21",
+  "version": "2.0.0-alpha.22",
   "publishConfig": {
     "access": "public"
   },
@@ -55,8 +55,8 @@
     "vitest": "^1.4.0"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.21",
-    "@appsurify-testmap/rrweb": "^2.0.0-alpha.21"
+    "@appsurify-testmap/rrweb": "^2.0.0-alpha.22",
+    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.22"
   },
   "browserslist": [
     "supports es6-class"
