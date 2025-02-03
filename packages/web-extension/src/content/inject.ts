@@ -14,7 +14,7 @@ function startRecord(config: recordOptions<eventWithTime>) {
   stopFn =
     record({
       emit: (event) => {
-        console.info("startRecord -> record.emit -> event: ", event);
+        console.info("Emit event: ", event);
         postMessage({
           message: MessageName.EmitEvent,
           event,
@@ -27,15 +27,15 @@ function startRecord(config: recordOptions<eventWithTime>) {
           MouseDown: false,
           Click: true,
           ContextMenu: false,
-          DblClick: true,
-          Focus: true,
-          Blur: true,
+          DblClick: false,
+          Focus: false,
+          Blur: false,
           TouchStart: false,
           TouchEnd: false,
         },
         scroll: 150, // do not emit twice in 150ms
         media: 800,
-        visibility: true,
+        visibility: false,
         input: "last",
       },
       // checkoutEveryNth: 1,

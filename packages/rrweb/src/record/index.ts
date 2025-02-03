@@ -14,7 +14,7 @@ import {
   isSerializedStylesheet,
   nowTimestamp,
   on,
-  polyfill, throttle,
+  polyfill
 } from "../utils";
 import type {
   CrossOriginIframeMessageEventContent,
@@ -204,10 +204,13 @@ function record<T = eventWithTime>(
     }
     return e as unknown as T;
   };
+
+
   wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
     const e = r as eventWithTime;
 
     e.timestamp = nowTimestamp();
+
     if (
       mutationBuffers[0]?.isFrozen() &&
       e.type !== EventType.FullSnapshot &&
@@ -254,9 +257,24 @@ function record<T = eventWithTime>(
         checkoutEveryNms &&
         e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
 
-      if (exceedCount || exceedTime) {
+      const isVisibilityChanged =
+        checkoutEveryEvc &&
+        e.type === EventType.IncrementalSnapshot &&
+        e.data.source === IncrementalSource.VisibilityChange;
+
+      if (exceedCount || exceedTime || isVisibilityChanged) {
         takeFullSnapshot(true);
       }
+
+      // if (
+      //   (checkoutEveryNth && incrementalSnapshotCount >= checkoutEveryNth) ||
+      //   (checkoutEveryNms &&
+      //     e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms) ||
+      //   (checkoutEveryEvc && e.data.source === IncrementalSource.VisibilityChange)
+      // ) {
+      //   takeFullSnapshot(true);
+      // }
+
     }
   };
 
@@ -269,6 +287,7 @@ function record<T = eventWithTime>(
       },
     });
   };
+
   const wrappedScrollEmit: scrollCallback = (p) =>
     wrappedEmit({
       type: EventType.IncrementalSnapshot,
@@ -277,6 +296,7 @@ function record<T = eventWithTime>(
         ...p,
       },
     });
+
   const wrappedCanvasMutationEmit = (p: canvasMutationParam) =>
     wrappedEmit({
       type: EventType.IncrementalSnapshot,
@@ -442,12 +462,6 @@ function record<T = eventWithTime>(
       );
   };
 
-  const debouncedFullSnapshot = throttle(() => {
-    if (checkoutEveryEvc) {
-      takeFullSnapshot(true);
-    }
-  }, 100, { leading: false, trailing: true });
-
   try {
     const handlers: listenerHandler[] = [];
 
@@ -455,18 +469,14 @@ function record<T = eventWithTime>(
       return callbackWrapper(initObservers)(
         {
           mutationCb: wrappedMutationEmit,
-          visibilityChangeCb: (v) =>
-          {
-            debouncedFullSnapshot();
-            if (sampling.visibility) {
-              return wrappedEmit({
-                type: EventType.IncrementalSnapshot,
-                data: {
-                  source: IncrementalSource.VisibilityChange,
-                  ...v,
-                },
-              })
-            }
+          visibilityChangeCb: (v) => {
+            wrappedEmit({
+              type: EventType.IncrementalSnapshot,
+              data: {
+                source: IncrementalSource.VisibilityChange,
+                ...v,
+              },
+            })
           },
           mousemoveCb: (positions, source) =>
             wrappedEmit({

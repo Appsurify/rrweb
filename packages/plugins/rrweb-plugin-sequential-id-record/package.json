@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-rrweb-plugin-sequential-id-record",
-  "version": "2.0.0-alpha.24",
+  "version": "2.0.0-alpha.25",
   "description": "",
   "type": "module",
   "main": "./dist/rrweb-rrweb-plugin-sequential-id-record.umd.cjs",
@@ -43,7 +43,7 @@
   },
   "homepage": "https://github.com/rrweb-io/rrweb#readme",
   "devDependencies": {
-    "@appsurify-testmap/rrweb": "^2.0.0-alpha.24",
+    "@appsurify-testmap/rrweb": "^2.0.0-alpha.25",
     "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "vite-plugin-dts": "^3.9.1"

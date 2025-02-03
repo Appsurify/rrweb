@@ -225,7 +225,8 @@ export type SamplingStrategy = Partial<{
    *                          Number only supported where [`OffscreenCanvas`](http://mdn.io/offscreencanvas) is supported.
    */
   canvas: 'all' | number;
-  visibility: boolean;
+
+  visibility: boolean | number;
 }>;
 
 export interface ICrossOriginIframeMirror {
@@ -346,7 +347,6 @@ export type visibilityChangeParam = {
   id: number;
   isVisible: boolean;
   visibilityRatio?: number;
-  boundingRect?: DOMRect;
 };
 export type visibilityChangeCallback = (v: visibilityChangeParam) => void;
 

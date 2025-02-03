@@ -107,40 +107,49 @@ export function initVisibilityObserver({
   visibilityChangeCb,
   doc,
   mirror,
+  sampling
 }: observerParam): listenerHandler {
 
   if (!visibilityChangeCb) {
-    return () => {
-      // No operation needed
-    };
+    return () => { /* No operation needed */ };
   }
 
   const observedElements = new WeakMap<Element, boolean>();
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        const target = entry.target;
-        const id = mirror.getId(target);
-        const isVisible = entry.isIntersecting || entry.intersectionRatio > 0;
+  const debounceThreshold = typeof sampling.visibility === 'number' ? sampling.visibility : 50;
 
-        // Пропуск первого события
-        if (id !== -1) {
-          if (observedElements.has(target)) {
-            visibilityChangeCb({
-              id,
-              isVisible,
-              visibilityRatio: entry.intersectionRatio,
-              boundingRect: entry.boundingClientRect,
-            });
-          } else {
-            observedElements.set(target, true); // Помечаем как инициализированный
-          }
-        }
-      });
-    },
-    { root: null, threshold: [0.1, 0.9], }
+  const throttledCb = throttle(
+    callbackWrapper((entry) => {
+      const target = entry.target;
+      const id = mirror.getId(target);
+      const isVisible = entry.isIntersecting || entry.intersectionRatio > 0;
+
+      if (id !== -1) {
+
+        visibilityChangeCb({
+          id,
+          isVisible,
+          visibilityRatio: entry.intersectionRatio,
+        });
+
+      }
+    }),
+    debounceThreshold,
+    { leading: sampling.visibility !== false, trailing: true }
   );
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+
+      const target = entry.target;
+
+      if (observedElements.has(target)) {
+        throttledCb(entry);
+      } else {
+        observedElements.set(target, true);
+      }
+    });
+  }, { root: null, threshold: [0.1, 0.9] });
 
   doc.querySelectorAll('*').forEach((el) => observer.observe(el));
 
@@ -1365,7 +1374,6 @@ export function initObservers(
   o: observerParam,
   hooks: hooksParam = {},
 ): listenerHandler {
-  console.info('initObservers', o);
   const currentWindow = o.doc.defaultView; // basically document.window
   if (!currentWindow) {
     return () => {
