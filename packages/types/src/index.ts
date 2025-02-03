@@ -705,6 +705,49 @@ export type TakeTypedKeyValues<Obj extends object, Type> = Pick<
   TakeTypeHelper<Obj, Type>[keyof TakeTypeHelper<Obj, Type>]
 >;
 
+
+export enum InteractiveEvent {
+  Change,
+  Submit,
+  DragStart,
+  Drop,
+  PointerDown,
+  PointerUp,
+  Input,
+  KeyDown,
+  KeyUp,
+  KeyPress,
+  MouseEnter,
+  MouseLeave,
+  MouseUp,
+  MouseDown,
+  Click,
+  ContextMenu,
+  DblClick,
+  Focus,
+  Blur,
+  TouchStart,
+  TouchMove,
+  TouchEnd,
+  TouchCancel,
+}
+
+
+export enum interactiveTag {
+  Input,
+  Button,
+  A,
+  Select,
+  Textarea,
+  Label,
+  Details,
+  Summary,
+  Dialog,
+  Video,
+  Audio
+}
+
+
 export enum NodeType {
   Document,
   DocumentType,
@@ -713,6 +756,7 @@ export enum NodeType {
   CDATA,
   Comment,
 }
+
 
 export type documentNode = {
   type: NodeType.Document;
@@ -777,6 +821,7 @@ export type elementNode = {
   childNodes: serializedNodeWithId[];
   xPath?: string;
   isVisible?: boolean;
+  isInteractive?: boolean;
   isSVG?: true;
   needBlock?: boolean;
   // This is a custom element or not.
@@ -788,6 +833,7 @@ export type textNode = {
   textContent: string;
   xPath?: string;
   isVisible?: boolean;
+  isInteractive?: boolean;
   /**
    * @deprecated styles are now always snapshotted against parent <style> element
    * style mutations can still happen via an added textNode, but they don't need this attribute for correct replay

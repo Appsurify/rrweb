@@ -11,21 +11,49 @@ import { isInCrossOriginIFrame } from '~/utils';
 let stopFn: (() => void) | null = null;
 
 function startRecord(config: recordOptions<eventWithTime>) {
+  console.info('startRecord with: ', config);
   stopFn =
     record({
       emit: (event) => {
-        console.info('emit', event);
+        console.info("startRecord -> record.emit -> event: ", event);
         postMessage({
           message: MessageName.EmitEvent,
           event,
         });
       },
-      ...config,
+      sampling: {
+        mousemove: false,
+        mouseInteraction: {
+          MouseUp: false,
+          MouseDown: false,
+          Click: true,
+          ContextMenu: false,
+          DblClick: true,
+          Focus: true,
+          Blur: true,
+          TouchStart: false,
+          TouchEnd: false,
+        },
+        scroll: 150, // do not emit twice in 150ms
+        media: 800,
+
+        input: "last",
+      },
+      // checkoutEveryNth: 1,
+      checkoutEveryEvc: true,
+      maskInputOptions: {
+        password: true
+      },
+      ...config
+
     }) || null;
+
+  console.info("startRecord -> postMessage -> RecordStarted");
   postMessage({
     message: MessageName.RecordStarted,
     startTimestamp: Date.now(),
   } as RecordStartedMessage);
+
 }
 
 const messageHandler = (
@@ -35,7 +63,11 @@ const messageHandler = (
   }>,
 ) => {
   if (event.source !== window) return;
+
+  console.info("messageHandler -> event.data: ", event.data);
+
   const data = event.data;
+
   const eventHandler = {
     [MessageName.StartRecord]: () => {
       startRecord(data.config || {});

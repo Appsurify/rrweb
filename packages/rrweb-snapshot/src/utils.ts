@@ -13,172 +13,10 @@ import type {
   serializedNode,
   serializedNodeWithId,
   textNode,
-} from '@appsurify-testmap/rrweb-types';
-import { NodeType } from '@appsurify-testmap/rrweb-types';
+} from "@appsurify-testmap/rrweb-types";
+import { NodeType, InteractiveEvent, interactiveTag } from '@appsurify-testmap/rrweb-types';
 import dom from '@appsurify-testmap/rrweb-utils';
 
-
-export function getXPath(node: Node): string {
-  // console.info(node.nodeType, node);
-
-  if (node.nodeType === Node.DOCUMENT_NODE) {
-    // Корневой узел документа всегда возвращает "/"
-    return '/';
-  }
-
-  if (node.nodeType === Node.DOCUMENT_TYPE_NODE) {
-    // Узел типа документа (DOCTYPE)
-    return '/html/doctype';
-  }
-
-  if (node.nodeType === Node.ELEMENT_NODE) {
-    const element = node as Element;
-
-    if (element.id) {
-      // Если у элемента есть уникальный ID, используем его
-      return `//*[@id="${element.id}"]`;
-    }
-
-    if (element.tagName && element.tagName.toLowerCase() === 'html') {
-      return '/html'
-    }
-
-    if (element === document.head) {
-      return '/html/head'
-    }
-
-    if (element === document.body) {
-      // Узел body
-      return '/html/body';
-    }
-
-    const parentNode = element.parentNode;
-    if (!parentNode || !(parentNode instanceof Element)) {
-      // Если родительский узел недоступен или не является элементом, путь построить нельзя
-      return '';
-    }
-
-    const siblings = Array.from(parentNode.children).filter(
-      (sibling) => sibling.tagName === element.tagName
-    );
-
-    const index = siblings.length > 1 ? `[${siblings.indexOf(element) + 1}]` : '';
-
-    // Рекурсивное построение пути
-    return `${getXPath(parentNode)}/${element.tagName.toLowerCase()}${index}`;
-  }
-
-  if (node.nodeType === Node.TEXT_NODE) {
-    const parent = node.parentNode;
-    if (!parent) {
-      // Если текстовый узел не имеет родителя, путь построить нельзя
-      return '';
-    }
-
-    const textSiblings = Array.from(parent.childNodes).filter(
-      (sibling) => sibling.nodeType === Node.TEXT_NODE
-    );
-
-    const index = textSiblings.length > 1 ? `[${textSiblings.indexOf((node as Element)) + 1}]` : '';
-
-    return `${getXPath(parent)}/text()${index}`;
-  }
-
-  if (node.nodeType === Node.CDATA_SECTION_NODE) {
-    const parent = node.parentNode;
-    if (!parent) {
-      return '';
-    }
-
-    const cdataSiblings = Array.from(parent.childNodes).filter(
-      (sibling) => sibling.nodeType === Node.CDATA_SECTION_NODE
-    );
-
-    const index = cdataSiblings.length > 1 ? `[${cdataSiblings.indexOf((node as Element)) + 1}]` : '';
-
-    return `${getXPath(parent)}/text()${index}`;
-  }
-
-  if (node.nodeType === Node.COMMENT_NODE) {
-    const parent = node.parentNode;
-    if (!parent) {
-      return '';
-    }
-
-    const commentSiblings = Array.from(parent.childNodes).filter(
-      (sibling) => sibling.nodeType === Node.COMMENT_NODE
-    );
-
-    const index = commentSiblings.length > 1 ? `[${commentSiblings.indexOf((node as Element)) + 1}]` : '';
-
-    return `${getXPath(parent)}/comment()${index}`;
-  }
-
-  return ''; // Если тип узла не поддерживается
-}
-
-// export function getXPath(n: Element): string {
-//   if (n.id) {
-//     return `//*[@id="${n.id}"]`;
-//   }
-//
-//   if (n === document.body) {
-//     return "/html/body";
-//   }
-//
-//   const parentNode = dom.parentNode(n);
-//   if (!parentNode || !(parentNode instanceof Element)) {
-//     return '';
-//   }
-//
-//   const siblings = Array.from(parentNode.children).filter(
-//     (node) => node.tagName && node.tagName === n.tagName
-//   );
-//   console.info(n, n.tagName)
-//
-//   const index = siblings.length > 1 ? `[${siblings.indexOf(n) + 1}]` : "";
-//
-//   return getXPath(parentNode) + "/" + n.tagName.toLowerCase() + index;
-// }
-
-export function isElement(n: Node): n is Element {
-  return n.nodeType === n.ELEMENT_NODE;
-}
-
-export function isTextVisible(n: Text): boolean {
-  // const parentElement = n.parentElement;
-
-  // The parent node may not be a html element which has a tagName attribute.
-  // So just let it be undefined which is ok in this use case.
-  const parent = dom.parentNode(n);
-  const parentElement = parent && (parent as Element);
-  if (!parentElement) {
-    return false;
-  }
-  const isParentVisible = isElementVisible(parentElement);
-  if (!isParentVisible) {
-    return false;
-  }
-  const textContent = n.textContent?.trim();
-  return textContent !== '';
-}
-
-export function isElementVisible(n: Element): boolean {
-  return isStyleVisible(n) && isRectVisible(n.getBoundingClientRect());
-}
-
-function isStyleVisible(n: Element): boolean {
-  const style = window.getComputedStyle(n);
-  return style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) !== 0;
-}
-
-
-function isRectVisible(rect: DOMRect): boolean {
-  return rect.width > 0 && rect.height > 0 &&
-    rect.top >= 0 && rect.left >= 0 &&
-    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth);
-}
 
 export function isShadowRoot(n: Node): n is ShadowRoot {
   const hostEl: Element | null =
@@ -706,3 +544,247 @@ export function markCssSplits(
 ): string {
   return splitCssText(cssText, style).join('/* rr_split */');
 }
+
+
+export function getXPath(node: Node): string {
+  // console.info(node.nodeType, node);
+
+  if (node.nodeType === Node.DOCUMENT_NODE) {
+    // Корневой узел документа всегда возвращает "/"
+    return '/';
+  }
+
+  if (node.nodeType === Node.DOCUMENT_TYPE_NODE) {
+    // Узел типа документа (DOCTYPE)
+    return '/html/doctype';
+  }
+
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    const element = node as Element;
+
+    if (element.id) {
+      // Если у элемента есть уникальный ID, используем его
+      return `//*[@id="${element.id}"]`;
+    }
+
+    if (element.tagName && element.tagName.toLowerCase() === 'html') {
+      return '/html'
+    }
+
+    if (element === document.head) {
+      return '/html/head'
+    }
+
+    if (element === document.body) {
+      // Узел body
+      return '/html/body';
+    }
+
+    const parentNode = element.parentNode;
+    if (!parentNode || !(parentNode instanceof Element)) {
+      // Если родительский узел недоступен или не является элементом, путь построить нельзя
+      return '';
+    }
+
+    const siblings = Array.from(parentNode.children).filter(
+      (sibling) => sibling.tagName === element.tagName
+    );
+
+    const index = siblings.length > 1 ? `[${siblings.indexOf(element) + 1}]` : '';
+
+    // Рекурсивное построение пути
+    return `${getXPath(parentNode)}/${element.tagName.toLowerCase()}${index}`;
+  }
+
+  if (node.nodeType === Node.TEXT_NODE) {
+    const parent = node.parentNode;
+    if (!parent) {
+      // Если текстовый узел не имеет родителя, путь построить нельзя
+      return '';
+    }
+
+    const textSiblings = Array.from(parent.childNodes).filter(
+      (sibling) => sibling.nodeType === Node.TEXT_NODE
+    );
+
+    const index = textSiblings.length > 1 ? `[${textSiblings.indexOf((node as Element)) + 1}]` : '';
+
+    return `${getXPath(parent)}/text()${index}`;
+  }
+
+  if (node.nodeType === Node.CDATA_SECTION_NODE) {
+    const parent = node.parentNode;
+    if (!parent) {
+      return '';
+    }
+
+    const cdataSiblings = Array.from(parent.childNodes).filter(
+      (sibling) => sibling.nodeType === Node.CDATA_SECTION_NODE
+    );
+
+    const index = cdataSiblings.length > 1 ? `[${cdataSiblings.indexOf((node as Element)) + 1}]` : '';
+
+    return `${getXPath(parent)}/text()${index}`;
+  }
+
+  if (node.nodeType === Node.COMMENT_NODE) {
+    const parent = node.parentNode;
+    if (!parent) {
+      return '';
+    }
+
+    const commentSiblings = Array.from(parent.childNodes).filter(
+      (sibling) => sibling.nodeType === Node.COMMENT_NODE
+    );
+
+    const index = commentSiblings.length > 1 ? `[${commentSiblings.indexOf((node as Element)) + 1}]` : '';
+
+    return `${getXPath(parent)}/comment()${index}`;
+  }
+
+  return ''; // Если тип узла не поддерживается
+}
+
+export function isElement(n: Node): n is Element {
+  return n.nodeType === n.ELEMENT_NODE;
+}
+
+export function isTextVisible(n: Text): boolean {
+  // const parentElement = n.parentElement;
+
+  // The parent node may not be a html element which has a tagName attribute.
+  // So just let it be undefined which is ok in this use case.
+  const parent = dom.parentNode(n);
+  const parentElement = parent && (parent as Element);
+  if (!parentElement) {
+    return false;
+  }
+  const isParentVisible = isElementVisible(parentElement);
+  if (!isParentVisible) {
+    return false;
+  }
+  const textContent = n.textContent?.trim();
+  return textContent !== '';
+}
+
+export function isElementVisible(n: Element): boolean {
+  return isStyleVisible(n) && isRectVisible(n.getBoundingClientRect());
+}
+
+function isStyleVisible(n: Element): boolean {
+  const style = window.getComputedStyle(n);
+  return style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) !== 0;
+}
+
+function isRectVisible(rect: DOMRect): boolean {
+  return rect.width > 0 && rect.height > 0 &&
+    rect.top >= 0 && rect.left >= 0 &&
+    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+}
+
+
+function getInteractiveEvents(): string[] {
+  return Object.keys(InteractiveEvent)
+    .filter(key => isNaN(Number(key)))
+    .map(key => key.toLowerCase().replace(/_/g, '-'));
+}
+
+function getInteractiveTags(): string[] {
+  return Object.keys(interactiveTag)
+    .filter(key => isNaN(Number(key)))
+    .map(key => key.toLowerCase().replace(/_/g, '-'));
+}
+
+
+function hasEventListeners(n: Node): boolean {
+
+  return getInteractiveEvents().some(eventType => {
+    let hasListener = false;
+    const testListener = () => { hasListener = true; };
+
+    n.addEventListener(eventType, testListener);
+    n.dispatchEvent(new Event(eventType));
+    n.removeEventListener(eventType, testListener);
+
+    return hasListener;
+  });
+}
+
+export function isElementInteractive(n: Node): boolean {
+  const allowedTags = getInteractiveTags();
+
+  if (n.nodeType === Node.ELEMENT_NODE) {
+    const element = n as Element;
+    const tagName = element.tagName.toLowerCase();
+
+    if (!allowedTags.includes(tagName)) {
+      return false;
+    }
+
+    const hasTabIndex = element.hasAttribute('tabindex') && element.getAttribute('tabindex') !== '-1';
+    const hasRoleInteractive = ['button', 'link', 'checkbox', 'switch', 'menuitem'].includes(
+      element.getAttribute('role') || ''
+    );
+
+    const result = (
+      hasEventListeners(element) ||
+      hasTabIndex ||
+      hasRoleInteractive ||
+      (element instanceof HTMLAnchorElement && element.hasAttribute('href')) ||
+      (element instanceof HTMLButtonElement && !element.disabled)
+    );
+
+    // console.info('isElementInteractive', tagName, {
+    //   hasEventListeners: hasEventListeners(element),
+    //   hasTabIndex,
+    //   hasRoleInteractive,
+    //   isAnchorElement: element instanceof HTMLAnchorElement && element.hasAttribute('href'),
+    //   isButtonElement: element instanceof HTMLButtonElement && !element.disabled,
+    // });
+
+    return result;
+  }
+
+  if (n.nodeType === Node.TEXT_NODE) {
+    const textNode = n as Text;
+    const parentElement = textNode.parentElement;
+
+    return (
+      parentElement !== null &&
+      allowedTags.includes(parentElement.tagName.toLowerCase()) &&
+      isElementVisible(parentElement) &&
+      textNode.textContent?.trim().length !== 0 &&
+      isElementInteractive(parentElement)
+    );
+  }
+
+  return false;
+}
+
+// export function markInteractiveElements(mirror: Mirror) {
+//   const allElements = document.querySelectorAll('*');
+//
+//   allElements.forEach((element) => {
+//     const interactive = isInteractive(element);
+//     const nodeId = mirror.getId(element);
+//
+//     if (interactive && nodeId !== -1) {
+//       const node = mirror.getNode(nodeId) as serializedNodeWithId | null;
+//       if (node && (node.type === NodeType.Element || node.type === NodeType.Text)) {
+//         (node as elementNode | textNode).isInteractive = true;
+//       }
+//     }
+//   });
+// }
+//
+// const interactiveCache = new WeakMap<Element, boolean>();
+// export function isInteractive(element: Element): boolean {
+//   if (interactiveCache.has(element)) {
+//     return interactiveCache.get(element)!;
+//   }
+//   const result = interactiveTags.includes(element.tagName.toLowerCase()) || hasEventListeners(element);
+//   interactiveCache.set(element, result);
+//   return result;
+// }
+

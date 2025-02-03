@@ -7,7 +7,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev:chrome": "cross-env TARGET_BROWSER=chrome vite dev",
+    "dev:chrome": "cross-env TARGET_BROWSER=chrome vite dev --force",
     "dev:firefox": "cross-env TARGET_BROWSER=firefox vite dev",
     "build:chrome": "cross-env TARGET_BROWSER=chrome vite build",
     "build:firefox": "cross-env TARGET_BROWSER=firefox vite build",

@@ -74,6 +74,14 @@ export default defineConfig({
     ),
     emptyOutDir,
     sourcemap: true,
+    commonjsOptions: {
+      include: [/node_modules/, '@appsurify-testmap/rrweb/', '@appsurify-testmap/rrweb-snapshot'],
+    },
+
+
+  },
+  optimizeDeps: {
+    include: ['@appsurify-testmap/rrweb-snapshot'],
   },
   // Add the webExtension plugin
   plugins: [
@@ -118,6 +126,7 @@ export default defineConfig({
         watchIgnored: ['*.md', '*.log'],
       },
       additionalInputs: ['pages/index.html', 'content/inject.ts'],
+      disableAutoLaunch: false,
     }) as PluginOption,
     // https://github.com/aklinker1/vite-plugin-web-extension/issues/50#issuecomment-1317922947
     // transfer inject.ts to iife format to avoid error
@@ -136,6 +145,9 @@ export default defineConfig({
     alias: {
       '~': path.resolve(__dirname, './src'),
       '@appsurify-testmap/rrweb': path.resolve(__dirname, '../rrweb/src'),
+      '@appsurify-testmap/rrweb-snapshot': path.resolve(__dirname, '../rrweb-snapshot/src'),
+      '@appsurify-testmap/rrweb-types': path.resolve(__dirname, '../types/src'),
+      '@appsurify-testmap/rrweb-utils': path.resolve(__dirname, '../utils/src'),
     },
   },
 });

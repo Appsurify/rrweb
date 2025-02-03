@@ -7,13 +7,36 @@
     "esModuleInterop": true,
     "incremental": true,
     "resolveJsonModule": true,
+    "sourceMap": true,
     "paths": {
-      "~/*": ["src/*"],
-      "@appsurify-testmap/rrweb": ["../rrweb/src/*"]
+      "~/*": [
+        "src/*"
+      ],
+      "@appsurify-testmap/rrweb": [
+        "../rrweb/src/*"
+      ],
+      "@appsurify-testmap/rrweb-snapshot": [
+        "../rrweb-snapshot/src/*"
+      ],
+      "@appsurify-testmap/rrweb-types": [
+        "../types/src/*"
+      ],
+      "@appsurify-testmap/rrweb-utils": [
+        "../utils/src/*"
+      ]
     },
     "jsx": "react-jsx"
   },
-  "exclude": ["dist", "node_modules", "vite.config.ts"],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "vite.config.ts",
+    "../rrweb",
+    "../rrweb-snapshot",
+    "../rrweb-player",
+    "../types",
+    "../utils"
+  ],
   "references": [
     {
       "path": "../rrweb"

@@ -32,8 +32,8 @@ import {
   markCssSplits,
   isElementVisible,
   isTextVisible,
-  getXPath
-} from './utils';
+  getXPath, isElementInteractive,
+} from "./utils";
 import dom from '@appsurify-testmap/rrweb-utils';
 
 let _id = 1;
@@ -545,13 +545,15 @@ function serializeTextNode(
       : textContent.replace(/[\S]/g, '*');
   }
 
-  const isVisible = isTextVisible(n)
+  const isVisible = isTextVisible(n);
+  const isInteractive = isElementInteractive(n);
 
   return {
     type: NodeType.Text,
     textContent: textContent || '',
     rootId,
     isVisible: isVisible,
+    isInteractive: isInteractive,
     xPath: xPath
   };
 }
@@ -802,7 +804,8 @@ function serializeElementNode(
     // In case old browsers don't support customElements
   }
 
-  const isVisible = isElementVisible(n)
+  const isVisible = isElementVisible(n);
+  const isInteractive = isElementInteractive(n);
 
   return {
     type: NodeType.Element,
@@ -814,6 +817,7 @@ function serializeElementNode(
     rootId,
     isCustom: isCustomElement,
     isVisible: isVisible,
+    isInteractive: isInteractive,
     xPath: xPath
   };
 }
