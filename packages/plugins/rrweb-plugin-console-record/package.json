@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-rrweb-plugin-console-record",
-  "version": "2.0.0-alpha.23",
+  "version": "2.0.0-alpha.24",
   "description": "",
   "type": "module",
   "main": "./dist/rrweb-rrweb-plugin-console-record.umd.cjs",
@@ -45,7 +45,7 @@
   },
   "homepage": "https://github.com/rrweb-io/rrweb#readme",
   "devDependencies": {
-    "@appsurify-testmap/rrweb": "^2.0.0-alpha.23",
+    "@appsurify-testmap/rrweb": "^2.0.0-alpha.24",
     "puppeteer": "^20.9.0",
     "typescript": "^5.4.5",
     "vite": "^5.3.1",
