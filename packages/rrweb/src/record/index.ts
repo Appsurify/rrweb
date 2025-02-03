@@ -1,23 +1,28 @@
 import {
-  snapshot,
+  createMirror,
   type MaskInputOptions,
   type SlimDOMOptions,
-  createMirror,
-} from '@appsurify-testmap/rrweb-snapshot';
-import { initObservers, mutationBuffers } from './observer';
+  snapshot,
+} from "@appsurify-testmap/rrweb-snapshot";
+import { initObservers, mutationBuffers } from "./observer";
 import {
-  on,
-  getWindowWidth,
   getWindowHeight,
   getWindowScroll,
-  polyfill,
+  getWindowWidth,
   hasShadowRoot,
   isSerializedIframe,
   isSerializedStylesheet,
   nowTimestamp,
-} from '../utils';
-import type { recordOptions } from '../types';
+  on,
+  polyfill, throttle,
+} from "../utils";
+import type {
+  CrossOriginIframeMessageEventContent,
+  recordOptions,
+} from "../types";
 import {
+  type adoptedStyleSheetParam,
+  type canvasMutationParam,
   EventType,
   type eventWithoutTime,
   type eventWithTime,
@@ -25,21 +30,18 @@ import {
   type listenerHandler,
   type mutationCallbackParam,
   type scrollCallback,
-  type canvasMutationParam,
-  type adoptedStyleSheetParam,
-} from '@appsurify-testmap/rrweb-types';
-import type { CrossOriginIframeMessageEventContent } from '../types';
-import { IframeManager } from './iframe-manager';
-import { ShadowDomManager } from './shadow-dom-manager';
-import { CanvasManager } from './observers/canvas/canvas-manager';
-import { StylesheetManager } from './stylesheet-manager';
-import ProcessedNodeManager from './processed-node-manager';
+} from "@appsurify-testmap/rrweb-types";
+import { IframeManager } from "./iframe-manager";
+import { ShadowDomManager } from "./shadow-dom-manager";
+import { CanvasManager } from "./observers/canvas/canvas-manager";
+import { StylesheetManager } from "./stylesheet-manager";
+import ProcessedNodeManager from "./processed-node-manager";
 import {
   callbackWrapper,
   registerErrorHandler,
   unregisterErrorHandler,
-} from './error-handler';
-import dom from '@appsurify-testmap/rrweb-utils';
+} from "./error-handler";
+import dom from "@appsurify-testmap/rrweb-utils";
 
 let wrappedEmit!: (e: eventWithoutTime, isCheckout?: boolean) => void;
 
@@ -69,6 +71,7 @@ function record<T = eventWithTime>(
     emit,
     checkoutEveryNms,
     checkoutEveryNth,
+    checkoutEveryEvc,
     blockClass = 'rr-block',
     blockSelector = null,
     ignoreClass = 'rr-ignore',
@@ -203,6 +206,7 @@ function record<T = eventWithTime>(
   };
   wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
     const e = r as eventWithTime;
+
     e.timestamp = nowTimestamp();
     if (
       mutationBuffers[0]?.isFrozen() &&
@@ -242,11 +246,14 @@ function record<T = eventWithTime>(
       }
 
       incrementalSnapshotCount++;
+
       const exceedCount =
         checkoutEveryNth && incrementalSnapshotCount >= checkoutEveryNth;
+
       const exceedTime =
         checkoutEveryNms &&
         e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
+
       if (exceedCount || exceedTime) {
         takeFullSnapshot(true);
       }
@@ -435,6 +442,12 @@ function record<T = eventWithTime>(
       );
   };
 
+  const debouncedFullSnapshot = throttle(() => {
+    if (checkoutEveryEvc) {
+      takeFullSnapshot(true);
+    }
+  }, 100, { leading: false, trailing: true });
+
   try {
     const handlers: listenerHandler[] = [];
 
@@ -442,6 +455,19 @@ function record<T = eventWithTime>(
       return callbackWrapper(initObservers)(
         {
           mutationCb: wrappedMutationEmit,
+          visibilityChangeCb: (v) =>
+          {
+            debouncedFullSnapshot();
+            if (sampling.visibility) {
+              return wrappedEmit({
+                type: EventType.IncrementalSnapshot,
+                data: {
+                  source: IncrementalSource.VisibilityChange,
+                  ...v,
+                },
+              })
+            }
+          },
           mousemoveCb: (positions, source) =>
             wrappedEmit({
               type: EventType.IncrementalSnapshot,

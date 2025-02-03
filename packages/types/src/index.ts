@@ -77,11 +77,16 @@ export enum IncrementalSource {
   Selection,
   AdoptedStyleSheet,
   CustomElement,
+  VisibilityChange,
 }
 
 export type mutationData = {
   source: IncrementalSource.Mutation;
 } & mutationCallbackParam;
+
+export type visibilityChangeData = {
+  source: IncrementalSource.VisibilityChange;
+} & visibilityChangeParam;
 
 export type mousemoveData = {
   source:
@@ -154,7 +159,8 @@ export type incrementalData =
   | selectionData
   | styleDeclarationData
   | adoptedStyleSheetData
-  | customElementData;
+  | customElementData
+  | visibilityChangeData;
 
 export type eventWithoutTime =
   | domContentLoadedEvent
@@ -219,6 +225,7 @@ export type SamplingStrategy = Partial<{
    *                          Number only supported where [`OffscreenCanvas`](http://mdn.io/offscreencanvas) is supported.
    */
   canvas: 'all' | number;
+  visibility: boolean;
 }>;
 
 export interface ICrossOriginIframeMirror {
@@ -268,6 +275,7 @@ export type hooksParam = {
   font?: fontCallback;
   selection?: selectionCallback;
   customElement?: customElementCallback;
+  visibilityChange?: visibilityChangeCallback;
 };
 
 // https://dom.spec.whatwg.org/#interface-mutationrecord
@@ -334,6 +342,14 @@ export type mutationCallbackParam = {
 
 export type mutationCallBack = (m: mutationCallbackParam) => void;
 
+export type visibilityChangeParam = {
+  id: number;
+  isVisible: boolean;
+  visibilityRatio?: number;
+  boundingRect?: DOMRect;
+};
+export type visibilityChangeCallback = (v: visibilityChangeParam) => void;
+
 export type mousemoveCallBack = (
   p: mousePosition[],
   source:
@@ -360,7 +376,6 @@ export enum MouseInteractions {
   MouseUp,
   MouseDown,
   Click,
-  ContextMenu,
   DblClick,
   Focus,
   Blur,

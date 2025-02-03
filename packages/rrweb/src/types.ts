@@ -29,6 +29,7 @@ import type {
   mouseInteractionCallBack,
   mousemoveCallBack,
   mutationCallBack,
+  visibilityChangeCallback,
   RecordPlugin,
   SamplingStrategy,
   scrollCallback,
@@ -38,7 +39,7 @@ import type {
   viewportResizeCallback,
   PackFn,
   UnpackFn,
-} from '@appsurify-testmap/rrweb-types';
+} from "@appsurify-testmap/rrweb-types";
 import type ProcessedNodeManager from './record/processed-node-manager';
 
 export type recordOptions<T> = {
@@ -79,6 +80,7 @@ export type recordOptions<T> = {
 
 export type observerParam = {
   mutationCb: mutationCallBack;
+  visibilityChangeCb: visibilityChangeCallback;
   mousemoveCb: mousemoveCallBack;
   mouseInteractionCb: mouseInteractionCallBack;
   scrollCb: scrollCallback;
