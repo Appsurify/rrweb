@@ -8,8 +8,47 @@ export type SyncData = {
   [SyncDataKey.settings]: Settings;
 };
 
+export type CheckoutEveryNth = { type: 'checkoutEveryNth'; value: number };
+export type CheckoutEveryNms = { type: 'checkoutEveryNms'; value: number };
+export type CheckoutEveryEvc = { type: 'checkoutEveryEvc'; value: boolean };
+
+export type CheckoutSetting = CheckoutEveryNth | CheckoutEveryNms | CheckoutEveryEvc;
+
+export type MouseInteractionSettings = {
+  MouseUp: boolean;
+  MouseDown: boolean;
+  Click: boolean;
+  ContextMenu: boolean;
+  DblClick: boolean;
+  Focus: boolean;
+  Blur: boolean;
+  TouchStart: boolean;
+  TouchEnd: boolean;
+};
+
+export type SamplingSettings = {
+  mousemove: boolean | number;
+  mouseInteraction: MouseInteractionSettings;
+  scroll: number | boolean;
+  media: number | boolean;
+  input: 'last' | 'all' | boolean;
+  visibility: number | boolean;
+};
+
+export type MaskInputOptions = {
+  password: boolean;
+  email: boolean;
+  number: boolean;
+  tel: boolean;
+  text: boolean;
+  textarea: boolean;
+  select: boolean;
+};
+
 export type Settings = {
-  //
+  checkoutSetting: CheckoutSetting;
+  sampling: SamplingSettings;
+  maskInputOptions: MaskInputOptions;
 };
 
 export enum LocalDataKey {
@@ -25,6 +64,37 @@ export type LocalData = {
     pausedTimestamp?: number;
     errorMessage?: string; // error message when recording failed
   };
+};
+
+export const defaultSettings: Settings = {
+  checkoutSetting: { type: "checkoutEveryEvc", value: true},
+  sampling: {
+    mousemove: false,
+    mouseInteraction: {
+      MouseUp: false,
+      MouseDown: false,
+      Click: false,
+      ContextMenu: false,
+      DblClick: false,
+      Focus: false,
+      Blur: false,
+      TouchStart: false,
+      TouchEnd: false,
+    },
+    scroll: 500,
+    media: 1000,
+    input: 'last',
+    visibility: false,
+  },
+  maskInputOptions: {
+    password: false,
+    email: false,
+    number: false,
+    tel: false,
+    text: false,
+    textarea: false,
+    select: false,
+  },
 };
 
 export enum RecorderStatus {

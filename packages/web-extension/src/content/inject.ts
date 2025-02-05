@@ -4,6 +4,7 @@ import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 import { MessageName, type RecordStartedMessage } from '~/types';
 import { isInCrossOriginIFrame } from '~/utils';
 
+
 /**
  * This script is injected into both main page and cross-origin IFrames through <script> tags.
  */
@@ -11,6 +12,7 @@ import { isInCrossOriginIFrame } from '~/utils';
 let stopFn: (() => void) | null = null;
 
 function startRecord(config: recordOptions<eventWithTime>) {
+  console.info('startRecord with config: ', config);
   stopFn =
     record({
       emit: (event) => {
@@ -19,29 +21,6 @@ function startRecord(config: recordOptions<eventWithTime>) {
           message: MessageName.EmitEvent,
           event,
         });
-      },
-      sampling: {
-        mousemove: false,
-        mouseInteraction: {
-          MouseUp: false,
-          MouseDown: false,
-          Click: true,
-          ContextMenu: false,
-          DblClick: false,
-          Focus: false,
-          Blur: false,
-          TouchStart: false,
-          TouchEnd: false,
-        },
-        scroll: 150, // do not emit twice in 150ms
-        media: 800,
-        visibility: false,
-        input: "last",
-      },
-      // checkoutEveryNth: 1,
-      checkoutEveryEvc: true,
-      maskInputOptions: {
-        password: true
       },
       ...config
 
@@ -62,10 +41,12 @@ const messageHandler = (
 ) => {
   if (event.source !== window) return;
 
+
   const data = event.data;
 
   const eventHandler = {
     [MessageName.StartRecord]: () => {
+      console.info('messageHandler -> eventHandler: ', data)
       startRecord(data.config || {});
     },
     [MessageName.StopRecord]: () => {

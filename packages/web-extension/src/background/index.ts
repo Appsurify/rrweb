@@ -3,13 +3,14 @@ import { nanoid } from 'nanoid';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 import Channel from '~/utils/channel';
 import {
+  defaultSettings,
   EventName,
   LocalDataKey,
   MessageName,
   RecorderStatus,
   ServiceName,
   SyncDataKey,
-} from '~/types';
+} from "~/types";
 import type {
   LocalData,
   RecordStartedMessage,
@@ -20,28 +21,46 @@ import type {
 } from '~/types';
 import { isFirefox } from '~/utils';
 import { addSession } from '~/utils/storage';
+import { settingsToRecordOptions } from "~/utils/settings";
+
+
+let currentSettings: Settings = defaultSettings;
+
+function isSettingsValid(settings: Settings | undefined): boolean {
+  return settings !== undefined && Object.keys(settings).length > 0;
+}
+
+async function loadSettings() {
+  const result = (await Browser.storage.sync.get(SyncDataKey.settings)) as SyncData;
+  if (isSettingsValid(result?.settings)) {
+    currentSettings = result.settings;
+  } else {
+    console.warn('Settings are missing or invalid. Using default settings.');
+    await Browser.storage.sync.set({ [SyncDataKey.settings]: defaultSettings });
+    currentSettings = defaultSettings;
+  }
+}
+
+Browser.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes[SyncDataKey.settings]) {
+    const newSettings = changes[SyncDataKey.settings].newValue as Settings;
+    currentSettings = isSettingsValid(newSettings) ? newSettings : defaultSettings;
+    console.info('Settings updated:', currentSettings);
+  }
+});
+
+void loadSettings();
 
 void (async () => {
-  // assign default value to settings of this extension
-  const result =
-    ((await Browser.storage.sync.get(SyncDataKey.settings)) as SyncData) ||
-    undefined;
-  const defaultSettings: Settings = {};
-  let settings = defaultSettings;
-  if (result && result.settings) {
-    setDefaultSettings(result.settings, defaultSettings);
-    settings = result.settings;
-  }
-  await Browser.storage.sync.set({
-    settings,
-  } as SyncData);
 
   const events: eventWithTime[] = [];
   const channel = new Channel();
+
   let recorderStatus: LocalData[LocalDataKey.recorderStatus] = {
     status: RecorderStatus.IDLE,
     activeTabId: -1,
   };
+
   // Reset recorder status when the extension is reloaded.
   await Browser.storage.local.set({
     [LocalDataKey.recorderStatus]: recorderStatus,
@@ -62,7 +81,7 @@ void (async () => {
     if (tabId === -1) return;
 
     const res = (await channel
-      .requestToTab(tabId, ServiceName.StartRecord, {})
+      .requestToTab(tabId, ServiceName.StartRecord, { config: settingsToRecordOptions(currentSettings) })
       .catch(async (error: Error) => {
         recorderStatus.errorMessage = error.message;
         await Browser.storage.local.set({
@@ -159,7 +178,7 @@ void (async () => {
       event.timestamp += pausedTime;
     });
     const startResponse = (await channel
-      .requestToTab(newTabId, ServiceName.StartRecord, {})
+      .requestToTab(newTabId, ServiceName.StartRecord, {config: settingsToRecordOptions(currentSettings)})
       .catch((e: { message: string }) => {
         recorderStatus.errorMessage = e.message;
         void Browser.storage.local.set({
@@ -247,37 +266,6 @@ void (async () => {
     })();
   });
 })();
-
-/**
- * Update existed settings with new settings.
- * Set new setting values if these properties don't exist in older versions.
- */
-function setDefaultSettings(
-  existedSettings: Record<string, unknown>,
-  newSettings: Record<string, unknown>,
-) {
-  for (const i in newSettings) {
-    // settings[i] contains key-value settings
-    if (
-      typeof newSettings[i] === 'object' &&
-      !(newSettings[i] instanceof Array) &&
-      Object.keys(newSettings[i] as Record<string, unknown>).length > 0
-    ) {
-      if (existedSettings[i]) {
-        setDefaultSettings(
-          existedSettings[i] as Record<string, unknown>,
-          newSettings[i] as Record<string, unknown>,
-        );
-      } else {
-        // settings[i] contains several setting items but these have not been set before
-        existedSettings[i] = newSettings[i];
-      }
-    } else if (existedSettings[i] === undefined) {
-      // settings[i] is a single setting item and it has not been set before
-      existedSettings[i] = newSettings[i];
-    }
-  }
-}
 
 function generateSession(title: string) {
   const newSession: Session = {

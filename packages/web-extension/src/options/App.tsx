@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router-dom';
 import SidebarWithHeader from '~/components/SidebarWithHeader';
 import { FiList, FiSettings } from 'react-icons/fi';
 import { Box } from '@chakra-ui/react';
+import { SettingsPage } from './Settings';
+
 
 export default function App() {
   return (
@@ -9,21 +11,21 @@ export default function App() {
       title="Settings"
       headBarItems={[
         {
-          label: 'Sessions',
-          icon: FiList,
-          href: '/pages/index.html#',
-        },
-        {
           label: 'Settings',
           icon: FiSettings,
           href: '#',
+        },
+        {
+          label: 'Sessions',
+          icon: FiList,
+          href: '/pages/index.html#',
         },
       ]}
       sideBarItems={[]}
     >
       <Box p="10">
         <Routes>
-          <Route path="/" element={<></>} />
+          <Route path="/" element={<SettingsPage />} />
         </Routes>
       </Box>
     </SidebarWithHeader>
