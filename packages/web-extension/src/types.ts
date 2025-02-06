@@ -1,13 +1,5 @@
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 
-export enum SyncDataKey {
-  settings = 'settings',
-}
-
-export type SyncData = {
-  [SyncDataKey.settings]: Settings;
-};
-
 export type CheckoutEveryNth = { type: 'checkoutEveryNth'; value: number };
 export type CheckoutEveryNms = { type: 'checkoutEveryNms'; value: number };
 export type CheckoutEveryEvc = { type: 'checkoutEveryEvc'; value: boolean };
@@ -29,10 +21,10 @@ export type MouseInteractionSettings = {
 export type SamplingSettings = {
   mousemove: boolean | number;
   mouseInteraction: MouseInteractionSettings;
-  scroll: number | boolean;
-  media: number | boolean;
-  input: 'last' | 'all' | boolean;
-  visibility: number | boolean;
+  scroll?: number;
+  media?: number;
+  input?: 'last' | 'all';
+  visibility?: boolean;
 };
 
 export type MaskInputOptions = {
@@ -45,10 +37,68 @@ export type MaskInputOptions = {
   select: boolean;
 };
 
-export type Settings = {
+export type RecordSettings = {
   checkoutSetting: CheckoutSetting;
   sampling: SamplingSettings;
   maskInputOptions: MaskInputOptions;
+};
+
+export type AuthMethod = 'jwt' | 'apiKey';
+
+export type User = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl: string;
+  displayName: string;
+};
+
+export type Team = {
+  id: number;
+  slug: string;
+  name: string;
+};
+
+export type Project = {
+  id: number;
+  name: string;
+  teamId: number;
+};
+
+export type TestSuite = {
+  id: number;
+  name: string;
+  projectId: number;
+  teamId: number;
+};
+
+export type ApiCache = {
+  teams?: Team[];
+  projects?: Project[];
+  testSuites?: TestSuite[];
+};
+
+export type ApiSettings = {
+  authMethod: AuthMethod;
+  apiKey?: string;
+
+  jwtAccessToken?: string;
+  jwtRefreshToken?: string;
+  user?: User;
+
+};
+
+export type OtherSettings = {
+  enableDebugMode: boolean;
+};
+
+export type ExtensionSettings = {
+  recordSettings: RecordSettings;
+  apiSettings: ApiSettings;
+  otherSettings: OtherSettings;
+
+  apiCache?: ApiCache;
 };
 
 export enum LocalDataKey {
@@ -66,35 +116,12 @@ export type LocalData = {
   };
 };
 
-export const defaultSettings: Settings = {
-  checkoutSetting: { type: "checkoutEveryEvc", value: true},
-  sampling: {
-    mousemove: false,
-    mouseInteraction: {
-      MouseUp: false,
-      MouseDown: false,
-      Click: false,
-      ContextMenu: false,
-      DblClick: false,
-      Focus: false,
-      Blur: false,
-      TouchStart: false,
-      TouchEnd: false,
-    },
-    scroll: 500,
-    media: 1000,
-    input: 'last',
-    visibility: false,
-  },
-  maskInputOptions: {
-    password: false,
-    email: false,
-    number: false,
-    tel: false,
-    text: false,
-    textarea: false,
-    select: false,
-  },
+export enum SyncDataKey {
+  extensionSettings = 'extensionSettings',
+}
+
+export type SyncData = {
+  [SyncDataKey.extensionSettings]: ExtensionSettings;
 };
 
 export enum RecorderStatus {

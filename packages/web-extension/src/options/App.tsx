@@ -2,7 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import SidebarWithHeader from '~/components/SidebarWithHeader';
 import { FiList, FiSettings } from 'react-icons/fi';
 import { Box } from '@chakra-ui/react';
-import { SettingsPage } from './Settings';
+import { SettingsPage } from './SettingsPage';
 
 
 export default function App() {

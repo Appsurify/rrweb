@@ -3,7 +3,6 @@ import { nanoid } from 'nanoid';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 import Channel from '~/utils/channel';
 import {
-  defaultSettings,
   EventName,
   LocalDataKey,
   MessageName,
@@ -16,35 +15,38 @@ import type {
   RecordStartedMessage,
   RecordStoppedMessage,
   Session,
-  Settings,
+  ExtensionSettings,
   SyncData,
 } from '~/types';
 import { isFirefox } from '~/utils';
 import { addSession } from '~/utils/storage';
-import { settingsToRecordOptions } from "~/utils/settings";
+import {
+  defaultExtensionSettings,
+  settingsToRecordOptions,
+} from "~/utils/settings";
 
 
-let currentSettings: Settings = defaultSettings;
+let currentSettings: ExtensionSettings = defaultExtensionSettings;
 
-function isSettingsValid(settings: Settings | undefined): boolean {
+function isSettingsValid(settings: ExtensionSettings | undefined): boolean {
   return settings !== undefined && Object.keys(settings).length > 0;
 }
 
 async function loadSettings() {
-  const result = (await Browser.storage.sync.get(SyncDataKey.settings)) as SyncData;
-  if (isSettingsValid(result?.settings)) {
-    currentSettings = result.settings;
+  const result = (await Browser.storage.sync.get(SyncDataKey.extensionSettings)) as SyncData;
+  if (isSettingsValid(result?.extensionSettings)) {
+    currentSettings = result.extensionSettings;
   } else {
     console.warn('Settings are missing or invalid. Using default settings.');
-    await Browser.storage.sync.set({ [SyncDataKey.settings]: defaultSettings });
-    currentSettings = defaultSettings;
+    await Browser.storage.sync.set({ [SyncDataKey.extensionSettings]: defaultExtensionSettings });
+    currentSettings = defaultExtensionSettings;
   }
 }
 
 Browser.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes[SyncDataKey.settings]) {
-    const newSettings = changes[SyncDataKey.settings].newValue as Settings;
-    currentSettings = isSettingsValid(newSettings) ? newSettings : defaultSettings;
+  if (area === 'sync' && changes[SyncDataKey.extensionSettings]) {
+    const newSettings = changes[SyncDataKey.extensionSettings].newValue as ExtensionSettings;
+    currentSettings = isSettingsValid(newSettings) ? newSettings : defaultExtensionSettings;
     console.info('Settings updated:', currentSettings);
   }
 });
@@ -81,7 +83,7 @@ void (async () => {
     if (tabId === -1) return;
 
     const res = (await channel
-      .requestToTab(tabId, ServiceName.StartRecord, { config: settingsToRecordOptions(currentSettings) })
+      .requestToTab(tabId, ServiceName.StartRecord, { config: settingsToRecordOptions(currentSettings.recordSettings) })
       .catch(async (error: Error) => {
         recorderStatus.errorMessage = error.message;
         await Browser.storage.local.set({
@@ -178,7 +180,7 @@ void (async () => {
       event.timestamp += pausedTime;
     });
     const startResponse = (await channel
-      .requestToTab(newTabId, ServiceName.StartRecord, {config: settingsToRecordOptions(currentSettings)})
+      .requestToTab(newTabId, ServiceName.StartRecord, {config: settingsToRecordOptions(currentSettings.recordSettings)})
       .catch((e: { message: string }) => {
         recorderStatus.errorMessage = e.message;
         void Browser.storage.local.set({

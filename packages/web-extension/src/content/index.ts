@@ -9,36 +9,38 @@ import {
   MessageName,
   type EmitEventMessage,
   EventName,
-  type Settings,
-  defaultSettings,
+  type ExtensionSettings,
   SyncDataKey,
   type SyncData
 } from '~/types';
 import Channel from '~/utils/channel';
 import { isInCrossOriginIFrame } from '~/utils';
-import { settingsToRecordOptions } from "~/utils/settings";
+import {
+  defaultExtensionSettings,
+  settingsToRecordOptions,
+} from "~/utils/settings";
 
-let currentSettings: Settings = defaultSettings;
+let currentSettings: ExtensionSettings = defaultExtensionSettings;
 
-function isSettingsValid(settings: Settings | undefined): boolean {
+function isSettingsValid(settings: ExtensionSettings | undefined): boolean {
   return settings !== undefined && Object.keys(settings).length > 0;
 }
 
 async function loadSettings() {
-  const result = (await Browser.storage.sync.get(SyncDataKey.settings)) as SyncData;
-  if (isSettingsValid(result?.settings)) {
-    currentSettings = result.settings;
+  const result = (await Browser.storage.sync.get(SyncDataKey.extensionSettings)) as SyncData;
+  if (isSettingsValid(result?.extensionSettings)) {
+    currentSettings = result.extensionSettings;
   } else {
     console.warn('Settings are missing or invalid. Using default settings.');
-    await Browser.storage.sync.set({ [SyncDataKey.settings]: defaultSettings });
-    currentSettings = defaultSettings;
+    await Browser.storage.sync.set({ [SyncDataKey.extensionSettings]: defaultExtensionSettings });
+    currentSettings = defaultExtensionSettings;
   }
 }
 
 Browser.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes[SyncDataKey.settings]) {
-    const newSettings = changes[SyncDataKey.settings].newValue as Settings;
-    currentSettings = isSettingsValid(newSettings) ? newSettings : defaultSettings;
+  if (area === 'sync' && changes[SyncDataKey.extensionSettings]) {
+    const newSettings = changes[SyncDataKey.extensionSettings].newValue as ExtensionSettings;
+    currentSettings = isSettingsValid(newSettings) ? newSettings : defaultExtensionSettings;
     console.info('Settings updated:', currentSettings);
   }
 });
@@ -62,7 +64,7 @@ void (() => {
             message: MessageName.StartRecord,
             config: {
               recordCrossOriginIframes: true,
-              ...settingsToRecordOptions(currentSettings)
+              ...settingsToRecordOptions(currentSettings.recordSettings)
             },
           },
           location.origin,
