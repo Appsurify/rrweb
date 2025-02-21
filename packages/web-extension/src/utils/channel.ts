@@ -124,15 +124,7 @@ class Channel {
     return Browser.tabs.sendMessage(tabId, message);
   }
 
-  /**
-   * Add an event handler.
-   *
-   * @param eventName - event name
-   * @param handler - event handler, accepts two arguments:
-   *                           detail: event detail
-   *                           source: source of the event, Browser.runtime.MessageSender object
-   * @returns a function to remove the handler
-   */
+
   public on(
     event: string,
     handler: (detail: unknown, sender: Runtime.MessageSender) => unknown,
@@ -145,6 +137,7 @@ class Channel {
     }) as (data: unknown) => unknown;
     return this.emitter.on(event, emitHandler);
   }
+
 
   /**
    * Emit an event.
@@ -177,6 +170,9 @@ class Channel {
     tabIds.forEach((tabId) => void Browser.tabs.sendMessage(tabId, message));
   }
 
+  /**
+   * Get the current active tab id.
+   */
   public async getCurrentTabId() {
     const tabs = await Browser.tabs.query({
       active: true,

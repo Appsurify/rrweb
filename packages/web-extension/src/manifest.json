@@ -33,7 +33,7 @@
         "open_in_tab": true,
         "chrome_style": false
       },
-      "web_accessible_resources": ["**/*.js"]
+      "web_accessible_resources": ["**/*.js", "**/*.css"]
     },
     "chrome": {},
     "firefox": {
@@ -64,6 +64,10 @@
       "web_accessible_resources": [
         {
           "resources": ["**/*.js"],
+          "matches": ["<all_urls>"]
+        },
+        {
+          "resources": ["**/*.css"],
           "matches": ["<all_urls>"]
         }
       ]

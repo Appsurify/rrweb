@@ -8,52 +8,24 @@ import {
   MessageName,
   RecorderStatus,
   ServiceName,
-  SyncDataKey,
-} from "~/types";
+  type SessionMetadata,
+} from '~/types';
 import type {
   LocalData,
   RecordStartedMessage,
   RecordStoppedMessage,
   Session,
-  ExtensionSettings,
-  SyncData,
 } from '~/types';
 import { isFirefox } from '~/utils';
-import { addSession } from '~/utils/storage';
-import {
-  defaultExtensionSettings,
-  settingsToRecordOptions,
-} from "~/utils/settings";
+import { addSession, updateSession } from '~/utils/storage';
+import { RecordSettingsToRecordOptions } from '~/utils/settingsMapper';
+import { apiClient } from '~/utils/apiClient';
 
-
-let currentSettings: ExtensionSettings = defaultExtensionSettings;
-
-function isSettingsValid(settings: ExtensionSettings | undefined): boolean {
-  return settings !== undefined && Object.keys(settings).length > 0;
-}
-
-async function loadSettings() {
-  const result = (await Browser.storage.sync.get(SyncDataKey.extensionSettings)) as SyncData;
-  if (isSettingsValid(result?.extensionSettings)) {
-    currentSettings = result.extensionSettings;
-  } else {
-    console.warn('Settings are missing or invalid. Using default settings.');
-    await Browser.storage.sync.set({ [SyncDataKey.extensionSettings]: defaultExtensionSettings });
-    currentSettings = defaultExtensionSettings;
-  }
-}
-
-Browser.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes[SyncDataKey.extensionSettings]) {
-    const newSettings = changes[SyncDataKey.extensionSettings].newValue as ExtensionSettings;
-    currentSettings = isSettingsValid(newSettings) ? newSettings : defaultExtensionSettings;
-    console.info('Settings updated:', currentSettings);
-  }
-});
-
-void loadSettings();
+import { settingsManager } from '~/utils/settingsManager';
 
 void (async () => {
+
+  await settingsManager.load();
 
   const events: eventWithTime[] = [];
   const channel = new Channel();
@@ -69,6 +41,7 @@ void (async () => {
   });
 
   channel.on(EventName.StartButtonClicked, async () => {
+    const currentSettings = settingsManager.getSettings();
     if (recorderStatus.status !== RecorderStatus.IDLE) return;
     recorderStatus = {
       status: RecorderStatus.IDLE,
@@ -83,7 +56,9 @@ void (async () => {
     if (tabId === -1) return;
 
     const res = (await channel
-      .requestToTab(tabId, ServiceName.StartRecord, { config: settingsToRecordOptions(currentSettings.recordSettings) })
+      .requestToTab(tabId, ServiceName.StartRecord, {
+        config: RecordSettingsToRecordOptions(currentSettings.recordSettings),
+      })
       .catch(async (error: Error) => {
         recorderStatus.errorMessage = error.message;
         await Browser.storage.local.set({
@@ -101,16 +76,19 @@ void (async () => {
     });
   });
 
-  channel.on(EventName.StopButtonClicked, async () => {
+  channel.on(EventName.StopButtonClicked, async (data) => {
     if (recorderStatus.status === RecorderStatus.IDLE) return;
 
-    if (recorderStatus.status === RecorderStatus.RECORDING)
-      (await channel
-        .requestToTab(recorderStatus.activeTabId, ServiceName.StopRecord, {})
-        .catch(() => ({
-          message: MessageName.RecordStopped,
-          endTimestamp: Date.now(),
-        }))) as RecordStoppedMessage;
+    if (recorderStatus.status === RecorderStatus.RECORDING) {
+
+      const stopResponse = (await channel.requestToTab(recorderStatus.activeTabId, ServiceName.StopRecord, {})
+      .catch(() => ({
+        message: MessageName.RecordStopped,
+        endTimestamp: Date.now(),
+      }))) as RecordStoppedMessage;
+      console.debug('stopResponse: ', stopResponse);
+    }
+
     recorderStatus = {
       status: RecorderStatus.IDLE,
       activeTabId: -1,
@@ -125,13 +103,38 @@ void (async () => {
         .catch(() => {
           // ignore error
         })) ?? 'new session';
-    const newSession = generateSession(title);
+    // Extract metadata passed from popup or use an empty object
+    const metadata =
+      (data && (data as { metadata?: SessionMetadata }).metadata) || {};
+    const newSession = generateSession(title, metadata);
     await addSession(newSession, events).catch((e) => {
       recorderStatus.errorMessage = (e as { message: string }).message;
       void Browser.storage.local.set({
         [LocalDataKey.recorderStatus]: recorderStatus,
       });
     });
+
+    // Immediately send the session to the server
+    try {
+      const sendResponse = await apiClient.sendSession(newSession, events);
+      // If the request is successful, update the session: syncStatus, lastSyncTimestamp, serverId (if available)
+      newSession.syncStatus = 'synced';
+      newSession.lastSyncTimestamp = Date.now();
+      if (sendResponse.serverId) {
+        newSession.serverId = sendResponse.serverId;
+      }
+    } catch (error: unknown) {
+      newSession.syncStatus = 'error';
+      if (error instanceof Error) {
+        newSession.syncError = error.message;
+      } else {
+        newSession.syncError = 'Unexpected error occurred';
+      }
+    }
+
+    // Save the updated session in storage
+    await updateSession(newSession);
+
     channel.emit(EventName.SessionUpdated, {
       session: newSession,
     });
@@ -165,6 +168,7 @@ void (async () => {
   });
 
   async function resumeRecording(newTabId: number) {
+    const currentSettings = settingsManager.getSettings();
     if (
       ![RecorderStatus.PAUSED, RecorderStatus.PausedSwitch].includes(
         recorderStatus.status,
@@ -175,12 +179,14 @@ void (async () => {
     // On Firefox, the new tab is not communicable immediately after it is created.
     if (isFirefox()) await new Promise((r) => setTimeout(r, 50));
     const pausedTime = pausedTimestamp ? Date.now() - pausedTimestamp : 0;
-    // Decrease the time spent in the pause state and make them look like a continuous recording.
+    // Decrease the time spent in the pause state and make it look like a continuous recording.
     events.forEach((event) => {
       event.timestamp += pausedTime;
     });
     const startResponse = (await channel
-      .requestToTab(newTabId, ServiceName.StartRecord, {config: settingsToRecordOptions(currentSettings.recordSettings)})
+      .requestToTab(newTabId, ServiceName.StartRecord, {
+        config: RecordSettingsToRecordOptions(currentSettings.recordSettings),
+      })
       .catch((e: { message: string }) => {
         recorderStatus.errorMessage = e.message;
         void Browser.storage.local.set({
@@ -246,7 +252,7 @@ void (async () => {
   });
 
   /**
-   * When the current tab is closed, and there's no other tab to resume recording, make sure the recording status is updated to SwitchPaused.
+   * When the current tab is closed, and there is no other tab to resume recording, make sure the recording status is updated to SwitchPaused.
    */
   Browser.tabs.onRemoved.addListener((tabId) => {
     void (async () => {
@@ -269,10 +275,11 @@ void (async () => {
   });
 })();
 
-function generateSession(title: string) {
+function generateSession(title: string, metadata: SessionMetadata) {
   const newSession: Session = {
     id: nanoid(),
     name: title,
+    metadata, // there might be empty fields
     tags: [],
     createTimestamp: Date.now(),
     modifyTimestamp: Date.now(),

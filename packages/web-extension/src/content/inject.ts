@@ -12,11 +12,11 @@ import { isInCrossOriginIFrame } from '~/utils';
 let stopFn: (() => void) | null = null;
 
 function startRecord(config: recordOptions<eventWithTime>) {
-  console.info('startRecord with config: ', config);
+  console.debug('startRecord with config: ', config);
   stopFn =
     record({
       emit: (event) => {
-        console.info("Emit event: ", event);
+        console.debug("Emit event: ", event);
         postMessage({
           message: MessageName.EmitEvent,
           event,
@@ -46,7 +46,7 @@ const messageHandler = (
 
   const eventHandler = {
     [MessageName.StartRecord]: () => {
-      console.info('messageHandler -> eventHandler: ', data)
+      console.debug('messageHandler -> eventHandler: ', data)
       startRecord(data.config || {});
     },
     [MessageName.StopRecord]: () => {

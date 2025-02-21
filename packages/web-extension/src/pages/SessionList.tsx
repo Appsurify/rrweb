@@ -141,7 +141,6 @@ export function SessionList() {
               )
             );
           }
-
           return (
             <Flex
               onMouseEnter={() => setIsHovered(true)}
@@ -181,9 +180,51 @@ export function SessionList() {
         cell: (info) => info.getValue(),
         header: 'RRWEB Version',
       }),
+      // Новый столбец для отображения времени последней синхронизации
+      columnHelper.accessor((row) => row.lastSyncTimestamp, {
+        id: 'lastSync',
+        cell: (info) => {
+          const ts = info.getValue();
+          return ts ? new Date(ts).toLocaleString() : 'N/A';
+        },
+        header: 'Last Sync',
+      }),
+      // Существующий столбец для статуса синхронизации
+      columnHelper.accessor((row) => row.syncStatus, {
+        id: 'syncStatus',
+        cell: (info) => {
+          const status = info.getValue();
+          let label: string;
+          let color: string;
+          switch (status) {
+            case 'pending':
+              label = 'Pending';
+              color = 'orange.500';
+              break;
+            case 'synced':
+              label = 'Synced';
+              color = 'green.500';
+              break;
+            case 'error':
+              label = 'Error';
+              color = 'red.500';
+              break;
+            default:
+              label = 'Unknown';
+              color = 'gray.500';
+          }
+          return (
+            <Text color={color} fontWeight="bold">
+              {label}
+            </Text>
+          );
+        },
+        header: 'Sync Status',
+      }),
     ],
     [sessions],
   );
+
   const table = useReactTable<Session>({
     columns,
     data: fetchData(fetchDataOptions).rows,

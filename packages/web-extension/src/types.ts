@@ -1,49 +1,14 @@
-import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
+import type {
+  eventWithTime,
+  SamplingStrategy,
+} from '@appsurify-testmap/rrweb-types';
+import type { MaskInputOptions } from '@appsurify-testmap/rrweb-snapshot';
 
-export type CheckoutEveryNth = { type: 'checkoutEveryNth'; value: number };
-export type CheckoutEveryNms = { type: 'checkoutEveryNms'; value: number };
-export type CheckoutEveryEvc = { type: 'checkoutEveryEvc'; value: boolean };
-
-export type CheckoutSetting = CheckoutEveryNth | CheckoutEveryNms | CheckoutEveryEvc;
-
-export type MouseInteractionSettings = {
-  MouseUp: boolean;
-  MouseDown: boolean;
-  Click: boolean;
-  ContextMenu: boolean;
-  DblClick: boolean;
-  Focus: boolean;
-  Blur: boolean;
-  TouchStart: boolean;
-  TouchEnd: boolean;
+export type Team = {
+  id: number;
+  slug: string;
+  name: string;
 };
-
-export type SamplingSettings = {
-  mousemove: boolean | number;
-  mouseInteraction: MouseInteractionSettings;
-  scroll?: number;
-  media?: number;
-  input?: 'last' | 'all';
-  visibility?: boolean;
-};
-
-export type MaskInputOptions = {
-  password: boolean;
-  email: boolean;
-  number: boolean;
-  tel: boolean;
-  text: boolean;
-  textarea: boolean;
-  select: boolean;
-};
-
-export type RecordSettings = {
-  checkoutSetting: CheckoutSetting;
-  sampling: SamplingSettings;
-  maskInputOptions: MaskInputOptions;
-};
-
-export type AuthMethod = 'jwt' | 'apiKey';
 
 export type User = {
   id: number;
@@ -52,12 +17,6 @@ export type User = {
   email: string;
   avatarUrl: string;
   displayName: string;
-};
-
-export type Team = {
-  id: number;
-  slug: string;
-  name: string;
 };
 
 export type Project = {
@@ -73,20 +32,40 @@ export type TestSuite = {
   teamId: number;
 };
 
-export type ApiCache = {
-  teams?: Team[];
-  projects?: Project[];
-  testSuites?: TestSuite[];
+export type CheckoutEveryNth = { type: 'checkoutEveryNth'; value: number };
+export type CheckoutEveryNms = { type: 'checkoutEveryNms'; value: number };
+export type CheckoutEveryEvc = { type: 'checkoutEveryEvc'; value: boolean };
+
+export type CheckoutType =
+  | CheckoutEveryNth
+  | CheckoutEveryNms
+  | CheckoutEveryEvc;
+
+export type RecordSettings = {
+  checkoutType: CheckoutType;
+  sampling?: SamplingStrategy;
+  maskInputOptions: MaskInputOptions;
 };
 
-export type ApiSettings = {
-  authMethod: AuthMethod;
-  apiKey?: string;
-
+export type JWTAuth = {
+  type: 'jwt';
   jwtAccessToken?: string;
   jwtRefreshToken?: string;
-  user?: User;
+};
 
+export type PersonalTokenAuth = {
+  type: 'personalToken';
+  token: string;
+};
+
+export type AuthType = JWTAuth | PersonalTokenAuth;
+
+export type ApiSettings = {
+  baseUrl: string;
+  connectionTimeout: number;
+  authType?: AuthType;
+  user?: User;
+  currentTeam?: Team;
 };
 
 export type OtherSettings = {
@@ -97,8 +76,6 @@ export type ExtensionSettings = {
   recordSettings: RecordSettings;
   apiSettings: ApiSettings;
   otherSettings: OtherSettings;
-
-  apiCache?: ApiCache;
 };
 
 export enum LocalDataKey {
@@ -128,17 +105,60 @@ export enum RecorderStatus {
   IDLE = 'IDLE',
   RECORDING = 'RECORDING',
   PAUSED = 'PAUSED',
-  // when user change the tab, the recorder will be paused during the tab change
+  // when user changes the tab, the recorder will be paused during the tab change
   PausedSwitch = 'PAUSED_SWITCH',
 }
 
+export type SessionMetadata = {
+  /**
+   * Project name
+   */
+  projectName?: string;
+  /**
+   * Test suite name
+   */
+  testSuiteName?: string;
+  /**
+   * Test case name
+   */
+  testCaseName?: string;
+  /**
+   * Test run name
+   */
+  testRunName?: string;
+  /**
+   * Optional: if recording occurs online, a team can be attached
+   */
+  team?: Team;
+};
+
 export type Session = {
   id: string;
+  metadata: SessionMetadata;
   name: string;
   tags: string[];
   createTimestamp: number;
   modifyTimestamp: number;
   recorderVersion: string;
+  /**
+   * Synchronization status:
+   * - 'pending' — the session is recorded but not yet sent or in the process of being sent,
+   * - 'synced' — the session has been successfully synchronized with the server,
+   * - 'error' — an error occurred during synchronization.
+   */
+  syncStatus?: 'pending' | 'synced' | 'error';
+  /**
+   * Error message if synchronization failed.
+   */
+  syncError?: string;
+  /**
+   * Session identifier assigned by the server (if different from the local id).
+   */
+  serverId?: number;
+  /**
+   * Timestamp of the last successful synchronization.
+   */
+  lastSyncTimestamp?: number;
 };
 
 // all service names for channel
@@ -181,3 +201,30 @@ export type EmitEventMessage = {
   message: MessageName.EmitEvent;
   event: eventWithTime;
 };
+
+/**
+ * Interface for a paginated response.
+ */
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+/**
+ * Interface for the login response.
+ */
+export interface LoginResponse {
+  status: string;
+  detail: string;
+  jwt: {
+    access: string;
+    refresh: string;
+    user: User;
+  };
+}
+
+export interface SendSessionResponse {
+  serverId?: number;
+}

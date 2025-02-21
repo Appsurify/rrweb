@@ -9,47 +9,22 @@ import {
   MessageName,
   type EmitEventMessage,
   EventName,
-  type ExtensionSettings,
-  SyncDataKey,
-  type SyncData
 } from '~/types';
 import Channel from '~/utils/channel';
 import { isInCrossOriginIFrame } from '~/utils';
 import {
-  defaultExtensionSettings,
-  settingsToRecordOptions,
-} from "~/utils/settings";
+  RecordSettingsToRecordOptions,
+} from '~/utils/settingsMapper';
 
-let currentSettings: ExtensionSettings = defaultExtensionSettings;
+import { settingsManager } from '~/utils/settingsManager';
 
-function isSettingsValid(settings: ExtensionSettings | undefined): boolean {
-  return settings !== undefined && Object.keys(settings).length > 0;
-}
-
-async function loadSettings() {
-  const result = (await Browser.storage.sync.get(SyncDataKey.extensionSettings)) as SyncData;
-  if (isSettingsValid(result?.extensionSettings)) {
-    currentSettings = result.extensionSettings;
-  } else {
-    console.warn('Settings are missing or invalid. Using default settings.');
-    await Browser.storage.sync.set({ [SyncDataKey.extensionSettings]: defaultExtensionSettings });
-    currentSettings = defaultExtensionSettings;
-  }
-}
-
-Browser.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes[SyncDataKey.extensionSettings]) {
-    const newSettings = changes[SyncDataKey.extensionSettings].newValue as ExtensionSettings;
-    currentSettings = isSettingsValid(newSettings) ? newSettings : defaultExtensionSettings;
-    console.info('Settings updated:', currentSettings);
-  }
-});
-
-void loadSettings();
 
 const channel = new Channel();
 
-void (() => {
+void (async () => {
+
+  await settingsManager.load();
+
   window.addEventListener(
     'message',
     (
@@ -57,6 +32,7 @@ void (() => {
         message: MessageName;
       }>,
     ) => {
+      const currentSettings = settingsManager.getSettings();
       if (event.source !== window) return;
       if (event.data.message === MessageName.RecordScriptReady)
         window.postMessage(
@@ -64,7 +40,7 @@ void (() => {
             message: MessageName.StartRecord,
             config: {
               recordCrossOriginIframes: true,
-              ...settingsToRecordOptions(currentSettings.recordSettings)
+              ...RecordSettingsToRecordOptions(currentSettings.recordSettings),
             },
           },
           location.origin,

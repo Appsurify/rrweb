@@ -15,7 +15,12 @@
     "pack:firefox": "cross-env TARGET_BROWSER=firefox ZIP=true vite build",
     "check-types": "tsc -noEmit",
     "build": "npm run pack:chrome && npm run pack:firefox",
-    "prepublish": "yarn build"
+    "prepublish": "yarn build",
+    "retest": "vitest run",
+    "test": "yarn build && vitest run",
+    "test:watch": "vitest watch",
+    "retest:update": "vitest run --update",
+    "test:update": "yarn build && vitest run --update"
   },
   "devDependencies": {
     "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.25",
@@ -38,6 +43,7 @@
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
     "@tanstack/react-table": "^8.5.22",
+    "axios-mock-adapter": "^2.1.0",
     "framer-motion": "^7.3.6",
     "idb": "^7.1.1",
     "mitt": "^3.0.0",

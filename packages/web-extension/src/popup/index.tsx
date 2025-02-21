@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChakraProvider } from '@chakra-ui/react';
 import * as ReactDOM from 'react-dom/client';
-import { App } from './App';
+import { App } from '~/popup/App';
 
 const rootElement = document.getElementById('root');
 
