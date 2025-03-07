@@ -40,6 +40,7 @@ const channel = new Channel();
 export default function Player() {
   const playerElRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Replayer | null>(null);
+
   const { sessionId } = useParams();
   const [session, setSession] = useState<Session | null>(null);
   const [sessionName, setSessionName] = useState('');
@@ -94,10 +95,12 @@ export default function Player() {
       .then((events) => {
         if (!playerElRef.current || playerRef.current) return;
         injectRrwebPlayerStyleInline();
+
         playerRef.current = new Replayer({
           target: playerElRef.current,
-          props: { events, autoPlay: true },
+          props: { events, autoPlay: false },
         });
+        console.log(playerRef.current);
       })
       .catch((err) => {
         console.error(err);

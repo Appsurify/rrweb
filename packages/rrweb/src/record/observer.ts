@@ -267,7 +267,7 @@ function initMouseInteractionObserver({
 }: observerParam): listenerHandler {
   if (sampling.mouseInteraction === false) {
     return () => {
-      //
+      console.debug("MouseInteractionObserver: No operation needed");
     };
   }
   const disableMap: Record<string, boolean | undefined> =
@@ -464,7 +464,6 @@ function initInputObserver({
     let target = getEventTarget(event) as HTMLElement | null;
     const userTriggered = event.isTrusted;
     const tagName = target && target.tagName;
-
     /**
      * If a site changes the value 'selected' of an option element, the value of its parent element, usually a select element, will be changed as well.
      * We can treat this change as a value change of the select element the current target belongs to.

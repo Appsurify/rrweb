@@ -317,13 +317,6 @@ export function App() {
       testcaseName: '',
       testrunName: defaultTR,
     });
-    toast({
-      title: 'Form cleared',
-      description: 'Session metadata has been cleared.',
-      status: 'info',
-      duration: 2000,
-      isClosable: true,
-    });
   };
 
   if (loadingSettings) {

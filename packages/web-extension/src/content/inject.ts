@@ -16,7 +16,7 @@ function startRecord(config: recordOptions<eventWithTime>) {
   stopFn =
     record({
       emit: (event) => {
-        console.debug("Emit event: ", event);
+        // console.debug("Emit event: ", event);
         postMessage({
           message: MessageName.EmitEvent,
           event,

@@ -14,7 +14,7 @@ import type {
   serializedNodeWithId,
   textNode,
 } from "@appsurify-testmap/rrweb-types";
-import { NodeType, InteractiveEvent, interactiveTag } from '@appsurify-testmap/rrweb-types';
+import { NodeType } from '@appsurify-testmap/rrweb-types';
 import dom from '@appsurify-testmap/rrweb-utils';
 
 
@@ -683,76 +683,221 @@ function isRectVisible(rect: DOMRect): boolean {
     rect.right <= (window.innerWidth || document.documentElement.clientWidth);
 }
 
+// TODO: Original with bug
+// function getInteractiveEvents(): string[] {
+//   return Object.keys(InteractiveEvent)
+//     .filter(key => isNaN(Number(key)))
+//     .map(key => key.toLowerCase().replace(/_/g, '-'));
+// }
+//
+// function getInteractiveTags(): string[] {
+//   return Object.keys(interactiveTag)
+//     .filter(key => isNaN(Number(key)))
+//     .map(key => key.toLowerCase().replace(/_/g, '-'));
+// }
+//
+//
+// function hasEventListeners(n: Node): boolean {
+//   return getInteractiveEvents().some(eventType => {
+//     let hasListener = false;
+//     const testListener = () => { hasListener = true; };
+//
+//     n.addEventListener(eventType, testListener);
+//     // n.dispatchEvent(new Event(eventType));
+//     n.removeEventListener(eventType, testListener);
+//
+//     return hasListener;
+//   });
+// }
+//
+//
+// export function isElementInteractive(n: Node): boolean {
+//   const allowedTags = getInteractiveTags();
+//
+//   if (n.nodeType === Node.ELEMENT_NODE) {
+//     const element = n as Element;
+//     const tagName = element.tagName.toLowerCase();
+//
+//     if (!allowedTags.includes(tagName)) {
+//       return false;
+//     }
+//
+//     const hasTabIndex = element.hasAttribute('tabindex') && element.getAttribute('tabindex') !== '-1';
+//     const hasRoleInteractive = ['button', 'link', 'checkbox', 'switch', 'menuitem'].includes(
+//       element.getAttribute('role') || ''
+//     );
+//
+//     const result = (
+//       hasEventListeners(element) ||
+//       hasTabIndex ||
+//       hasRoleInteractive ||
+//       (element instanceof HTMLAnchorElement && element.hasAttribute('href')) ||
+//       (element instanceof HTMLButtonElement && !element.disabled)
+//     );
+//
+//     return result;
+//   }
+//
+//   if (n.nodeType === Node.TEXT_NODE) {
+//     const textNode = n as Text;
+//     const parentElement = textNode.parentElement;
+//
+//     return (
+//       parentElement !== null &&
+//       allowedTags.includes(parentElement.tagName.toLowerCase()) &&
+//       isElementVisible(parentElement) &&
+//       textNode.textContent?.trim().length !== 0 &&
+//       isElementInteractive(parentElement)
+//     );
+//   }
+//
+//   return false;
+// }
 
-function getInteractiveEvents(): string[] {
-  return Object.keys(InteractiveEvent)
-    .filter(key => isNaN(Number(key)))
-    .map(key => key.toLowerCase().replace(/_/g, '-'));
-}
 
-function getInteractiveTags(): string[] {
-  return Object.keys(interactiveTag)
-    .filter(key => isNaN(Number(key)))
-    .map(key => key.toLowerCase().replace(/_/g, '-'));
-}
+const interactiveEvents = [
+  'change',
+  'submit',
+  'dragstart',
+  'drop',
+  'pointerdown',
+  'pointerup',
+  'input',
+  'keydown',
+  'keyup',
+  'keypress',
+  'mouseenter',
+  'mouseleave',
+  'mouseup',
+  'mousedown',
+  'click',
+  'contextmenu',
+  'dblclick',
+  'focus',
+  'blur',
+  'touchstart',
+  'touchmove',
+  'touchend',
+  'touchcancel',
+]
 
+const interactiveTags = [
+  'a',
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'label',
+  'details',
+  'summary',
+  'dialog',
+  'video',
+  'audio'
+];
+
+// Список атрибутов, которые могут содержать inline‑обработчики
+const inlineEventAttributes = [
+  'onclick',
+  'ondblclick',
+  'onmousedown',
+  'onmouseup',
+  'onmouseover',
+  'onmouseout',
+  'onmousemove',
+  'onfocus',
+  'onblur',
+  'onkeydown',
+  'onkeypress',
+  'onkeyup',
+  'onchange',
+  'oninput',
+  'onsubmit',
+  'onreset',
+  'onselect',
+  'oncontextmenu',
+  'ontouchstart',
+  'ontouchmove',
+  'ontouchend',
+  'ontouchcancel'
+];
+
+// Глобальный реестр для хранения интерактивных элементов
+const interactiveElementsRegistry = new WeakSet<Element>();
+
+const originalAddEventListener = EventTarget.prototype.addEventListener;
+
+// Переопределяем addEventListener
+EventTarget.prototype.addEventListener = function (
+  type: string,
+  listener: EventListenerOrEventListenerObject,
+  options?: boolean | AddEventListenerOptions,
+) {
+  // Вызываем оригинальный метод
+  originalAddEventListener.call(this, type, listener, options);
+  // Если this является элементом, проверяем тип события
+  if (this instanceof Element) {
+    const eventType = type.toLowerCase();
+    console.info("Event type: ", eventType);
+    if (interactiveEvents.includes(eventType)) {
+      interactiveElementsRegistry.add(this);
+    }
+  }
+};
+
+const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+EventTarget.prototype.removeEventListener = function (
+  type: string,
+  listener: EventListenerOrEventListenerObject,
+  options?: boolean | EventListenerOptions,
+) {
+  originalRemoveEventListener.call(this, type, listener, options);
+  // Опционально: можно реализовать логику удаления элемента из реестра, если на нём больше интерактивных обработчиков.
+  // Но часто это не требуется для задачи маркировки элемента как интерактивного.
+};
 
 function hasEventListeners(n: Node): boolean {
-
-  return getInteractiveEvents().some(eventType => {
-    let hasListener = false;
-    const testListener = () => { hasListener = true; };
-
-    n.addEventListener(eventType, testListener);
-    n.dispatchEvent(new Event(eventType));
-    n.removeEventListener(eventType, testListener);
-
-    return hasListener;
-  });
+  // console.info("hasEventListeners: ", n, interactiveElementsRegistry.has(n));
+  return n instanceof Element && interactiveElementsRegistry.has(n);
 }
 
 export function isElementInteractive(n: Node): boolean {
-  const allowedTags = getInteractiveTags();
 
   if (n.nodeType === Node.ELEMENT_NODE) {
     const element = n as Element;
     const tagName = element.tagName.toLowerCase();
 
-    if (!allowedTags.includes(tagName)) {
-      return false;
+    if (interactiveTags.includes(tagName)) {
+      return true;
     }
 
-    const hasTabIndex = element.hasAttribute('tabindex') && element.getAttribute('tabindex') !== '-1';
+    const hasTabIndex =
+      element.hasAttribute('tabindex') &&
+      element.getAttribute('tabindex') !== '-1';
     const hasRoleInteractive = ['button', 'link', 'checkbox', 'switch', 'menuitem'].includes(
       element.getAttribute('role') || ''
     );
-
-    const result = (
+    const result =
       hasEventListeners(element) ||
       hasTabIndex ||
       hasRoleInteractive ||
       (element instanceof HTMLAnchorElement && element.hasAttribute('href')) ||
-      (element instanceof HTMLButtonElement && !element.disabled)
-    );
+      (element instanceof HTMLButtonElement && !element.disabled);
 
-    // console.info('isElementInteractive', tagName, {
-    //   hasEventListeners: hasEventListeners(element),
-    //   hasTabIndex,
-    //   hasRoleInteractive,
-    //   isAnchorElement: element instanceof HTMLAnchorElement && element.hasAttribute('href'),
-    //   isButtonElement: element instanceof HTMLButtonElement && !element.disabled,
-    // });
-
+    // console.info("Element: ", element, " is interactive: ", result, " hasTabIndex: ", hasTabIndex, " hasRoleInteractive: ", hasRoleInteractive, " hasEventListeners: ", hasEventListeners(element), " anchorElement: ", element instanceof HTMLAnchorElement, " buttonElement: ", element instanceof HTMLButtonElement);
     return result;
   }
 
+  // Для текстовых узлов и прочих оставляем существующую логику...
   if (n.nodeType === Node.TEXT_NODE) {
     const textNode = n as Text;
     const parentElement = textNode.parentElement;
 
+    if (parentElement !== null && interactiveTags.includes(parentElement.tagName.toLowerCase())) {
+      return true;
+    }
+
     return (
       parentElement !== null &&
-      allowedTags.includes(parentElement.tagName.toLowerCase()) &&
       isElementVisible(parentElement) &&
       textNode.textContent?.trim().length !== 0 &&
       isElementInteractive(parentElement)
@@ -762,29 +907,26 @@ export function isElementInteractive(n: Node): boolean {
   return false;
 }
 
-// export function markInteractiveElements(mirror: Mirror) {
-//   const allElements = document.querySelectorAll('*');
-//
-//   allElements.forEach((element) => {
-//     const interactive = isInteractive(element);
-//     const nodeId = mirror.getId(element);
-//
-//     if (interactive && nodeId !== -1) {
-//       const node = mirror.getNode(nodeId) as serializedNodeWithId | null;
-//       if (node && (node.type === NodeType.Element || node.type === NodeType.Text)) {
-//         (node as elementNode | textNode).isInteractive = true;
-//       }
-//     }
-//   });
-// }
-//
-// const interactiveCache = new WeakMap<Element, boolean>();
-// export function isInteractive(element: Element): boolean {
-//   if (interactiveCache.has(element)) {
-//     return interactiveCache.get(element)!;
-//   }
-//   const result = interactiveTags.includes(element.tagName.toLowerCase()) || hasEventListeners(element);
-//   interactiveCache.set(element, result);
-//   return result;
-// }
+function inspectInlineEventHandlers() {
+  const allElements = document.querySelectorAll('*');
+  allElements.forEach((el) => {
+    inlineEventAttributes.forEach((attr) => {
+      if (el.hasAttribute(attr)) {
+        interactiveElementsRegistry.add(el);
+      }
+    });
+  });
+}
 
+// Если DOM уже загружен – выполняем инспекцию сразу,
+// иначе – ждем события DOMContentLoaded
+if (
+  document.readyState === 'complete' ||
+  document.readyState === 'interactive'
+) {
+  inspectInlineEventHandlers();
+  // console.info('DOMContentLoaded and inspect called');
+} else {
+  document.addEventListener('DOMContentLoaded', inspectInlineEventHandlers);
+  // console.info('DOMContentLoaded and added handler');
+}
