@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrvideo",
-  "version": "2.0.0-alpha.30",
+  "version": "2.0.0-alpha.31",
   "description": "transform rrweb session into video",
   "main": "build/index.js",
   "bin": {
@@ -21,7 +21,7 @@
   "author": "yanzhen@smartx.com",
   "license": "MIT",
   "devDependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.30",
+    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.31",
     "@types/fs-extra": "11.0.1",
     "@types/jest": "^27.4.1",
     "@types/minimist": "^1.2.1",
@@ -30,7 +30,7 @@
     "ts-jest": "^27.1.3"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb-player": "^2.0.0-alpha.30",
+    "@appsurify-testmap/rrweb-player": "^2.0.0-alpha.31",
     "@open-tech-world/cli-progress-bar": "^2.0.2",
     "fs-extra": "^11.1.1",
     "minimist": "^1.2.5",
