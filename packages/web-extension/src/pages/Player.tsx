@@ -100,7 +100,7 @@ export default function Player() {
           target: playerElRef.current,
           props: { events, autoPlay: false },
         });
-        console.log(playerRef.current);
+        console.info(playerRef.current);
       })
       .catch((err) => {
         console.error(err);

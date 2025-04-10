@@ -211,6 +211,7 @@ export class Mirror implements IMirror<Node> {
       );
     }
   }
+
   has(id: number): boolean {
     return this.idNodeMap.has(id);
   }
@@ -837,7 +838,7 @@ EventTarget.prototype.addEventListener = function (
   // Если this является элементом, проверяем тип события
   if (this instanceof Element) {
     const eventType = type.toLowerCase();
-    console.info("Event type: ", eventType);
+    // console.info("Event type: ", eventType);
     if (interactiveEvents.includes(eventType)) {
       interactiveElementsRegistry.add(this);
     }

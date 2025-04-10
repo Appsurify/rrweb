@@ -13,7 +13,7 @@ export const defaultRecordSettings: RecordSettings = {
     mouseInteraction: {
       MouseUp: false,
       MouseDown: false,
-      Click: true,
+      Click: false,
       ContextMenu: false,
       DblClick: false,
       Focus: false,

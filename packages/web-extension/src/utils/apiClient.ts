@@ -264,23 +264,51 @@ export class APIClient {
     if (!currentApiSettings.currentTeam?.slug) {
       throw new Error('Team is not set in API settings.');
     }
-    const url = `/a/${currentApiSettings.currentTeam.slug}/testmap/api/rrweb/record/sessions`;
+    const url = `/a/${currentApiSettings.currentTeam.slug}/testmap/api/rrweb/sessions/sync`;
+
+    const sessionData = JSON.stringify(session, null, 2);
+
+    const sessionEvents = JSON.stringify(events, null, 2);
+    const blob = new Blob([sessionEvents], { type: 'application/json' });
+
+    const formData = new FormData();
+    formData.append('events', blob, `${session.name || 'events'}.json`);
+    formData.append('project_name', session.metadata.projectName || '');
+    formData.append('testsuite_name', session.metadata.testSuiteName || '');
+    formData.append('testcase_name', session.metadata.testCaseName || '');
+    formData.append('testrun_name', session.metadata.testRunName || '');
+    formData.append('session', sessionData);
+
+    const response = await this.axiosInstance.post<SendSessionResponse>(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data;
+  }
+
+  public async sendSessionSync(
+    session: Session,
+    events: eventWithTime[],
+  ): Promise<SendSessionResponse> {
+    const currentApiSettings = settingsManager.getSettings().apiSettings;
+    if (!currentApiSettings.currentTeam?.slug) {
+      throw new Error('Team is not set in API settings.');
+    }
+    const url = `/a/${currentApiSettings.currentTeam.slug}/testmap/api/rrweb/sessions`;
     const payload = {
       "project_name": session.metadata.projectName || '',
       "testsuite_name": session.metadata.testSuiteName || '',
       "testcase_name": session.metadata.testCaseName || '',
       "testrun_name": session.metadata.testRunName || '',
-      "session_key": session.id,
-      "session_metadata": session.metadata,
-      "session_name": session.name,
-      "session_recorder_version": session.recorderVersion,
-      "session_create_timestamp": session.createTimestamp,
-      "session_modify_timestamp": session.modifyTimestamp,
-      "session_events": events,
+      "session": session,
+      "events": events,
     };
     const response = await this.axiosInstance.post<SendSessionResponse>(url, payload);
     return response.data;
   }
+
 }
 
 // Export APIClient as a named singleton
