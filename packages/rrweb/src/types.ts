@@ -76,6 +76,8 @@ export type recordOptions<T> = {
   mousemoveWait?: number;
   keepIframeSrcFn?: KeepIframeSrcFn;
   errorHandler?: ErrorHandler;
+  customWindow?: Window;
+  customDocument?: Document;
 };
 
 export type observerParam = {

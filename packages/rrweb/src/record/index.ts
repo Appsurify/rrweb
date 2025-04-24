@@ -103,18 +103,32 @@ function record<T = eventWithTime>(
     ignoreCSSAttributes = new Set([]),
     errorHandler,
   } = options;
+  const win = options.customWindow || window;
+  const doc = options.customDocument || document;
+
+  try {
+    if (Array.from([1], (x) => x * 2)[0] !== 2) {
+      const cleanFrame = doc.createElement('iframe');
+      doc.body.appendChild(cleanFrame);
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- Array.from is static and doesn't rely on binding
+      Array.from = cleanFrame.contentWindow?.Array.from || Array.from;
+      doc.body.removeChild(cleanFrame);
+    }
+  } catch (err) {
+    console.debug('Unable to override Array.from', err);
+  }
 
   registerErrorHandler(errorHandler);
 
   const inEmittingFrame = recordCrossOriginIframes
-    ? window.parent === window
+    ? win.parent === win
     : true;
 
   let passEmitsToParent = false;
   if (!inEmittingFrame) {
     try {
       // throws if parent is cross-origin
-      if (window.parent.document) {
+      if (win.parent.document) {
         passEmitsToParent = false; // if parent is same origin we collect iframe events from the parent
       }
     } catch (e) {
@@ -230,10 +244,10 @@ function record<T = eventWithTime>(
       const message: CrossOriginIframeMessageEventContent<T> = {
         type: 'rrweb',
         event: eventProcessor(e),
-        origin: window.location.origin,
+        origin: win.location.origin,
         isCheckout,
       };
-      window.parent.postMessage(message, '*');
+      win.parent.postMessage(message, '*');
     }
 
     if (e.type === EventType.FullSnapshot) {
@@ -388,7 +402,7 @@ function record<T = eventWithTime>(
       {
         type: EventType.Meta,
         data: {
-          href: window.location.href,
+          href: win.location.href,
           width: getWindowWidth(),
           height: getWindowHeight(),
         },
@@ -455,10 +469,10 @@ function record<T = eventWithTime>(
     mutationBuffers.forEach((buf) => buf.unlock()); // generate & emit any mutations that happened during snapshotting, as can now apply against the newly built mirror
 
     // Some old browsers don't support adoptedStyleSheets.
-    if (document.adoptedStyleSheets && document.adoptedStyleSheets.length > 0)
+    if (doc.adoptedStyleSheets && doc.adoptedStyleSheets.length > 0)
       stylesheetManager.adoptStyleSheets(
-        document.adoptedStyleSheets,
-        mirror.getId(document),
+        doc.adoptedStyleSheets,
+        mirror.getId(doc),
       );
   };
 
@@ -624,8 +638,8 @@ function record<T = eventWithTime>(
       recording = true;
     };
     if (
-      document.readyState === 'interactive' ||
-      document.readyState === 'complete'
+      doc.readyState === 'interactive' ||
+      doc.readyState === 'complete'
     ) {
       init();
     } else {
