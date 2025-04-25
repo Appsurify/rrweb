@@ -26,7 +26,7 @@ import {
   EventType,
   type eventWithoutTime,
   type eventWithTime,
-  IncrementalSource,
+  IncrementalSource, type IWindow,
   type listenerHandler,
   type mutationCallbackParam,
   type scrollCallback,
@@ -360,7 +360,7 @@ function record<T = eventWithTime>(
   canvasManager = new CanvasManager({
     recordCanvas,
     mutationCb: wrappedCanvasMutationEmit,
-    win: window,
+    win: win as IWindow,
     blockClass,
     blockSelector,
     mirror,
@@ -416,7 +416,7 @@ function record<T = eventWithTime>(
     shadowDomManager.init();
 
     mutationBuffers.forEach((buf) => buf.lock()); // don't allow any mirror modifications during snapshotting
-    const node = snapshot(document, {
+    const node = snapshot(doc, {
       mirror,
       blockClass,
       blockSelector,
@@ -439,7 +439,7 @@ function record<T = eventWithTime>(
         }
         if (hasShadowRoot(n)) {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          shadowDomManager.addShadowRoot(dom.shadowRoot(n as Node)!, document);
+          shadowDomManager.addShadowRoot(dom.shadowRoot(n as Node)!, doc);
         }
       },
       onIframeLoad: (iframe, childSn) => {
@@ -461,7 +461,7 @@ function record<T = eventWithTime>(
         type: EventType.FullSnapshot,
         data: {
           node,
-          initialOffset: getWindowScroll(window),
+          initialOffset: getWindowScroll(win),
         },
       },
       isCheckout,
@@ -634,7 +634,7 @@ function record<T = eventWithTime>(
 
     const init = () => {
       takeFullSnapshot();
-      handlers.push(observe(document));
+      handlers.push(observe(doc));
       recording = true;
     };
     if (
