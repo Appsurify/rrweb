@@ -32,7 +32,7 @@ import {
   markCssSplits,
   isElementVisible,
   isTextVisible,
-  getXPath, isElementInteractive,
+  getXPath, isElementInteractive, scheduleInlineEventInspection,
 } from "./utils";
 import dom from '@appsurify-testmap/rrweb-utils';
 
@@ -209,13 +209,45 @@ export function transformAttribute(
   return value;
 }
 
-export function ignoreAttribute(
+export function isIgnoreAttribute(
   tagName: string,
   name: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _value: unknown,
 ): boolean {
   return (tagName === 'video' || tagName === 'audio') && name === 'autoplay';
+}
+
+export function cleanAttributes(
+  doc: Document,
+  element: HTMLElement,
+  ignoreAttribute: string | RegExp
+): attributes {
+  const tagName = getValidTagName(element);
+  const attributes: attributes = {};
+
+  const len = element.attributes.length;
+  for (let i = 0; i < len; i++) {
+    const attr = element.attributes[i];
+    const name = attr.name;
+    const value = attr.value;
+
+    const shouldIgnoreByName =
+      typeof ignoreAttribute === 'string'
+        ? name === ignoreAttribute
+        : ignoreAttribute.test(name);
+
+    if (!shouldIgnoreByName && !isIgnoreAttribute(tagName, name, value)) {
+      attributes[name] = transformAttribute(
+        doc,
+        tagName,
+        toLowerCase(name),
+        value,
+      );
+    }
+  }
+
+  return attributes;
 }
 
 export function _isBlockedElement(
@@ -396,6 +428,7 @@ function serializeNode(
     mirror: Mirror;
     blockClass: string | RegExp;
     blockSelector: string | null;
+    ignoreAttribute: string | RegExp;
     needsMask: boolean;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
@@ -417,6 +450,7 @@ function serializeNode(
     mirror,
     blockClass,
     blockSelector,
+    ignoreAttribute,
     needsMask,
     inlineStylesheet,
     maskInputOptions = {},
@@ -463,6 +497,7 @@ function serializeNode(
         doc,
         blockClass,
         blockSelector,
+        ignoreAttribute,
         inlineStylesheet,
         maskInputOptions,
         maskInputFn,
@@ -564,6 +599,7 @@ function serializeElementNode(
     doc: Document;
     blockClass: string | RegExp;
     blockSelector: string | null;
+    ignoreAttribute: string | RegExp;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
     maskInputFn: MaskInputFn | undefined;
@@ -583,6 +619,7 @@ function serializeElementNode(
     doc,
     blockClass,
     blockSelector,
+    ignoreAttribute,
     inlineStylesheet,
     maskInputOptions = {},
     maskInputFn,
@@ -596,19 +633,8 @@ function serializeElementNode(
   } = options;
   const needBlock = _isBlockedElement(n, blockClass, blockSelector);
   const tagName = getValidTagName(n);
-  let attributes: attributes = {};
-  const len = n.attributes.length;
-  for (let i = 0; i < len; i++) {
-    const attr = n.attributes[i];
-    if (!ignoreAttribute(tagName, attr.name, attr.value)) {
-      attributes[attr.name] = transformAttribute(
-        doc,
-        tagName,
-        toLowerCase(attr.name),
-        attr.value,
-      );
-    }
-  }
+  let attributes = cleanAttributes(doc, n, ignoreAttribute);
+
   // remote css
   if (tagName === 'link' && inlineStylesheet) {
     //TODO: maybe replace this `.styleSheets` with original one
@@ -933,6 +959,7 @@ export function serializeNodeWithId(
     blockSelector: string | null;
     maskTextClass: string | RegExp;
     maskTextSelector: string | null;
+    ignoreAttribute: string | RegExp;
     skipChild: boolean;
     inlineStylesheet: boolean;
     newlyAddedElement?: boolean;
@@ -967,6 +994,7 @@ export function serializeNodeWithId(
     blockSelector,
     maskTextClass,
     maskTextSelector,
+    ignoreAttribute,
     skipChild = false,
     inlineStylesheet = true,
     maskInputOptions = {},
@@ -1004,6 +1032,7 @@ export function serializeNodeWithId(
     mirror,
     blockClass,
     blockSelector,
+    ignoreAttribute,
     needsMask,
     inlineStylesheet,
     maskInputOptions,
@@ -1078,6 +1107,7 @@ export function serializeNodeWithId(
       needsMask,
       maskTextClass,
       maskTextSelector,
+      ignoreAttribute,
       skipChild,
       inlineStylesheet,
       maskInputOptions,
@@ -1154,6 +1184,7 @@ export function serializeNodeWithId(
             needsMask,
             maskTextClass,
             maskTextSelector,
+            ignoreAttribute,
             skipChild: false,
             inlineStylesheet,
             maskInputOptions,
@@ -1206,6 +1237,7 @@ export function serializeNodeWithId(
             needsMask,
             maskTextClass,
             maskTextSelector,
+            ignoreAttribute,
             skipChild: false,
             inlineStylesheet,
             maskInputOptions,
@@ -1247,6 +1279,7 @@ function snapshot(
     blockSelector?: string | null;
     maskTextClass?: string | RegExp;
     maskTextSelector?: string | null;
+    ignoreAttribute?: string | RegExp;
     inlineStylesheet?: boolean;
     maskAllInputs?: boolean | MaskInputOptions;
     maskTextFn?: MaskTextFn;
@@ -1276,6 +1309,7 @@ function snapshot(
     blockSelector = null,
     maskTextClass = 'rr-mask',
     maskTextSelector = null,
+    ignoreAttribute = 'rr-ignore-attr',
     inlineStylesheet = true,
     inlineImages = false,
     recordCanvas = false,
@@ -1292,6 +1326,8 @@ function snapshot(
     stylesheetLoadTimeout,
     keepIframeSrcFn = () => false,
   } = options || {};
+  // TODO: Need research and fix for testing env
+  scheduleInlineEventInspection(n);
   const maskInputOptions: MaskInputOptions =
     maskAllInputs === true
       ? {
@@ -1342,6 +1378,7 @@ function snapshot(
     blockSelector,
     maskTextClass,
     maskTextSelector,
+    ignoreAttribute,
     skipChild: false,
     inlineStylesheet,
     maskInputOptions,

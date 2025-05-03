@@ -582,7 +582,8 @@ export function getXPath(node: Node): string {
     }
 
     const parentNode = element.parentNode;
-    if (!parentNode || !(parentNode instanceof Element)) {
+    // if (!parentNode || !(parentNode instanceof Element)) {
+    if (!parentNode) {
       // Если родительский узел недоступен или не является элементом, путь построить нельзя
       return '';
     }
@@ -668,21 +669,58 @@ export function isTextVisible(n: Text): boolean {
   return textContent !== '';
 }
 
+// export function isElementVisible(n: Element): boolean {
+//   // console.info('[rrweb-snapshot] n.getBoundingClientRect()', n.getBoundingClientRect())
+//   // console.info('[rrweb-snapshot] isStyleVisible(n)', isStyleVisible(n));
+//   // console.info('[rrweb-snapshot] isRectVisible(n.getBoundingClientRect())', isRectVisible(n.getBoundingClientRect()));
+//   // return isStyleVisible(n) && isRectVisible(n.getBoundingClientRect());
+//   const result = isStyleVisible(n) && isRectVisible(n.getBoundingClientRect());
+//   if (!result) {
+//     console.log('[rrweb-snapshot] ', n, ' isRectVisible ', n.getBoundingClientRect())
+//   }
+//   return result;
+// }
 export function isElementVisible(n: Element): boolean {
-  return isStyleVisible(n) && isRectVisible(n.getBoundingClientRect());
+  const win = n.ownerDocument?.defaultView ?? null;
+  const style = win ? win.getComputedStyle(n) : null;
+
+  const isStyleVisible = style != null &&
+    style.display !== 'none' &&
+    style.visibility !== 'hidden' &&
+    parseFloat(style.opacity) !== 0;
+
+  const rect = n.getBoundingClientRect();
+
+  const result = isStyleVisible && isRectVisible(rect, win);
+
+  // if (!result) {
+  //   console.log('[rrweb-snapshot] ', n, ' isRectVisible ', rect);
+  // }
+
+  return result;
 }
 
-function isStyleVisible(n: Element): boolean {
-  const style = window.getComputedStyle(n);
-  return style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) !== 0;
-}
+// function isStyleVisible(n: Element): boolean {
+//   const style = window.getComputedStyle(n);
+//   return style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) !== 0;
+// }
 
-function isRectVisible(rect: DOMRect): boolean {
+function isRectVisible(rect: DOMRect, win: Window | null): boolean {
+  const height = win?.innerHeight ?? win?.document?.documentElement?.clientHeight ?? 0;
+  const width = win?.innerWidth ?? win?.document?.documentElement?.clientWidth ?? 0;
+
   return rect.width > 0 && rect.height > 0 &&
     rect.top >= 0 && rect.left >= 0 &&
-    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+    rect.bottom <= height &&
+    rect.right <= width;
 }
+
+// function isRectVisible(rect: DOMRect): boolean {
+//   return rect.width > 0 && rect.height > 0 &&
+//     rect.top >= 0 && rect.left >= 0 &&
+//     rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+//     rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+// }
 
 // TODO: Original with bug
 // function getInteractiveEvents(): string[] {
@@ -756,7 +794,7 @@ function isRectVisible(rect: DOMRect): boolean {
 // }
 
 
-const interactiveEvents = [
+export const interactiveEvents = [
   'change',
   'submit',
   'dragstart',
@@ -782,7 +820,7 @@ const interactiveEvents = [
   'touchcancel',
 ]
 
-const interactiveTags = [
+export const interactiveTags = [
   'a',
   'button',
   'input',
@@ -867,6 +905,8 @@ export function isElementInteractive(n: Node): boolean {
     const element = n as Element;
     const tagName = element.tagName.toLowerCase();
 
+    // console.info('[rrweb-snapshot] isElementInteractive:hasEventListeners(element):', tagName, hasEventListeners(element));
+
     if (interactiveTags.includes(tagName)) {
       return true;
     }
@@ -908,8 +948,12 @@ export function isElementInteractive(n: Node): boolean {
   return false;
 }
 
-function inspectInlineEventHandlers() {
-  const allElements = document.querySelectorAll('*');
+
+// TODO: Maybe work
+export function inspectInlineEventHandlers(doc: Document): void {
+  if (!doc || typeof doc.querySelectorAll !== 'function') return;
+
+  const allElements = doc.querySelectorAll('*');
   allElements.forEach((el) => {
     inlineEventAttributes.forEach((attr) => {
       if (el.hasAttribute(attr)) {
@@ -919,15 +963,54 @@ function inspectInlineEventHandlers() {
   });
 }
 
-// Если DOM уже загружен – выполняем инспекцию сразу,
-// иначе – ждем события DOMContentLoaded
-if (
-  document.readyState === 'complete' ||
-  document.readyState === 'interactive'
-) {
-  inspectInlineEventHandlers();
-  // console.info('DOMContentLoaded and inspect called');
-} else {
-  document.addEventListener('DOMContentLoaded', inspectInlineEventHandlers);
-  // console.info('DOMContentLoaded and added handler');
+export function scheduleInlineEventInspection(doc: Document): void {
+  if (
+    !doc ||
+    typeof doc.addEventListener !== 'function' ||
+    typeof doc.querySelectorAll !== 'function'
+  ) {
+    return;
+  }
+  try {
+    if (
+      doc.readyState === 'complete' ||
+      doc.readyState === 'interactive'
+    ) {
+      inspectInlineEventHandlers(doc);
+    } else {
+      doc.addEventListener('DOMContentLoaded', () => inspectInlineEventHandlers(doc), {
+        once: true,
+        capture: false,
+      });
+    }
+  } catch (e) {
+    console.warn('[inlineEventInspection] Failed to inspect document:', e);
+  }
 }
+
+// export function scheduleInlineEventInspection(doc: Document): void {
+//
+// }
+//
+// export function inspectInlineEventHandlers() {
+//   const allElements = document.querySelectorAll('*');
+//   allElements.forEach((el) => {
+//     inlineEventAttributes.forEach((attr) => {
+//       if (el.hasAttribute(attr)) {
+//         interactiveElementsRegistry.add(el);
+//       }
+//     });
+//   });
+// }
+//
+//
+// if (
+//   document.readyState === 'complete' ||
+//   document.readyState === 'interactive'
+// ) {
+//   inspectInlineEventHandlers();
+//   console.info('DOMContentLoaded and inspect called');
+// } else {
+//   document.addEventListener('DOMContentLoaded', inspectInlineEventHandlers);
+//   console.info('DOMContentLoaded and added handler');
+// }

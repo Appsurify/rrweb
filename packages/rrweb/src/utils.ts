@@ -179,7 +179,7 @@ if (!(/*@__PURE__*/ /[1-9][0-9]{12}/.test(Date.now().toString()))) {
 }
 export { nowTimestamp };
 
-export function getWindowScroll(win: Window) {
+export function getWindowScroll(win: Window = window) {
   const doc = win.document;
   return {
     left: doc.scrollingElement
@@ -201,19 +201,23 @@ export function getWindowScroll(win: Window) {
   };
 }
 
-export function getWindowHeight(): number {
+export function getWindowHeight(win: Window = window): number {
+  const doc = win.document;
   return (
-    window.innerHeight ||
-    (document.documentElement && document.documentElement.clientHeight) ||
-    (document.body && document.body.clientHeight)
+    win.innerHeight ||
+    (doc.documentElement && doc.documentElement.clientHeight) ||
+    (doc.body && doc.body.clientHeight) ||
+    0
   );
 }
 
-export function getWindowWidth(): number {
+export function getWindowWidth(win: Window = window): number {
+  const doc = win.document;
   return (
-    window.innerWidth ||
-    (document.documentElement && document.documentElement.clientWidth) ||
-    (document.body && document.body.clientWidth)
+    win.innerWidth ||
+    (doc.documentElement && doc.documentElement.clientWidth) ||
+    (doc.body && doc.body.clientWidth) ||
+    0
   );
 }
 

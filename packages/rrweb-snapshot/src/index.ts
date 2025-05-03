@@ -1,7 +1,7 @@
 import snapshot, {
   serializeNodeWithId,
   transformAttribute,
-  ignoreAttribute,
+  isIgnoreAttribute,
   visitSnapshot,
   cleanupSnapshot,
   needMaskingText,
@@ -25,7 +25,7 @@ export {
   adaptCssForReplay,
   createCache,
   transformAttribute,
-  ignoreAttribute,
+  isIgnoreAttribute,
   visitSnapshot,
   cleanupSnapshot,
   needMaskingText,

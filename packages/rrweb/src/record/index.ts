@@ -403,8 +403,8 @@ function record<T = eventWithTime>(
         type: EventType.Meta,
         data: {
           href: win.location.href,
-          width: getWindowWidth(),
-          height: getWindowHeight(),
+          width: getWindowWidth(win),
+          height: getWindowHeight(win),
         },
       },
       isCheckout,
@@ -662,7 +662,7 @@ function record<T = eventWithTime>(
             });
             if (recordAfter === 'load') init();
           },
-          window,
+          win as IWindow,
         ),
       );
     }
