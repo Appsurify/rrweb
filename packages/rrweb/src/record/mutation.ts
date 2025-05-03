@@ -2,7 +2,7 @@ import {
   serializeNodeWithId,
   transformAttribute,
   IGNORED_NODE,
-  ignoreAttribute,
+  isIgnoreAttribute,
   isShadowRoot,
   needMaskingText,
   maskInputValue,
@@ -10,7 +10,7 @@ import {
   isNativeShadowDom,
   getInputType,
   toLowerCase,
-} from '@appsurify-testmap/rrweb-snapshot';
+} from "@appsurify-testmap/rrweb-snapshot";
 import type { observerParam, MutationBufferParam } from '../types';
 import type {
   mutationRecord,
@@ -176,6 +176,7 @@ export default class MutationBuffer {
   private blockSelector: observerParam['blockSelector'];
   private maskTextClass: observerParam['maskTextClass'];
   private maskTextSelector: observerParam['maskTextSelector'];
+  private ignoreAttribute: observerParam['ignoreAttribute'];
   private inlineStylesheet: observerParam['inlineStylesheet'];
   private maskInputOptions: observerParam['maskInputOptions'];
   private maskTextFn: observerParam['maskTextFn'];
@@ -202,6 +203,7 @@ export default class MutationBuffer {
         'blockSelector',
         'maskTextClass',
         'maskTextSelector',
+        'ignoreAttribute',
         'inlineStylesheet',
         'maskInputOptions',
         'maskTextFn',
@@ -319,6 +321,7 @@ export default class MutationBuffer {
         blockSelector: this.blockSelector,
         maskTextClass: this.maskTextClass,
         maskTextSelector: this.maskTextSelector,
+        ignoreAttribute: this.ignoreAttribute || '',
         skipChild: true,
         newlyAddedElement: true,
         inlineStylesheet: this.inlineStylesheet,
@@ -627,7 +630,7 @@ export default class MutationBuffer {
           target.setAttribute('data-rr-is-password', 'true');
         }
 
-        if (!ignoreAttribute(target.tagName, attributeName, value)) {
+        if (!isIgnoreAttribute(target.tagName, attributeName, value)) {
           // overwrite attribute if the mutations was triggered in same time
           item.attributes[attributeName] = transformAttribute(
             this.doc,
