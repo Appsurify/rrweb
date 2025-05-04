@@ -863,36 +863,46 @@ const inlineEventAttributes = [
 // Глобальный реестр для хранения интерактивных элементов
 const interactiveElementsRegistry = new WeakSet<Element>();
 
-const originalAddEventListener = EventTarget.prototype.addEventListener;
+if (typeof Element !== 'undefined' && typeof EventTarget !== 'undefined') {
+  const originalAddEventListener = EventTarget.prototype.addEventListener;
 
-// Переопределяем addEventListener
-EventTarget.prototype.addEventListener = function (
-  type: string,
-  listener: EventListenerOrEventListenerObject,
-  options?: boolean | AddEventListenerOptions,
-) {
-  // Вызываем оригинальный метод
-  originalAddEventListener.call(this, type, listener, options);
-  // Если this является элементом, проверяем тип события
-  if (this instanceof Element) {
-    const eventType = type.toLowerCase();
-    // console.info("Event type: ", eventType);
-    if (interactiveEvents.includes(eventType)) {
-      interactiveElementsRegistry.add(this);
+  EventTarget.prototype.addEventListener = function (
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+  ) {
+    originalAddEventListener.call(this, type, listener, options);
+
+    if (this instanceof Element) {
+      const eventType = type.toLowerCase();
+      if (interactiveEvents.includes(eventType)) {
+        interactiveElementsRegistry.add(this);
+      }
     }
-  }
-};
+  };
+}
 
-const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
-EventTarget.prototype.removeEventListener = function (
-  type: string,
-  listener: EventListenerOrEventListenerObject,
-  options?: boolean | EventListenerOptions,
-) {
-  originalRemoveEventListener.call(this, type, listener, options);
-  // Опционально: можно реализовать логику удаления элемента из реестра, если на нём больше интерактивных обработчиков.
-  // Но часто это не требуется для задачи маркировки элемента как интерактивного.
-};
+if (typeof Element !== 'undefined' && typeof EventTarget !== 'undefined') {
+  const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+
+  EventTarget.prototype.removeEventListener = function (
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ) {
+    originalRemoveEventListener.call(this, type, listener, options);
+
+    // Если this является элементом и мы хотим контролировать удаление интерактивности
+    if (this instanceof Element) {
+      const eventType = type.toLowerCase();
+      if (interactiveEvents.includes(eventType)) {
+        // (опционально) можно реализовать проверку остались ли другие обработчики
+        // и удалить из реестра, если нет — зависит от необходимости точности
+        // interactiveElementsRegistry.delete(this); // <-- осторожно с этим
+      }
+    }
+  };
+}
 
 function hasEventListeners(n: Node): boolean {
   // console.info("hasEventListeners: ", n, interactiveElementsRegistry.has(n));
