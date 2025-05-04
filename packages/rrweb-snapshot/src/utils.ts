@@ -929,21 +929,21 @@ export function isElementInteractive(n: Node): boolean {
   }
 
   // Для текстовых узлов и прочих оставляем существующую логику...
-  if (n.nodeType === Node.TEXT_NODE) {
-    const textNode = n as Text;
-    const parentElement = textNode.parentElement;
-
-    if (parentElement !== null && interactiveTags.includes(parentElement.tagName.toLowerCase())) {
-      return true;
-    }
-
-    return (
-      parentElement !== null &&
-      isElementVisible(parentElement) &&
-      textNode.textContent?.trim().length !== 0 &&
-      isElementInteractive(parentElement)
-    );
-  }
+  // if (n.nodeType === Node.TEXT_NODE) {
+  //   const textNode = n as Text;
+  //   const parentElement = textNode.parentElement;
+  //
+  //   if (parentElement !== null && interactiveTags.includes(parentElement.tagName.toLowerCase())) {
+  //     return true;
+  //   }
+  //
+  //   return (
+  //     parentElement !== null &&
+  //     isElementVisible(parentElement) &&
+  //     textNode.textContent?.trim().length !== 0 &&
+  //     isElementInteractive(parentElement)
+  //   );
+  // }
 
   return false;
 }
