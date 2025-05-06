@@ -17,12 +17,12 @@
       "@appsurify-testmap/rrweb-utils",
       "@appsurify-testmap/rrweb-web-extension",
       "@appsurify-testmap/rrvideo",
-      "@appsurify-testmap/rrweb-rrweb-plugin-console-record",
-      "@appsurify-testmap/rrweb-rrweb-plugin-console-replay",
-      "@appsurify-testmap/rrweb-rrweb-plugin-sequential-id-record",
-      "@appsurify-testmap/rrweb-rrweb-plugin-sequential-id-replay",
-      "@appsurify-testmap/rrweb-rrweb-plugin-canvas-webrtc-record",
-      "@appsurify-testmap/rrweb-rrweb-plugin-canvas-webrtc-replay"
+      "@appsurify-testmap/rrweb-plugin-console-record",
+      "@appsurify-testmap/rrweb-plugin-console-replay",
+      "@appsurify-testmap/rrweb-plugin-sequential-id-record",
+      "@appsurify-testmap/rrweb-plugin-sequential-id-replay",
+      "@appsurify-testmap/rrweb-plugin-canvas-webrtc-record",
+      "@appsurify-testmap/rrweb-plugin-canvas-webrtc-replay"
     ]
   ],
   "linked": [],

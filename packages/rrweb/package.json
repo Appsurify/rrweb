@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb",
-  "version": "2.0.0-alpha.32",
+  "version": "2.1.0-alpha.1",
   "description": "record and replay the web",
   "scripts": {
     "prepare": "npm run prepack",
@@ -80,13 +80,13 @@
     "vite-plugin-dts": "^3.9.1"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.32",
-    "@appsurify-testmap/rrweb-utils": "^2.0.0-alpha.32",
+    "@appsurify-testmap/rrdom": "^2.1.0-alpha.1",
+    "@appsurify-testmap/rrweb-snapshot": "^2.1.0-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.1",
+    "@appsurify-testmap/rrweb-utils": "^2.1.0-alpha.1",
     "@types/css-font-loading-module": "0.0.7",
     "@xstate/fsm": "^1.4.0",
     "base64-arraybuffer": "^1.0.1",
-    "mitt": "^3.0.0",
-    "@appsurify-testmap/rrdom": "^2.0.0-alpha.32",
-    "@appsurify-testmap/rrweb-snapshot": "^2.0.0-alpha.32"
+    "mitt": "^3.0.0"
   }
 }

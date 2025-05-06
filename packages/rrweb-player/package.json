@@ -1,8 +1,8 @@
 {
   "name": "@appsurify-testmap/rrweb-player",
-  "version": "2.0.0-alpha.32",
+  "version": "2.1.0-alpha.1",
   "devDependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.32",
+    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.1",
     "@sveltejs/adapter-auto": "^3.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/package": "^2.0.0",
@@ -19,9 +19,9 @@
     "vite": "^5.3.1"
   },
   "dependencies": {
-    "@tsconfig/svelte": "^1.0.0",
-    "@appsurify-testmap/rrweb-replay": "^2.0.0-alpha.32",
-    "@appsurify-testmap/rrweb-packer": "^2.0.0-alpha.32"
+    "@appsurify-testmap/rrweb-packer": "^2.1.0-alpha.1",
+    "@appsurify-testmap/rrweb-replay": "^2.1.0-alpha.1",
+    "@tsconfig/svelte": "^1.0.0"
   },
   "scripts": {
     "dev": "vite build --watch",

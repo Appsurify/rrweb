@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrdom-nodejs",
-  "version": "2.0.0-alpha.32",
+  "version": "2.1.0-alpha.1",
   "scripts": {
     "dev": "vite build --watch",
     "build": "yarn turbo run prepublish",
@@ -46,16 +46,16 @@
     "compare-versions": "^4.1.3",
     "eslint": "^8.15.0",
     "puppeteer": "^9.1.1",
+    "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "vite-plugin-dts": "^3.9.1",
-    "vitest": "^1.4.0",
-    "typescript": "^5.4.5"
+    "vitest": "^1.4.0"
   },
   "dependencies": {
+    "@appsurify-testmap/rrdom": "^2.1.0-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.1",
     "cssom": "^0.5.0",
     "cssstyle": "^2.3.0",
-    "nwsapi": "2.2.0",
-    "@appsurify-testmap/rrdom": "^2.0.0-alpha.32",
-    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.32"
+    "nwsapi": "2.2.0"
   }
 }
