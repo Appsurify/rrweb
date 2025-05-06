@@ -43,8 +43,15 @@ export type CheckoutType =
 
 export type RecordSettings = {
   checkoutType: CheckoutType;
-  sampling?: SamplingStrategy;
+  ignoreAttribute?: string;
   maskInputOptions: MaskInputOptions;
+  slimDOMOptions?: string | boolean;
+  inlineStylesheet?: boolean;
+  sampling?: SamplingStrategy;
+  recordDOM?: boolean;
+  recordCanvas?: boolean;
+  collectFonts?: boolean;
+  inlineImages?: boolean;
 };
 
 export type JWTAuth = {

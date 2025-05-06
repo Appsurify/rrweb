@@ -12,11 +12,10 @@ import { isInCrossOriginIFrame } from '~/utils';
 let stopFn: (() => void) | null = null;
 
 function startRecord(config: recordOptions<eventWithTime>) {
-  console.debug('startRecord with config: ', config);
+  console.debug(`${Date.now()} [rrweb-web-extension] inject:startRecord:config:`, config);
   stopFn =
     record({
       emit: (event) => {
-        // console.debug("Emit event: ", event);
         postMessage({
           message: MessageName.EmitEvent,
           event,
@@ -46,7 +45,6 @@ const messageHandler = (
 
   const eventHandler = {
     [MessageName.StartRecord]: () => {
-      console.debug('messageHandler -> eventHandler: ', data)
       startRecord(data.config || {});
     },
     [MessageName.StopRecord]: () => {

@@ -86,7 +86,7 @@ void (async () => {
         message: MessageName.RecordStopped,
         endTimestamp: Date.now(),
       }))) as RecordStoppedMessage;
-      console.debug('stopResponse: ', stopResponse);
+      console.debug(`${Date.now()} [rrweb-web-extension] background:stopResponse:`, stopResponse);
     }
 
     recorderStatus = {

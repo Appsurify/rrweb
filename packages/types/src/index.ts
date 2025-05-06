@@ -376,6 +376,7 @@ export enum MouseInteractions {
   MouseUp,
   MouseDown,
   Click,
+  ContextMenu,
   DblClick,
   Focus,
   Blur,

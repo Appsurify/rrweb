@@ -5,18 +5,21 @@ import type {
   nodeMetaMap,
 } from './types';
 
+import { NodeType } from '@appsurify-testmap/rrweb-types';
 import type {
+  IMirror,
+  serializedNodeWithId,
+  serializedNode,
   documentNode,
   documentTypeNode,
-  elementNode,
-  IMirror,
-  serializedNode,
-  serializedNodeWithId,
   textNode,
+  elementNode,
 } from "@appsurify-testmap/rrweb-types";
-import { NodeType } from '@appsurify-testmap/rrweb-types';
 import dom from '@appsurify-testmap/rrweb-utils';
 
+export function isElement(n: Node): n is Element {
+  return n.nodeType === n.ELEMENT_NODE;
+}
 
 export function isShadowRoot(n: Node): n is ShadowRoot {
   const hostEl: Element | null =
@@ -211,7 +214,6 @@ export class Mirror implements IMirror<Node> {
       );
     }
   }
-
   has(id: number): boolean {
     return this.idNodeMap.has(id);
   }
@@ -448,8 +450,19 @@ export function absolutifyURLs(cssText: string | null, href: string): string {
  * Intention is to normalize by remove spaces, semicolons and CSS comments
  * so that we can compare css as authored vs. output of stringifyStylesheet
  */
-export function normalizeCssString(cssText: string): string {
-  return cssText.replace(/(\/\*[^*]*\*\/)|[\s;]/g, '');
+export function normalizeCssString(
+  cssText: string,
+  /**
+   * _testNoPxNorm: only used as part of the 'substring matching going from many to none'
+   * test case so that it will trigger a failure if the conditions that let to the creation of that test arise again
+   */
+  _testNoPxNorm = false,
+): string {
+  if (_testNoPxNorm) {
+    return cssText.replace(/(\/\*[^*]*\*\/)|[\s;]/g, '');
+  } else {
+    return cssText.replace(/(\/\*[^*]*\*\/)|[\s;]/g, '').replace(/0px/g, '0');
+  }
 }
 
 /**
@@ -461,19 +474,24 @@ export function normalizeCssString(cssText: string): string {
 export function splitCssText(
   cssText: string,
   style: HTMLStyleElement,
+  _testNoPxNorm = false,
 ): string[] {
   const childNodes = Array.from(style.childNodes);
   const splits: string[] = [];
-  let iterLimit = 0;
+  let iterCount = 0;
   if (childNodes.length > 1 && cssText && typeof cssText === 'string') {
-    let cssTextNorm = normalizeCssString(cssText);
+    let cssTextNorm = normalizeCssString(cssText, _testNoPxNorm);
     const normFactor = cssTextNorm.length / cssText.length;
     for (let i = 1; i < childNodes.length; i++) {
       if (
         childNodes[i].textContent &&
         typeof childNodes[i].textContent === 'string'
       ) {
-        const textContentNorm = normalizeCssString(childNodes[i].textContent!);
+        const textContentNorm = normalizeCssString(
+          childNodes[i].textContent!,
+          _testNoPxNorm,
+        );
+        const jLimit = 100; // how many iterations for the first part of searching
         let j = 3;
         for (; j < textContentNorm.length; j++) {
           if (
@@ -487,31 +505,62 @@ export function splitCssText(
           break;
         }
         for (; j < textContentNorm.length; j++) {
-          const bit = textContentNorm.substring(0, j);
+          let startSubstring = textContentNorm.substring(0, j);
           // this substring should appears only once in overall text too
-          const bits = cssTextNorm.split(bit);
+          let cssNormSplits = cssTextNorm.split(startSubstring);
           let splitNorm = -1;
-          if (bits.length === 2) {
-            splitNorm = cssTextNorm.indexOf(bit);
+          if (cssNormSplits.length === 2) {
+            splitNorm = cssNormSplits[0].length;
           } else if (
-            bits.length > 2 &&
-            bits[0] === '' &&
+            cssNormSplits.length > 2 &&
+            cssNormSplits[0] === '' &&
             childNodes[i - 1].textContent !== ''
           ) {
             // this childNode has same starting content as previous
-            splitNorm = cssTextNorm.indexOf(bit, 1);
+            splitNorm = cssTextNorm.indexOf(startSubstring, 1);
+          } else if (cssNormSplits.length === 1) {
+            // try to roll back to get multiple matches again
+            startSubstring = startSubstring.substring(
+              0,
+              startSubstring.length - 1,
+            );
+            cssNormSplits = cssTextNorm.split(startSubstring);
+            if (cssNormSplits.length <= 1) {
+              // no split possible
+              splits.push(cssText);
+              return splits;
+            }
+            j = jLimit + 1; // trigger end of search
+          } else if (j === textContentNorm.length - 1) {
+            // we're about to end loop without a split point
+            splitNorm = cssTextNorm.indexOf(startSubstring);
+          }
+          if (cssNormSplits.length >= 2 && j > jLimit) {
+            const prevTextContent = childNodes[i - 1].textContent;
+            if (prevTextContent && typeof prevTextContent === 'string') {
+              // pick the first matching point which respects the previous chunk's approx size
+              const prevMinLength = normalizeCssString(prevTextContent).length;
+              splitNorm = cssTextNorm.indexOf(startSubstring, prevMinLength);
+            }
+            if (splitNorm === -1) {
+              // fall back to pick the first matching point of many
+              splitNorm = cssNormSplits[0].length;
+            }
           }
           if (splitNorm !== -1) {
             // find the split point in the original text
             let k = Math.floor(splitNorm / normFactor);
             for (; k > 0 && k < cssText.length; ) {
-              iterLimit += 1;
-              if (iterLimit > 50 * childNodes.length) {
+              iterCount += 1;
+              if (iterCount > 50 * childNodes.length) {
                 // quit for performance purposes
                 splits.push(cssText);
                 return splits;
               }
-              const normPart = normalizeCssString(cssText.substring(0, k));
+              const normPart = normalizeCssString(
+                cssText.substring(0, k),
+                _testNoPxNorm,
+              );
               if (normPart.length === splitNorm) {
                 splits.push(cssText.substring(0, k));
                 cssText = cssText.substring(k);
@@ -647,10 +696,6 @@ export function getXPath(node: Node): string {
   return ''; // Если тип узла не поддерживается
 }
 
-export function isElement(n: Node): n is Element {
-  return n.nodeType === n.ELEMENT_NODE;
-}
-
 export function isTextVisible(n: Text): boolean {
   // const parentElement = n.parentElement;
 
@@ -669,17 +714,6 @@ export function isTextVisible(n: Text): boolean {
   return textContent !== '';
 }
 
-// export function isElementVisible(n: Element): boolean {
-//   // console.info('[rrweb-snapshot] n.getBoundingClientRect()', n.getBoundingClientRect())
-//   // console.info('[rrweb-snapshot] isStyleVisible(n)', isStyleVisible(n));
-//   // console.info('[rrweb-snapshot] isRectVisible(n.getBoundingClientRect())', isRectVisible(n.getBoundingClientRect()));
-//   // return isStyleVisible(n) && isRectVisible(n.getBoundingClientRect());
-//   const result = isStyleVisible(n) && isRectVisible(n.getBoundingClientRect());
-//   if (!result) {
-//     console.log('[rrweb-snapshot] ', n, ' isRectVisible ', n.getBoundingClientRect())
-//   }
-//   return result;
-// }
 export function isElementVisible(n: Element): boolean {
   const win = n.ownerDocument?.defaultView ?? null;
   const style = win ? win.getComputedStyle(n) : null;
@@ -691,21 +725,13 @@ export function isElementVisible(n: Element): boolean {
 
   const rect = n.getBoundingClientRect();
 
-  const result = isStyleVisible && isRectVisible(rect, win);
-
-  // if (!result) {
-  //   console.log('[rrweb-snapshot] ', n, ' isRectVisible ', rect);
-  // }
+  const result = isStyleVisible && isRectVisible(rect);
 
   return result;
 }
 
-// function isStyleVisible(n: Element): boolean {
-//   const style = window.getComputedStyle(n);
-//   return style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) !== 0;
-// }
 
-function isRectVisible(rect: DOMRect, win: Window | null): boolean {
+function isRectVisible(rect: DOMRect, win: Window = window): boolean {
   const height = win?.innerHeight ?? win?.document?.documentElement?.clientHeight ?? 0;
   const width = win?.innerWidth ?? win?.document?.documentElement?.clientWidth ?? 0;
 
@@ -714,13 +740,6 @@ function isRectVisible(rect: DOMRect, win: Window | null): boolean {
     rect.bottom <= height &&
     rect.right <= width;
 }
-
-// function isRectVisible(rect: DOMRect): boolean {
-//   return rect.width > 0 && rect.height > 0 &&
-//     rect.top >= 0 && rect.left >= 0 &&
-//     rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-//     rect.right <= (window.innerWidth || document.documentElement.clientWidth);
-// }
 
 // TODO: Original with bug
 // function getInteractiveEvents(): string[] {
@@ -863,49 +882,40 @@ const inlineEventAttributes = [
 // Глобальный реестр для хранения интерактивных элементов
 const interactiveElementsRegistry = new WeakSet<Element>();
 
-if (typeof Element !== 'undefined' && typeof EventTarget !== 'undefined') {
-  const originalAddEventListener = EventTarget.prototype.addEventListener;
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const originalAddEventListener = EventTarget.prototype.addEventListener;
 
-  EventTarget.prototype.addEventListener = function (
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions,
-  ) {
-    originalAddEventListener.call(this, type, listener, options);
+// Переопределяем addEventListener
+EventTarget.prototype.addEventListener = function (
+  type: string,
+  listener: EventListenerOrEventListenerObject,
+  options?: boolean | AddEventListenerOptions,
+) {
 
-    if (this instanceof Element) {
-      const eventType = type.toLowerCase();
-      if (interactiveEvents.includes(eventType)) {
-        interactiveElementsRegistry.add(this);
-      }
+  originalAddEventListener.call(this, type, listener, options);
+  // Если this является элементом, проверяем тип события
+  if (this instanceof Element) {
+    const eventType = type.toLowerCase();
+    // console.info("Event type: ", eventType);
+    if (interactiveEvents.includes(eventType)) {
+      interactiveElementsRegistry.add(this);
     }
-  };
-}
+  }
+};
 
-if (typeof Element !== 'undefined' && typeof EventTarget !== 'undefined') {
-  const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
-
-  EventTarget.prototype.removeEventListener = function (
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions,
-  ) {
-    originalRemoveEventListener.call(this, type, listener, options);
-
-    // Если this является элементом и мы хотим контролировать удаление интерактивности
-    if (this instanceof Element) {
-      const eventType = type.toLowerCase();
-      if (interactiveEvents.includes(eventType)) {
-        // (опционально) можно реализовать проверку остались ли другие обработчики
-        // и удалить из реестра, если нет — зависит от необходимости точности
-        // interactiveElementsRegistry.delete(this); // <-- осторожно с этим
-      }
-    }
-  };
-}
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+EventTarget.prototype.removeEventListener = function (
+  type: string,
+  listener: EventListenerOrEventListenerObject,
+  options?: boolean | EventListenerOptions,
+) {
+  originalRemoveEventListener.call(this, type, listener, options);
+  // Опционально: можно реализовать логику удаления элемента из реестра, если на нём больше интерактивных обработчиков.
+  // Но часто это не требуется для задачи маркировки элемента как интерактивного.
+};
 
 function hasEventListeners(n: Node): boolean {
-  // console.info("hasEventListeners: ", n, interactiveElementsRegistry.has(n));
   return n instanceof Element && interactiveElementsRegistry.has(n);
 }
 
@@ -914,8 +924,6 @@ export function isElementInteractive(n: Node): boolean {
   if (n.nodeType === Node.ELEMENT_NODE) {
     const element = n as Element;
     const tagName = element.tagName.toLowerCase();
-
-    // console.info('[rrweb-snapshot] isElementInteractive:hasEventListeners(element):', tagName, hasEventListeners(element));
 
     if (interactiveTags.includes(tagName)) {
       return true;
@@ -958,12 +966,8 @@ export function isElementInteractive(n: Node): boolean {
   return false;
 }
 
-
-// TODO: Maybe work
-export function inspectInlineEventHandlers(doc: Document): void {
-  if (!doc || typeof doc.querySelectorAll !== 'function') return;
-
-  const allElements = doc.querySelectorAll('*');
+function inspectInlineEventHandlers() {
+  const allElements = document.querySelectorAll('*');
   allElements.forEach((el) => {
     inlineEventAttributes.forEach((attr) => {
       if (el.hasAttribute(attr)) {
@@ -973,54 +977,15 @@ export function inspectInlineEventHandlers(doc: Document): void {
   });
 }
 
-export function scheduleInlineEventInspection(doc: Document): void {
-  if (
-    !doc ||
-    typeof doc.addEventListener !== 'function' ||
-    typeof doc.querySelectorAll !== 'function'
-  ) {
-    return;
-  }
-  try {
-    if (
-      doc.readyState === 'complete' ||
-      doc.readyState === 'interactive'
-    ) {
-      inspectInlineEventHandlers(doc);
-    } else {
-      doc.addEventListener('DOMContentLoaded', () => inspectInlineEventHandlers(doc), {
-        once: true,
-        capture: false,
-      });
-    }
-  } catch (e) {
-    console.warn('[inlineEventInspection] Failed to inspect document:', e);
-  }
+// Если DOM уже загружен – выполняем инспекцию сразу,
+// иначе – ждем события DOMContentLoaded
+if (
+  document.readyState === 'complete' ||
+  document.readyState === 'interactive'
+) {
+  inspectInlineEventHandlers();
+  // console.info('DOMContentLoaded and inspect called');
+} else {
+  document.addEventListener('DOMContentLoaded', inspectInlineEventHandlers);
+  // console.info('DOMContentLoaded and added handler');
 }
-
-// export function scheduleInlineEventInspection(doc: Document): void {
-//
-// }
-//
-// export function inspectInlineEventHandlers() {
-//   const allElements = document.querySelectorAll('*');
-//   allElements.forEach((el) => {
-//     inlineEventAttributes.forEach((attr) => {
-//       if (el.hasAttribute(attr)) {
-//         interactiveElementsRegistry.add(el);
-//       }
-//     });
-//   });
-// }
-//
-//
-// if (
-//   document.readyState === 'complete' ||
-//   document.readyState === 'interactive'
-// ) {
-//   inspectInlineEventHandlers();
-//   console.info('DOMContentLoaded and inspect called');
-// } else {
-//   document.addEventListener('DOMContentLoaded', inspectInlineEventHandlers);
-//   console.info('DOMContentLoaded and added handler');
-// }

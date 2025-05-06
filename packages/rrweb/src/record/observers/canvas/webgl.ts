@@ -6,7 +6,8 @@ import {
   type IWindow,
   type listenerHandler,
 } from '@appsurify-testmap/rrweb-types';
-import { hookSetter, isBlocked, patch } from '../../../utils';
+import { hookSetter, isBlocked } from '../../../utils';
+import { patch } from '@appsurify-testmap/rrweb-utils';
 import { saveWebGLVar, serializeArgs } from './serialize-args';
 
 function patchGLPrototype(

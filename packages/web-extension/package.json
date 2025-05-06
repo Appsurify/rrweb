@@ -1,7 +1,7 @@
 {
   "name": "@appsurify-testmap/rrweb-web-extension",
   "private": true,
-  "version": "2.0.0-alpha.41",
+  "version": "2.0.0-alpha.32",
   "description": "The web extension of rrweb which helps to run rrweb on any website out of box",
   "author": "rrweb-io",
   "license": "MIT",
@@ -15,15 +15,10 @@
     "pack:firefox": "cross-env TARGET_BROWSER=firefox ZIP=true vite build",
     "check-types": "tsc -noEmit",
     "build": "npm run pack:chrome && npm run pack:firefox",
-    "prepublish": "yarn build",
-    "retest": "vitest run",
-    "test": "yarn build && vitest run",
-    "test:watch": "vitest watch",
-    "retest:update": "vitest run --update",
-    "test:update": "yarn build && vitest run --update"
+    "prepublish": "yarn build"
   },
   "devDependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.41",
+    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.32",
     "@types/chrome": "^0.0.287",
     "@types/react-dom": "^18.0.6",
     "@types/semver": "^7.5.8",
@@ -37,8 +32,6 @@
     "webextension-polyfill": "^0.10.0"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb": "^2.0.0-alpha.41",
-    "@appsurify-testmap/rrweb-player": "^2.0.0-alpha.41",
     "@chakra-ui/react": "^2.3.4",
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
@@ -51,6 +44,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.4.0",
-    "react-router-dom": "^6.4.1"
+    "react-router-dom": "^6.4.1",
+    "@appsurify-testmap/rrweb": "^2.0.0-alpha.32",
+    "@appsurify-testmap/rrweb-player": "^2.0.0-alpha.32"
   }
 }

@@ -32,7 +32,7 @@ import {
   markCssSplits,
   isElementVisible,
   isTextVisible,
-  getXPath, isElementInteractive, scheduleInlineEventInspection,
+  getXPath, isElementInteractive,
 } from "./utils";
 import dom from '@appsurify-testmap/rrweb-utils';
 
@@ -474,7 +474,7 @@ function serializeNode(
           type: NodeType.Document,
           childNodes: [],
           xPath: xPath,
-          compatMode: (n as Document).compatMode
+          compatMode: (n as Document).compatMode, // probably "BackCompat"
         };
       } else {
         return {
@@ -872,9 +872,8 @@ function slimDOMExcluded(
       (sn.tagName === 'script' ||
         // (module)preload link
         (sn.tagName === 'link' &&
-          (sn.attributes.rel === 'preload' ||
-            sn.attributes.rel === 'modulepreload') &&
-          sn.attributes.as === 'script') ||
+          ((sn.attributes.rel === 'preload' && sn.attributes.as === 'script') ||
+            sn.attributes.rel === 'modulepreload')) ||
         // prefetch link
         (sn.tagName === 'link' &&
           sn.attributes.rel === 'prefetch' &&
@@ -1309,7 +1308,7 @@ function snapshot(
     blockSelector = null,
     maskTextClass = 'rr-mask',
     maskTextSelector = null,
-    ignoreAttribute = 'rr-ignore-attr',
+    ignoreAttribute = 'rr-ignore',
     inlineStylesheet = true,
     inlineImages = false,
     recordCanvas = false,
@@ -1326,8 +1325,7 @@ function snapshot(
     stylesheetLoadTimeout,
     keepIframeSrcFn = () => false,
   } = options || {};
-  // TODO: Need research and fix for testing env
-  scheduleInlineEventInspection(n);
+  console.debug(`${Date.now()} [rrweb-snapshot] snapshot:options:`, options);
   const maskInputOptions: MaskInputOptions =
     maskAllInputs === true
       ? {

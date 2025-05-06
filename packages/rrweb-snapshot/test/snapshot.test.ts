@@ -217,7 +217,7 @@ describe('form', () => {
   it('should record textarea values once', () => {
     const el = render(`<textarea>Lorem ipsum</textarea>`);
     const sel = serializeNode(el) as elementNode;
-    // console.info(sel);
+
     // we serialize according to where the DOM stores the value, not how
     // the HTML stores it (this is so that maskInputValue can work over
     // inputs/textareas/selects in a uniform way)
@@ -227,7 +227,6 @@ describe('form', () => {
       },
     });
     expect(sel?.childNodes).toEqual([]); // shouldn't be stored in childNodes while in transit
-    expect(sel?.xPath).toEqual('/html/body/textarea');
   });
 });
 

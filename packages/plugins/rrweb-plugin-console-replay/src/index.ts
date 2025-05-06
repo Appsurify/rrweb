@@ -2,7 +2,7 @@ import {
   type LogLevel,
   type LogData,
   PLUGIN_NAME,
-} from '@appsurify-testmap/rrweb-rrweb-plugin-console-record';
+} from '@appsurify-testmap/rrweb-plugin-console-record';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 import { EventType, IncrementalSource } from '@appsurify-testmap/rrweb-types';
 import type { ReplayPlugin, Replayer } from '@appsurify-testmap/rrweb';

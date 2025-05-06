@@ -1,12 +1,12 @@
 {
   "name": "@appsurify-testmap/rrweb-replay",
-  "version": "2.0.0-alpha.41",
+  "version": "2.0.0-alpha.32",
   "publishConfig": {
     "access": "public"
   },
   "keywords": [
     "rrweb",
-    "rrweb-replay"
+    "@rrweb/replay"
   ],
   "scripts": {
     "dev": "vite build --watch",
@@ -50,14 +50,14 @@
   ],
   "devDependencies": {
     "puppeteer": "^20.9.0",
-    "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "vite-plugin-dts": "^3.9.1",
-    "vitest": "^1.4.0"
+    "vitest": "^1.4.0",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb": "^2.0.0-alpha.41",
-    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.41"
+    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.32",
+    "@appsurify-testmap/rrweb": "^2.0.0-alpha.32"
   },
   "browserslist": [
     "supports es6-class"

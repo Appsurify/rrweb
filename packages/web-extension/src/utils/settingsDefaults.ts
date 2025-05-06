@@ -8,6 +8,12 @@ import {
 
 export const defaultRecordSettings: RecordSettings = {
   checkoutType: { type: 'checkoutEveryEvc', value: true },
+  ignoreAttribute: 'rr-attr',
+  maskInputOptions: {
+    password: true,
+  },
+  slimDOMOptions: 'all',
+  inlineStylesheet: true,
   sampling: {
     mousemove: false,
     mouseInteraction: {
@@ -27,9 +33,10 @@ export const defaultRecordSettings: RecordSettings = {
     canvas: 'all',
     visibility: false,
   },
-  maskInputOptions: {
-    password: true,
-  },
+  recordDOM: true,
+  recordCanvas: true,
+  collectFonts: true,
+  inlineImages: true
 };
 
 export const defaultApiSettings: ApiSettings = {

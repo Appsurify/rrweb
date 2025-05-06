@@ -1,47 +1,45 @@
 import {
-  createMirror,
+  snapshot,
   type MaskInputOptions,
   type SlimDOMOptions,
-  snapshot,
-} from "@appsurify-testmap/rrweb-snapshot";
-import { initObservers, mutationBuffers } from "./observer";
+  createMirror,
+} from '@appsurify-testmap/rrweb-snapshot';
+import { initObservers, mutationBuffers } from './observer';
 import {
+  on,
+  getWindowWidth,
   getWindowHeight,
   getWindowScroll,
-  getWindowWidth,
+  polyfill,
   hasShadowRoot,
   isSerializedIframe,
   isSerializedStylesheet,
   nowTimestamp,
-  on,
-  polyfill
-} from "../utils";
-import type {
-  CrossOriginIframeMessageEventContent,
-  recordOptions,
-} from "../types";
+} from '../utils';
+import type { recordOptions } from '../types';
 import {
-  type adoptedStyleSheetParam,
-  type canvasMutationParam,
   EventType,
   type eventWithoutTime,
   type eventWithTime,
-  IncrementalSource, type IWindow,
+  IncrementalSource,
   type listenerHandler,
   type mutationCallbackParam,
   type scrollCallback,
+  type canvasMutationParam,
+  type adoptedStyleSheetParam,
 } from "@appsurify-testmap/rrweb-types";
-import { IframeManager } from "./iframe-manager";
-import { ShadowDomManager } from "./shadow-dom-manager";
-import { CanvasManager } from "./observers/canvas/canvas-manager";
-import { StylesheetManager } from "./stylesheet-manager";
-import ProcessedNodeManager from "./processed-node-manager";
+import type { CrossOriginIframeMessageEventContent } from '../types';
+import { IframeManager } from './iframe-manager';
+import { ShadowDomManager } from './shadow-dom-manager';
+import { CanvasManager } from './observers/canvas/canvas-manager';
+import { StylesheetManager } from './stylesheet-manager';
+import ProcessedNodeManager from './processed-node-manager';
 import {
   callbackWrapper,
   registerErrorHandler,
   unregisterErrorHandler,
-} from "./error-handler";
-import dom from "@appsurify-testmap/rrweb-utils";
+} from './error-handler';
+import dom from '@appsurify-testmap/rrweb-utils';
 
 let wrappedEmit!: (e: eventWithoutTime, isCheckout?: boolean) => void;
 
@@ -76,7 +74,7 @@ function record<T = eventWithTime>(
     blockSelector = null,
     ignoreClass = 'rr-ignore',
     ignoreSelector = null,
-    ignoreAttribute = 'rr-ignore-attribute',
+    ignoreAttribute = 'rr-ignore',
     maskTextClass = 'rr-mask',
     maskTextSelector = null,
     inlineStylesheet = true,
@@ -104,32 +102,18 @@ function record<T = eventWithTime>(
     ignoreCSSAttributes = new Set([]),
     errorHandler,
   } = options;
-  const win = options.customWindow || window;
-  const doc = options.customDocument || document;
-
-  try {
-    if (Array.from([1], (x) => x * 2)[0] !== 2) {
-      const cleanFrame = doc.createElement('iframe');
-      doc.body.appendChild(cleanFrame);
-      // eslint-disable-next-line @typescript-eslint/unbound-method -- Array.from is static and doesn't rely on binding
-      Array.from = cleanFrame.contentWindow?.Array.from || Array.from;
-      doc.body.removeChild(cleanFrame);
-    }
-  } catch (err) {
-    console.debug('Unable to override Array.from', err);
-  }
-
+  console.debug(`${Date.now()} [rrweb] record:options:`, options);
   registerErrorHandler(errorHandler);
 
   const inEmittingFrame = recordCrossOriginIframes
-    ? win.parent === win
+    ? window.parent === window
     : true;
 
   let passEmitsToParent = false;
   if (!inEmittingFrame) {
     try {
       // throws if parent is cross-origin
-      if (win.parent.document) {
+      if (window.parent.document) {
         passEmitsToParent = false; // if parent is same origin we collect iframe events from the parent
       }
     } catch (e) {
@@ -219,13 +203,9 @@ function record<T = eventWithTime>(
     }
     return e as unknown as T;
   };
-
-
   wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
     const e = r as eventWithTime;
-
     e.timestamp = nowTimestamp();
-
     if (
       mutationBuffers[0]?.isFrozen() &&
       e.type !== EventType.FullSnapshot &&
@@ -245,10 +225,10 @@ function record<T = eventWithTime>(
       const message: CrossOriginIframeMessageEventContent<T> = {
         type: 'rrweb',
         event: eventProcessor(e),
-        origin: win.location.origin,
+        origin: window.location.origin,
         isCheckout,
       };
-      win.parent.postMessage(message, '*');
+      window.parent.postMessage(message, '*');
     }
 
     if (e.type === EventType.FullSnapshot) {
@@ -264,10 +244,8 @@ function record<T = eventWithTime>(
       }
 
       incrementalSnapshotCount++;
-
       const exceedCount =
         checkoutEveryNth && incrementalSnapshotCount >= checkoutEveryNth;
-
       const exceedTime =
         checkoutEveryNms &&
         e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
@@ -302,7 +280,6 @@ function record<T = eventWithTime>(
       },
     });
   };
-
   const wrappedScrollEmit: scrollCallback = (p) =>
     wrappedEmit({
       type: EventType.IncrementalSnapshot,
@@ -311,7 +288,6 @@ function record<T = eventWithTime>(
         ...p,
       },
     });
-
   const wrappedCanvasMutationEmit = (p: canvasMutationParam) =>
     wrappedEmit({
       type: EventType.IncrementalSnapshot,
@@ -361,7 +337,7 @@ function record<T = eventWithTime>(
   canvasManager = new CanvasManager({
     recordCanvas,
     mutationCb: wrappedCanvasMutationEmit,
-    win: win as IWindow,
+    win: window,
     blockClass,
     blockSelector,
     mirror,
@@ -404,9 +380,9 @@ function record<T = eventWithTime>(
       {
         type: EventType.Meta,
         data: {
-          href: win.location.href,
-          width: getWindowWidth(win),
-          height: getWindowHeight(win),
+          href: window.location.href,
+          width: getWindowWidth(),
+          height: getWindowHeight(),
         },
       },
       isCheckout,
@@ -418,12 +394,13 @@ function record<T = eventWithTime>(
     shadowDomManager.init();
 
     mutationBuffers.forEach((buf) => buf.lock()); // don't allow any mirror modifications during snapshotting
-    const node = snapshot(doc, {
+    const node = snapshot(document, {
       mirror,
       blockClass,
       blockSelector,
       maskTextClass,
       maskTextSelector,
+      ignoreAttribute,
       inlineStylesheet,
       maskAllInputs: maskInputOptions,
       maskTextFn,
@@ -441,7 +418,7 @@ function record<T = eventWithTime>(
         }
         if (hasShadowRoot(n)) {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          shadowDomManager.addShadowRoot(dom.shadowRoot(n as Node)!, doc);
+          shadowDomManager.addShadowRoot(dom.shadowRoot(n as Node)!, document);
         }
       },
       onIframeLoad: (iframe, childSn) => {
@@ -463,7 +440,7 @@ function record<T = eventWithTime>(
         type: EventType.FullSnapshot,
         data: {
           node,
-          initialOffset: getWindowScroll(win),
+          initialOffset: getWindowScroll(window),
         },
       },
       isCheckout,
@@ -471,10 +448,10 @@ function record<T = eventWithTime>(
     mutationBuffers.forEach((buf) => buf.unlock()); // generate & emit any mutations that happened during snapshotting, as can now apply against the newly built mirror
 
     // Some old browsers don't support adoptedStyleSheets.
-    if (doc.adoptedStyleSheets && doc.adoptedStyleSheets.length > 0)
+    if (document.adoptedStyleSheets && document.adoptedStyleSheets.length > 0)
       stylesheetManager.adoptStyleSheets(
-        doc.adoptedStyleSheets,
-        mirror.getId(doc),
+        document.adoptedStyleSheets,
+        mirror.getId(document),
       );
   };
 
@@ -637,12 +614,12 @@ function record<T = eventWithTime>(
 
     const init = () => {
       takeFullSnapshot();
-      handlers.push(observe(doc));
+      handlers.push(observe(document));
       recording = true;
     };
     if (
-      doc.readyState === 'interactive' ||
-      doc.readyState === 'complete'
+      document.readyState === 'interactive' ||
+      document.readyState === 'complete'
     ) {
       init();
     } else {
@@ -665,7 +642,7 @@ function record<T = eventWithTime>(
             });
             if (recordAfter === 'load') init();
           },
-          win as IWindow,
+          window,
         ),
       );
     }

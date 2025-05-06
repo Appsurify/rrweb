@@ -1,12 +1,12 @@
 {
   "name": "@appsurify-testmap/rrweb-packer",
-  "version": "2.0.0-alpha.41",
+  "version": "2.0.0-alpha.32",
   "publishConfig": {
     "access": "public"
   },
   "keywords": [
     "rrweb",
-    "rrweb-packer"
+    "@rrweb/packer"
   ],
   "scripts": {
     "dev": "vite build --watch",
@@ -71,14 +71,14 @@
     "package.json"
   ],
   "devDependencies": {
-    "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "vite-plugin-dts": "^3.9.1",
-    "vitest": "^1.4.0"
+    "vitest": "^1.4.0",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.41",
-    "fflate": "^0.4.4"
+    "fflate": "^0.4.4",
+    "@appsurify-testmap/rrweb-types": "^2.0.0-alpha.32"
   },
   "browserslist": [
     "supports es6-class"

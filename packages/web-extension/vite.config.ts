@@ -73,15 +73,6 @@ export default defineConfig({
       process.env.TARGET_BROWSER as string,
     ),
     emptyOutDir,
-    sourcemap: true,
-    commonjsOptions: {
-      include: [/node_modules/, '@appsurify-testmap/rrweb/', '@appsurify-testmap/rrweb-snapshot'],
-    },
-
-
-  },
-  optimizeDeps: {
-    include: ['@appsurify-testmap/rrweb-snapshot'],
   },
   // Add the webExtension plugin
   plugins: [
@@ -106,7 +97,6 @@ export default defineConfig({
           process.env.TARGET_BROWSER === 'chrome' ? 'chrome' : 'firefox';
         const commonManifest = originalManifest.common;
         const rrwebVersion = packageJson.dependencies!['@appsurify-testmap/rrweb']!.replace('^', '');
-
         const manifest = {
           version: getExtensionVersion(rrwebVersion),
           author: packageJson.author,
