@@ -81,7 +81,6 @@ export class APIClient {
             }
             this.isRefreshing = true;
             const newTokens = await this.refreshJwtToken();
-            console.debug('Refreshed tokens:', newTokens);
 
             // Update the global settings via settingsManager
             const updatedApiSettings: ApiSettings = {
