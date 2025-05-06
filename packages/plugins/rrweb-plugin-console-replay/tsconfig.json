@@ -1,23 +1,17 @@
 {
   "extends": "../../../tsconfig.base.json",
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "vite.config.ts",
-    "dist",
-    "tsconfig.json"
-  ],
+  "include": ["src"],
+  "exclude": ["vite.config.ts", "dist", "tsconfig.json"],
   "compilerOptions": {
     "rootDir": ".",
     "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
   },
   "references": [
     {
-      "path": "../../rrweb"
+      "path": "../rrweb-plugin-console-record"
     },
     {
-      "path": "../rrweb-plugin-console-record"
+      "path": "../../rrweb"
     }
   ]
 }

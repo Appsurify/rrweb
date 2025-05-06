@@ -1,6 +1,7 @@
 import type { ICanvas } from '@appsurify-testmap/rrweb-snapshot';
 import type { blockClass, IWindow, listenerHandler } from '@appsurify-testmap/rrweb-types';
-import { isBlocked, patch } from '../../../utils';
+import { isBlocked } from '../../../utils';
+import { patch } from '@appsurify-testmap/rrweb-utils';
 
 function getNormalizedContextName(contextType: string) {
   return contextType === 'experimental-webgl' ? 'webgl' : contextType;

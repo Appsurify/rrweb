@@ -1,21 +1,21 @@
 {
-  "name": "@appsurify-testmap/rrweb-rrweb-plugin-sequential-id-replay",
+  "name": "@appsurify-testmap/rrweb-plugin-sequential-id-replay",
   "version": "2.0.0-alpha.32",
   "description": "",
   "type": "module",
-  "main": "./dist/rrweb-rrweb-plugin-sequential-id-replay.umd.cjs",
-  "module": "./dist/rrweb-rrweb-plugin-sequential-id-replay.js",
-  "unpkg": "./dist/rrweb-rrweb-plugin-sequential-id-replay.umd.cjs",
+  "main": "./dist/rrweb-plugin-sequential-id-replay.umd.cjs",
+  "module": "./dist/rrweb-plugin-sequential-id-replay.js",
+  "unpkg": "./dist/rrweb-plugin-sequential-id-replay.umd.cjs",
   "typings": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/rrweb-rrweb-plugin-sequential-id-replay.js"
+        "default": "./dist/rrweb-plugin-sequential-id-replay.js"
       },
       "require": {
         "types": "./dist/index.d.cts",
-        "default": "./dist/rrweb-rrweb-plugin-sequential-id-replay.umd.cjs"
+        "default": "./dist/rrweb-plugin-sequential-id-replay.umd.cjs"
       }
     }
   },
@@ -44,7 +44,7 @@
   "homepage": "https://github.com/rrweb-io/rrweb#readme",
   "devDependencies": {
     "@appsurify-testmap/rrweb": "^2.0.0-alpha.32",
-    "@appsurify-testmap/rrweb-rrweb-plugin-sequential-id-record": "^2.0.0-alpha.32",
+    "@appsurify-testmap/rrweb-plugin-sequential-id-record": "^2.0.0-alpha.32",
     "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "vite-plugin-dts": "^3.9.1"

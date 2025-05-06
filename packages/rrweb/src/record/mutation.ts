@@ -2,7 +2,7 @@ import {
   serializeNodeWithId,
   transformAttribute,
   IGNORED_NODE,
-  ignoreAttribute,
+  isIgnoreAttribute,
   isShadowRoot,
   needMaskingText,
   maskInputValue,
@@ -176,6 +176,7 @@ export default class MutationBuffer {
   private blockSelector: observerParam['blockSelector'];
   private maskTextClass: observerParam['maskTextClass'];
   private maskTextSelector: observerParam['maskTextSelector'];
+  private ignoreAttribute: observerParam['ignoreAttribute'];
   private inlineStylesheet: observerParam['inlineStylesheet'];
   private maskInputOptions: observerParam['maskInputOptions'];
   private maskTextFn: observerParam['maskTextFn'];
@@ -202,6 +203,7 @@ export default class MutationBuffer {
         'blockSelector',
         'maskTextClass',
         'maskTextSelector',
+        'ignoreAttribute',
         'inlineStylesheet',
         'maskInputOptions',
         'maskTextFn',
@@ -319,6 +321,7 @@ export default class MutationBuffer {
         blockSelector: this.blockSelector,
         maskTextClass: this.maskTextClass,
         maskTextSelector: this.maskTextSelector,
+        ignoreAttribute: this.ignoreAttribute || '',
         skipChild: true,
         newlyAddedElement: true,
         inlineStylesheet: this.inlineStylesheet,
@@ -533,10 +536,18 @@ export default class MutationBuffer {
       this.attributes.push(item);
       this.attributeMap.set(textarea, item);
     }
-    item.attributes.value = Array.from(
+    const value = Array.from(
       dom.childNodes(textarea),
       (cn) => dom.textContent(cn) || '',
     ).join('');
+    item.attributes.value = maskInputValue({
+      element: textarea,
+      maskInputOptions: this.maskInputOptions,
+      tagName: textarea.tagName,
+      type: getInputType(textarea),
+      value,
+      maskInputFn: this.maskInputFn,
+    });
   };
 
   private processMutation = (m: mutationRecord) => {
@@ -627,7 +638,7 @@ export default class MutationBuffer {
           target.setAttribute('data-rr-is-password', 'true');
         }
 
-        if (!ignoreAttribute(target.tagName, attributeName, value)) {
+        if (!isIgnoreAttribute(target.tagName, attributeName, value)) {
           // overwrite attribute if the mutations was triggered in same time
           item.attributes[attributeName] = transformAttribute(
             this.doc,

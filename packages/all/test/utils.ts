@@ -14,6 +14,7 @@ import * as path from 'path';
 import * as http from 'http';
 import * as url from 'url';
 import * as fs from 'fs';
+import { attributes } from "happy-dom/lib/PropertySymbol.d.ts.js";
 
 export async function launchPuppeteer(
   options?: Parameters<(typeof puppeteer)['launch']>[0],
@@ -24,7 +25,7 @@ export async function launchPuppeteer(
       width: 1920,
       height: 1080,
     },
-    args: ['--no-sandbox'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
     ...options,
   });
 }

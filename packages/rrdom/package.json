@@ -31,7 +31,6 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "yarn turbo run prepublish",
-    "build:tarball": "npm pack",
     "check-types": "tsc -noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

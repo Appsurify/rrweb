@@ -1,4 +1,4 @@
-import type { SequentialIdOptions } from '@appsurify-testmap/rrweb-rrweb-plugin-sequential-id-record';
+import type { SequentialIdOptions } from '@appsurify-testmap/rrweb-plugin-sequential-id-record';
 import type { ReplayPlugin } from '@appsurify-testmap/rrweb';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 

@@ -552,8 +552,6 @@ export class Replayer {
    * Memory occupation can be released by removing all references to this replayer.
    */
   public destroy() {
-    // console.info("debugging: ", this.iframe.contentDocument);
-    // console.info("debugging: ", this.virtualDom);
     this.pause();
     this.mirror.reset();
     this.styleMirror.reset();
