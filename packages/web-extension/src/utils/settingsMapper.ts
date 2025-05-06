@@ -4,24 +4,50 @@ import {
 
 import type { recordOptions } from '@appsurify-testmap/rrweb';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
+import type { SlimDOMOptions } from '@appsurify-testmap/rrweb-snapshot';
 
 export function RecordSettingsToRecordOptions(
   settings: RecordSettings,
 ): recordOptions<eventWithTime> {
+  const {
+    checkoutType,
+    ignoreAttribute,
+    maskInputOptions,
+    slimDOMOptions,
+    inlineStylesheet,
+    sampling,
+    recordDOM,
+    recordCanvas,
+    collectFonts,
+    inlineImages
+  } = settings;
+  let resolvedSlimDOM: SlimDOMOptions | 'all' | true | undefined;
+  if (slimDOMOptions === true || slimDOMOptions === 'all') {
+    resolvedSlimDOM = slimDOMOptions;
+  } else {
+    resolvedSlimDOM = undefined;
+  }
   return {
-    sampling: { ...settings.sampling },
-    maskInputOptions: { ...settings.maskInputOptions },
     checkoutEveryNth:
-      settings.checkoutType.type === 'checkoutEveryNth'
-        ? settings.checkoutType.value
+      checkoutType.type === 'checkoutEveryNth'
+        ? checkoutType.value
         : undefined,
     checkoutEveryNms:
-      settings.checkoutType.type === 'checkoutEveryNms'
-        ? settings.checkoutType.value
+      checkoutType.type === 'checkoutEveryNms'
+        ? checkoutType.value
         : undefined,
     checkoutEveryEvc:
-      settings.checkoutType.type === 'checkoutEveryEvc'
-        ? settings.checkoutType.value
+      checkoutType.type === 'checkoutEveryEvc'
+        ? checkoutType.value
         : undefined,
+    ignoreAttribute: ignoreAttribute,
+    maskInputOptions: { ...maskInputOptions },
+    slimDOMOptions: resolvedSlimDOM,
+    inlineStylesheet: inlineStylesheet,
+    sampling: { ...sampling },
+    recordDOM: recordDOM,
+    recordCanvas: recordCanvas,
+    collectFonts: collectFonts,
+    inlineImages: inlineImages
   };
 }
