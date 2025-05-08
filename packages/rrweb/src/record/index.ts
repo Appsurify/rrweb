@@ -102,7 +102,7 @@ function record<T = eventWithTime>(
     ignoreCSSAttributes = new Set([]),
     errorHandler,
   } = options;
-  console.debug(`${Date.now()} [rrweb] record:options:`, options);
+  // console.debug(`${Date.now()} [rrweb] record:options:`, options);
   registerErrorHandler(errorHandler);
 
   const inEmittingFrame = recordCrossOriginIframes

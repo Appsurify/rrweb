@@ -3,6 +3,7 @@ import type { recordOptions } from '@appsurify-testmap/rrweb';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 import { MessageName, type RecordStartedMessage } from '~/types';
 import { isInCrossOriginIFrame } from '~/utils';
+import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-sequential-id-record';
 
 
 /**
@@ -21,6 +22,11 @@ function startRecord(config: recordOptions<eventWithTime>) {
           event,
         });
       },
+      plugins: [
+        getRecordSequentialIdPlugin({
+          key: '_sid', // default value
+        }),
+      ],
       ...config
 
     }) || null;

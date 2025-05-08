@@ -15,6 +15,7 @@ import type {
   DataURLOptions,
   addedNodeMutation,
   blockClass,
+  ignoreAttribute,
   canvasMutationCallback,
   customElementCallback,
   eventWithTime,
@@ -53,7 +54,7 @@ export type recordOptions<T> = {
   ignoreSelector?: string;
   maskTextClass?: maskTextClass;
   maskTextSelector?: string;
-  ignoreAttribute?: string;
+  ignoreAttribute?: ignoreAttribute;
   maskAllInputs?: boolean;
   maskInputOptions?: MaskInputOptions;
   maskInputFn?: MaskInputFn;
@@ -95,7 +96,7 @@ export type observerParam = {
   blockSelector: string | null;
   ignoreClass: string;
   ignoreSelector: string | null;
-  ignoreAttribute?: string | null;
+  ignoreAttribute: ignoreAttribute;
   maskTextClass: maskTextClass;
   maskTextSelector: string | null;
   maskInputOptions: MaskInputOptions;

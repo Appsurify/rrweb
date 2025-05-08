@@ -1325,7 +1325,7 @@ function snapshot(
     stylesheetLoadTimeout,
     keepIframeSrcFn = () => false,
   } = options || {};
-  console.debug(`${Date.now()} [rrweb-snapshot] snapshot:options:`, options);
+  // console.debug(`${Date.now()} [rrweb-snapshot] snapshot:options:`, options);
   const maskInputOptions: MaskInputOptions =
     maskAllInputs === true
       ? {
