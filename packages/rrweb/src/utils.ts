@@ -128,13 +128,15 @@ export function hookSetter<T>(
 }
 
 // guard against old third party libraries which redefine Date.now
-let nowTimestamp = Date.now;
+// let nowTimestamp = Date.now;
+// if (!(/*@__PURE__*/ /[1-9][0-9]{12}/.test(Date.now().toString()))) {
+//   // they have already redefined it! use a fallback
+//   nowTimestamp = () => new Date().getTime();
+// }
 
-if (!(/*@__PURE__*/ /[1-9][0-9]{12}/.test(Date.now().toString()))) {
-  // they have already redefined it! use a fallback
-  nowTimestamp = () => new Date().getTime();
+export function nowTimestamp(): number {
+  return performance.timeOrigin + performance.now();
 }
-export { nowTimestamp };
 
 export function getWindowScroll(win: Window = window) {
   const doc = win.document;

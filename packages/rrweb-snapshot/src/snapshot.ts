@@ -250,6 +250,16 @@ export function cleanAttributes(
   return attributes;
 }
 
+export function shouldIgnoreAttribute(
+  ignore: string | RegExp | undefined,
+  name: string,
+): boolean {
+  if (!ignore) return false;
+  return typeof ignore === 'string'
+    ? name === ignore
+    : ignore.test(name);
+}
+
 export function _isBlockedElement(
   element: HTMLElement,
   blockClass: string | RegExp,

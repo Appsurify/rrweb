@@ -3,6 +3,7 @@ import {
   transformAttribute,
   IGNORED_NODE,
   isIgnoreAttribute,
+  shouldIgnoreAttribute,
   isShadowRoot,
   needMaskingText,
   maskInputValue,
@@ -10,7 +11,7 @@ import {
   isNativeShadowDom,
   getInputType,
   toLowerCase,
-} from "@appsurify-testmap/rrweb-snapshot";
+} from '@appsurify-testmap/rrweb-snapshot';
 import type { observerParam, MutationBufferParam } from '../types';
 import type {
   mutationRecord,
@@ -471,6 +472,31 @@ export default class MutationBuffer {
         .filter((text) => this.mirror.has(text.id)),
       attributes: this.attributes
         .map((attribute) => {
+          const element = attribute.node as HTMLElement;
+          const filtered: typeof attribute.attributes = {};
+
+          for (const [name, value] of Object.entries(attribute.attributes)) {
+            const isIgnored = shouldIgnoreAttribute(this.ignoreAttribute, name);
+            const existedBefore = element.hasAttribute(name);
+
+            const keep =
+              (value !== null && !isIgnored) ||
+              (value === null &&
+                (!isIgnored || attribute.attributes[name] !== null || existedBefore));
+
+
+            if (keep) {
+              filtered[name] = value;
+            }
+          }
+
+          return {
+            ...attribute,
+            attributes: filtered
+          };
+        })
+        .filter((attribute) => Object.keys(attribute.attributes).length > 0)
+        .map((attribute) => {
           const { attributes } = attribute;
           if (typeof attributes.style === 'string') {
             const diffAsStr = JSON.stringify(attribute.styleDiff);
@@ -581,8 +607,18 @@ export default class MutationBuffer {
       }
       case 'attributes': {
         const target = m.target as HTMLElement;
+
         let attributeName = m.attributeName as string;
-        let value = (m.target as HTMLElement).getAttribute(attributeName);
+        let value = target.getAttribute(attributeName);
+
+        if (
+          value === null &&
+          m.oldValue === null
+          // && !target.hasAttribute(attributeName)
+        ) {
+          return;
+        }
+
 
         if (attributeName === 'value') {
           const type = getInputType(target);
@@ -638,7 +674,12 @@ export default class MutationBuffer {
           target.setAttribute('data-rr-is-password', 'true');
         }
 
-        if (!isIgnoreAttribute(target.tagName, attributeName, value)) {
+        // if (!isIgnoreAttribute(target.tagName, attributeName, value)) {
+        if (
+          !isIgnoreAttribute(target.tagName, attributeName, value) &&
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          !shouldIgnoreAttribute(this.ignoreAttribute, attributeName)
+        ) {
           // overwrite attribute if the mutations was triggered in same time
           item.attributes[attributeName] = transformAttribute(
             this.doc,
