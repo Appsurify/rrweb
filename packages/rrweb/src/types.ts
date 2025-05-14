@@ -30,7 +30,6 @@ import type {
   mouseInteractionCallBack,
   mousemoveCallBack,
   mutationCallBack,
-  visibilityChangeCallback,
   RecordPlugin,
   SamplingStrategy,
   scrollCallback,
@@ -84,7 +83,6 @@ export type recordOptions<T> = {
 
 export type observerParam = {
   mutationCb: mutationCallBack;
-  visibilityChangeCb: visibilityChangeCallback;
   mousemoveCb: mousemoveCallBack;
   mouseInteractionCb: mouseInteractionCallBack;
   scrollCb: scrollCallback;

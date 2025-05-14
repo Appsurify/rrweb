@@ -182,7 +182,6 @@ export function RecordOptions() {
               <Radio value="checkoutEveryNms">Every Nms</Radio>
             </Stack>
           </RadioGroup>
-          <FormHelperText>Every Evc - take a snapshot if any element changes visibility</FormHelperText>
           <FormHelperText>Every Nth - take a snapshot every N actions</FormHelperText>
           <FormHelperText>Every Nms - take a snapshot every N milliseconds</FormHelperText>
         </FormControl>
@@ -376,18 +375,6 @@ export function RecordOptions() {
           </RadioGroup>
         </FormControl>
 
-        {/* Visibility */}
-        <FormControl mb={2}>
-          <FormLabel>Visibility</FormLabel>
-          <Checkbox
-            isChecked={!!recordSettings.sampling?.visibility}
-            onChange={(e) =>
-              handleSamplingChange('visibility', e.target.checked)
-            }
-          >
-            Enable Visibility Sampling
-          </Checkbox>
-        </FormControl>
       </Box>
 
       <Divider mb={4} />

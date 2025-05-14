@@ -28,7 +28,6 @@ import {
 } from '@appsurify-testmap/rrweb-types';
 import type {
   mutationCallBack,
-  visibilityChangeCallback,
   mousemoveCallBack,
   mousePosition,
   mouseInteractionCallBack,
@@ -101,74 +100,6 @@ export function initMutationObserver(
     subtree: true,
   });
   return observer;
-}
-
-export function initVisibilityObserver({
-  visibilityChangeCb,
-  doc,
-  mirror,
-  sampling
-}: observerParam): listenerHandler {
-
-  if (!visibilityChangeCb) {
-    return () => { /* No operation needed */ };
-  }
-
-  const observedElements = new WeakMap<Element, boolean>();
-
-  const debounceThreshold = typeof sampling.visibility === 'number' ? sampling.visibility : 50;
-
-  const throttledCb = throttle(
-    callbackWrapper((entry) => {
-      const target = entry.target;
-      const id = mirror.getId(target);
-      const isVisible = entry.isIntersecting || entry.intersectionRatio > 0;
-
-      if (id !== -1) {
-
-        visibilityChangeCb({
-          id,
-          isVisible,
-          visibilityRatio: entry.intersectionRatio,
-        });
-
-      }
-    }),
-    debounceThreshold,
-    { leading: sampling.visibility !== false, trailing: true }
-  );
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-
-      const target = entry.target;
-
-      if (observedElements.has(target)) {
-        throttledCb(entry);
-      } else {
-        observedElements.set(target, true);
-      }
-    });
-  }, { root: null, threshold: [0.1, 0.9] });
-
-  doc.querySelectorAll('*').forEach((el) => observer.observe(el));
-
-  const mutationObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (node instanceof Element) {
-          observer.observe(node);
-        }
-      });
-    });
-  });
-
-  mutationObserver.observe(doc, { childList: true, subtree: true });
-
-  return () => {
-    observer.disconnect();
-    mutationObserver.disconnect();
-  };
 }
 
 function initMoveObserver({
@@ -1270,7 +1201,6 @@ function initCustomElementObserver({
 function mergeHooks(o: observerParam, hooks: hooksParam) {
   const {
     mutationCb,
-    visibilityChangeCb,
     mousemoveCb,
     mouseInteractionCb,
     scrollCb,
@@ -1289,12 +1219,6 @@ function mergeHooks(o: observerParam, hooks: hooksParam) {
       hooks.mutation(...p);
     }
     mutationCb(...p);
-  };
-  o.visibilityChangeCb = (...p: Arguments<visibilityChangeCallback>) => {
-    if (hooks.visibilityChange) {
-      hooks.visibilityChange(...p);
-    }
-    visibilityChangeCb(...p);
   };
   o.mousemoveCb = (...p: Arguments<mousemoveCallBack>) => {
     if (hooks.mousemove) {
@@ -1394,7 +1318,6 @@ export function initObservers(
   });
   const inputHandler = initInputObserver(o);
   const mediaInteractionHandler = initMediaInteractionObserver(o);
-  const visibleHandler = initVisibilityObserver(o);
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   let styleSheetObserver = () => {};
@@ -1428,7 +1351,6 @@ export function initObservers(
   return callbackWrapper(() => {
     mutationBuffers.forEach((b) => b.reset());
     mutationObserver?.disconnect();
-    visibleHandler();
     mousemoveHandler();
     mouseInteractionHandler();
     scrollHandler();

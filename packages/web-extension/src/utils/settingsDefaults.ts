@@ -30,8 +30,7 @@ export const defaultRecordSettings: RecordSettings = {
     scroll: 1000,
     media: 1000,
     input: 'last',
-    canvas: 'all',
-    visibility: false,
+    canvas: 'all'
   },
   recordDOM: true,
   recordCanvas: true,

@@ -69,7 +69,6 @@ function record<T = eventWithTime>(
     emit,
     checkoutEveryNms,
     checkoutEveryNth,
-    checkoutEveryEvc,
     blockClass = 'rr-block',
     blockSelector = null,
     ignoreClass = 'rr-ignore',
@@ -206,6 +205,7 @@ function record<T = eventWithTime>(
   wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
     const e = r as eventWithTime;
     e.timestamp = nowTimestamp();
+
     if (
       mutationBuffers[0]?.isFrozen() &&
       e.type !== EventType.FullSnapshot &&
@@ -220,8 +220,10 @@ function record<T = eventWithTime>(
     }
 
     if (inEmittingFrame) {
+
       emit?.(eventProcessor(e), isCheckout);
     } else if (passEmitsToParent) {
+
       const message: CrossOriginIframeMessageEventContent<T> = {
         type: 'rrweb',
         event: eventProcessor(e),
@@ -250,23 +252,9 @@ function record<T = eventWithTime>(
         checkoutEveryNms &&
         e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
 
-      const isVisibilityChanged =
-        checkoutEveryEvc &&
-        e.type === EventType.IncrementalSnapshot &&
-        e.data.source === IncrementalSource.VisibilityChange;
-
-      if (exceedCount || exceedTime || isVisibilityChanged) {
+      if (exceedCount || exceedTime) {
         takeFullSnapshot(true);
       }
-
-      // if (
-      //   (checkoutEveryNth && incrementalSnapshotCount >= checkoutEveryNth) ||
-      //   (checkoutEveryNms &&
-      //     e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms) ||
-      //   (checkoutEveryEvc && e.data.source === IncrementalSource.VisibilityChange)
-      // ) {
-      //   takeFullSnapshot(true);
-      // }
 
     }
   };
@@ -462,15 +450,6 @@ function record<T = eventWithTime>(
       return callbackWrapper(initObservers)(
         {
           mutationCb: wrappedMutationEmit,
-          visibilityChangeCb: (v) => {
-            wrappedEmit({
-              type: EventType.IncrementalSnapshot,
-              data: {
-                source: IncrementalSource.VisibilityChange,
-                ...v,
-              },
-            })
-          },
           mousemoveCb: (positions, source) =>
             wrappedEmit({
               type: EventType.IncrementalSnapshot,

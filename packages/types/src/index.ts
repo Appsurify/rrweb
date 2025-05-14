@@ -76,17 +76,12 @@ export enum IncrementalSource {
   StyleDeclaration,
   Selection,
   AdoptedStyleSheet,
-  CustomElement,
-  VisibilityChange,
+  CustomElement
 }
 
 export type mutationData = {
   source: IncrementalSource.Mutation;
 } & mutationCallbackParam;
-
-export type visibilityChangeData = {
-  source: IncrementalSource.VisibilityChange;
-} & visibilityChangeParam;
 
 export type mousemoveData = {
   source:
@@ -160,7 +155,6 @@ export type incrementalData =
   | styleDeclarationData
   | adoptedStyleSheetData
   | customElementData
-  | visibilityChangeData;
 
 export type eventWithoutTime =
   | domContentLoadedEvent
@@ -228,7 +222,6 @@ export type SamplingStrategy = Partial<{
    */
   canvas: 'all' | number;
 
-  visibility: boolean | number;
 }>;
 
 export interface ICrossOriginIframeMirror {
@@ -278,7 +271,6 @@ export type hooksParam = {
   font?: fontCallback;
   selection?: selectionCallback;
   customElement?: customElementCallback;
-  visibilityChange?: visibilityChangeCallback;
 };
 
 // https://dom.spec.whatwg.org/#interface-mutationrecord
@@ -344,13 +336,6 @@ export type mutationCallbackParam = {
 };
 
 export type mutationCallBack = (m: mutationCallbackParam) => void;
-
-export type visibilityChangeParam = {
-  id: number;
-  isVisible: boolean;
-  visibilityRatio?: number;
-};
-export type visibilityChangeCallback = (v: visibilityChangeParam) => void;
 
 export type mousemoveCallBack = (
   p: mousePosition[],
