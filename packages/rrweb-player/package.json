@@ -1,8 +1,8 @@
 {
   "name": "@appsurify-testmap/rrweb-player",
-  "version": "2.1.0-alpha.3",
+  "version": "2.1.0-alpha.5",
   "devDependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.3",
+    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.5",
     "@sveltejs/adapter-auto": "^3.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/package": "^2.0.0",
@@ -19,8 +19,8 @@
     "vite": "^5.3.1"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb-packer": "^2.1.0-alpha.3",
-    "@appsurify-testmap/rrweb-replay": "^2.1.0-alpha.3",
+    "@appsurify-testmap/rrweb-packer": "^2.1.0-alpha.5",
+    "@appsurify-testmap/rrweb-replay": "^2.1.0-alpha.5",
     "@tsconfig/svelte": "^1.0.0"
   },
   "scripts": {
