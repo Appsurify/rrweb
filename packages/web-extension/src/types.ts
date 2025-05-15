@@ -43,7 +43,7 @@ export type CheckoutType =
 
 export type RecordSettings = {
   checkoutType: CheckoutType;
-  ignoreAttribute?: string;
+  excludeAttribute?: string;
   maskInputOptions: MaskInputOptions;
   slimDOMOptions?: string | boolean;
   inlineStylesheet?: boolean;

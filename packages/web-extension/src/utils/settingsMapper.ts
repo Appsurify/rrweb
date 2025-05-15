@@ -11,7 +11,7 @@ export function RecordSettingsToRecordOptions(
 ): recordOptions<eventWithTime> {
   const {
     checkoutType,
-    ignoreAttribute,
+    excludeAttribute,
     maskInputOptions,
     slimDOMOptions,
     inlineStylesheet,
@@ -36,11 +36,7 @@ export function RecordSettingsToRecordOptions(
       checkoutType.type === 'checkoutEveryNms'
         ? checkoutType.value
         : undefined,
-    checkoutEveryEvc:
-      checkoutType.type === 'checkoutEveryEvc'
-        ? checkoutType.value
-        : undefined,
-    ignoreAttribute: ignoreAttribute,
+    excludeAttribute: excludeAttribute,
     maskInputOptions: { ...maskInputOptions },
     slimDOMOptions: resolvedSlimDOM,
     inlineStylesheet: inlineStylesheet,

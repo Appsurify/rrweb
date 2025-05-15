@@ -185,7 +185,9 @@ export type blockClass = string | RegExp;
 
 export type maskTextClass = string | RegExp;
 
-export type ignoreAttribute = string | RegExp;
+export type excludeAttribute = string | RegExp;
+
+export type includeAttribute = string | RegExp;
 
 export type SamplingStrategy = Partial<{
   /**
@@ -306,6 +308,7 @@ export type attributeCursor = {
   styleDiff: styleOMValue;
   _unchangedStyles: styleOMValue;
 };
+
 export type attributeMutation = {
   id: number;
   attributes: {
