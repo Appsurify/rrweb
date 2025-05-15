@@ -15,7 +15,8 @@ import type {
   DataURLOptions,
   addedNodeMutation,
   blockClass,
-  ignoreAttribute,
+  excludeAttribute,
+  includeAttribute,
   canvasMutationCallback,
   customElementCallback,
   eventWithTime,
@@ -39,21 +40,21 @@ import type {
   viewportResizeCallback,
   PackFn,
   UnpackFn,
-} from "@appsurify-testmap/rrweb-types";
+} from '@appsurify-testmap/rrweb-types';
 import type ProcessedNodeManager from './record/processed-node-manager';
 
 export type recordOptions<T> = {
   emit?: (e: T, isCheckout?: boolean) => void;
   checkoutEveryNth?: number;
   checkoutEveryNms?: number;
-  checkoutEveryEvc?: boolean;
   blockClass?: blockClass;
   blockSelector?: string;
   ignoreClass?: string;
   ignoreSelector?: string;
   maskTextClass?: maskTextClass;
   maskTextSelector?: string;
-  ignoreAttribute?: ignoreAttribute;
+  excludeAttribute?: excludeAttribute;
+  includeAttribute?: includeAttribute;
   maskAllInputs?: boolean;
   maskInputOptions?: MaskInputOptions;
   maskInputFn?: MaskInputFn;
@@ -94,7 +95,8 @@ export type observerParam = {
   blockSelector: string | null;
   ignoreClass: string;
   ignoreSelector: string | null;
-  ignoreAttribute: ignoreAttribute;
+  excludeAttribute: excludeAttribute;
+  includeAttribute: includeAttribute;
   maskTextClass: maskTextClass;
   maskTextSelector: string | null;
   maskInputOptions: MaskInputOptions;
@@ -141,7 +143,8 @@ export type MutationBufferParam = Pick<
   | 'blockSelector'
   | 'maskTextClass'
   | 'maskTextSelector'
-  | 'ignoreAttribute'
+  | 'excludeAttribute'
+  | 'includeAttribute'
   | 'inlineStylesheet'
   | 'maskInputOptions'
   | 'maskTextFn'

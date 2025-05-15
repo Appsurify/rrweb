@@ -464,6 +464,66 @@ function initInputObserver({
   }
   function cbWithDedup(target: EventTarget, v: inputValue) {
     const lastInputValue = lastInputValueMap.get(target);
+
+    const el = target as HTMLInputElement;
+
+    const hasPlaceholder = el.hasAttribute('placeholder');
+    const isEmpty = el.value === '';
+    const isDefaultEmpty = typeof el.defaultValue === 'string'
+      ? el.defaultValue === ''
+      : true;
+    const isNonUser = !v.userTriggered;
+    const isRepeatEmpty = !lastInputValue || lastInputValue.text === '';
+
+    const isLikelyPhantom =
+      hasPlaceholder &&
+      isEmpty &&
+      isDefaultEmpty &&
+      isRepeatEmpty &&
+      isNonUser &&
+      !v.isChecked &&
+      el.type !== 'hidden' &&
+      INPUT_TAGS.includes(el.tagName);
+
+    const isRenderDrivenTextInput =
+      el.tagName === 'INPUT' &&
+      el.type === 'text' &&
+      !v.userTriggered &&
+      v.text === el.defaultValue &&
+      !lastInputValue &&
+      el.hasAttribute('placeholder');
+
+    const isValueFromDefault =
+      !v.userTriggered &&
+      el.value === el.defaultValue &&
+      !lastInputValue &&
+      el.hasAttribute('placeholder') &&
+      !v.isChecked &&
+      el.type !== 'hidden' &&
+      INPUT_TAGS.includes(el.tagName);
+
+    const isPhantomCheckbox =
+      el.type === 'checkbox' &&
+      !v.userTriggered &&
+      !v.isChecked &&
+      !lastInputValue;
+
+    const isPhantomRadio =
+      el.type === 'radio' &&
+      !v.userTriggered &&
+      !v.isChecked &&
+      !lastInputValue;
+
+    if (
+      isLikelyPhantom ||
+      isRenderDrivenTextInput ||
+      isValueFromDefault ||
+      isPhantomCheckbox ||
+      isPhantomRadio
+    ) {
+      return;
+    }
+
     if (
       !lastInputValue ||
       lastInputValue.text !== v.text ||

@@ -27,7 +27,7 @@ import {
   type scrollCallback,
   type canvasMutationParam,
   type adoptedStyleSheetParam,
-} from "@appsurify-testmap/rrweb-types";
+} from '@appsurify-testmap/rrweb-types';
 import type { CrossOriginIframeMessageEventContent } from '../types';
 import { IframeManager } from './iframe-manager';
 import { ShadowDomManager } from './shadow-dom-manager';
@@ -73,7 +73,8 @@ function record<T = eventWithTime>(
     blockSelector = null,
     ignoreClass = 'rr-ignore',
     ignoreSelector = null,
-    ignoreAttribute = 'rr-ignore',
+    excludeAttribute: _excludeAttribute,
+    includeAttribute: _includeAttribute,
     maskTextClass = 'rr-mask',
     maskTextSelector = null,
     inlineStylesheet = true,
@@ -136,6 +137,13 @@ function record<T = eventWithTime>(
 
   // reset mirror in case `record` this was called earlier
   mirror.reset();
+
+  const excludeAttribute = _excludeAttribute === undefined
+    ? /^$a/
+    : _excludeAttribute;
+  const includeAttribute = _includeAttribute === undefined
+    ? /.+/i
+    : _includeAttribute;
 
   const maskInputOptions: MaskInputOptions =
     maskAllInputs === true
@@ -341,7 +349,8 @@ function record<T = eventWithTime>(
       blockSelector,
       maskTextClass,
       maskTextSelector,
-      ignoreAttribute,
+      excludeAttribute,
+      includeAttribute,
       inlineStylesheet,
       maskInputOptions,
       dataURLOptions,
@@ -388,7 +397,8 @@ function record<T = eventWithTime>(
       blockSelector,
       maskTextClass,
       maskTextSelector,
-      ignoreAttribute,
+      excludeAttribute,
+      includeAttribute,
       inlineStylesheet,
       maskAllInputs: maskInputOptions,
       maskTextFn,
@@ -539,7 +549,8 @@ function record<T = eventWithTime>(
           ignoreSelector,
           maskTextClass,
           maskTextSelector,
-          ignoreAttribute,
+          excludeAttribute,
+          includeAttribute,
           maskInputOptions,
           inlineStylesheet,
           sampling,

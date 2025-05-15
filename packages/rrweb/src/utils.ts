@@ -135,7 +135,8 @@ export function hookSetter<T>(
 // }
 
 export function nowTimestamp(): number {
-  return performance.timeOrigin + performance.now();
+  // return performance.timeOrigin + performance.now();
+  return Math.round(performance.timeOrigin + performance.now());
 }
 
 export function getWindowScroll(win: Window = window) {
