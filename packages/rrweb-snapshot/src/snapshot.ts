@@ -209,7 +209,7 @@ export function transformAttribute(
   return value;
 }
 
-export function isIgnoreAttribute(
+export function ignoreAttribute(
   tagName: string,
   name: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -218,47 +218,24 @@ export function isIgnoreAttribute(
   return (tagName === 'video' || tagName === 'audio') && name === 'autoplay';
 }
 
-export function cleanAttributes(
-  doc: Document,
-  element: HTMLElement,
-  ignoreAttribute: string | RegExp
-): attributes {
-  const tagName = getValidTagName(element);
-  const attributes: attributes = {};
-
-  const len = element.attributes.length;
-  for (let i = 0; i < len; i++) {
-    const attr = element.attributes[i];
-    const name = attr.name;
-    const value = attr.value;
-
-    const shouldIgnoreByName =
-      typeof ignoreAttribute === 'string'
-        ? name === ignoreAttribute
-        : ignoreAttribute.test(name);
-
-    if (!shouldIgnoreByName && !isIgnoreAttribute(tagName, name, value)) {
-      attributes[name] = transformAttribute(
-        doc,
-        tagName,
-        toLowerCase(name),
-        value,
-      );
-    }
-  }
-
-  return attributes;
-}
-
-export function shouldIgnoreAttribute(
-  ignore: string | RegExp | undefined,
+export function isIncludeAttribute(
   name: string,
+  include: string | RegExp
 ): boolean {
-  if (!ignore) return false;
-  return typeof ignore === 'string'
-    ? name === ignore
-    : ignore.test(name);
+  return typeof include === 'string'
+    ? name.includes(include)
+    : include.test(name);
 }
+
+export function isExcludeAttribute(
+  name: string,
+  exclude: string | RegExp
+): boolean {
+  return typeof exclude === 'string'
+    ? name.includes(exclude)
+    : exclude.test(name);
+}
+
 
 export function _isBlockedElement(
   element: HTMLElement,
@@ -438,7 +415,8 @@ function serializeNode(
     mirror: Mirror;
     blockClass: string | RegExp;
     blockSelector: string | null;
-    ignoreAttribute: string | RegExp;
+    excludeAttribute: string | RegExp;
+    includeAttribute: string | RegExp;
     needsMask: boolean;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
@@ -460,7 +438,8 @@ function serializeNode(
     mirror,
     blockClass,
     blockSelector,
-    ignoreAttribute,
+    excludeAttribute,
+    includeAttribute,
     needsMask,
     inlineStylesheet,
     maskInputOptions = {},
@@ -507,7 +486,8 @@ function serializeNode(
         doc,
         blockClass,
         blockSelector,
-        ignoreAttribute,
+        excludeAttribute,
+        includeAttribute,
         inlineStylesheet,
         maskInputOptions,
         maskInputFn,
@@ -609,7 +589,8 @@ function serializeElementNode(
     doc: Document;
     blockClass: string | RegExp;
     blockSelector: string | null;
-    ignoreAttribute: string | RegExp;
+    excludeAttribute: string | RegExp;
+    includeAttribute: string | RegExp;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
     maskInputFn: MaskInputFn | undefined;
@@ -629,7 +610,8 @@ function serializeElementNode(
     doc,
     blockClass,
     blockSelector,
-    ignoreAttribute,
+    excludeAttribute,
+    includeAttribute,
     inlineStylesheet,
     maskInputOptions = {},
     maskInputFn,
@@ -643,7 +625,22 @@ function serializeElementNode(
   } = options;
   const needBlock = _isBlockedElement(n, blockClass, blockSelector);
   const tagName = getValidTagName(n);
-  let attributes = cleanAttributes(doc, n, ignoreAttribute);
+  let attributes: attributes = {};
+  const len = n.attributes.length;
+  for (let i = 0; i < len; i++) {
+    const attr = n.attributes[i];
+    if (isExcludeAttribute(attr.name, excludeAttribute) && !isIncludeAttribute(attr.name, includeAttribute)) {
+      continue;
+    }
+    if (!ignoreAttribute(tagName, attr.name, attr.value)) {
+      attributes[attr.name] = transformAttribute(
+        doc,
+        tagName,
+        toLowerCase(attr.name),
+        attr.value,
+      );
+    }
+  }
 
   // remote css
   if (tagName === 'link' && inlineStylesheet) {
@@ -968,7 +965,8 @@ export function serializeNodeWithId(
     blockSelector: string | null;
     maskTextClass: string | RegExp;
     maskTextSelector: string | null;
-    ignoreAttribute: string | RegExp;
+    excludeAttribute: string | RegExp;
+    includeAttribute: string | RegExp;
     skipChild: boolean;
     inlineStylesheet: boolean;
     newlyAddedElement?: boolean;
@@ -1003,7 +1001,8 @@ export function serializeNodeWithId(
     blockSelector,
     maskTextClass,
     maskTextSelector,
-    ignoreAttribute,
+    excludeAttribute,
+    includeAttribute,
     skipChild = false,
     inlineStylesheet = true,
     maskInputOptions = {},
@@ -1041,7 +1040,8 @@ export function serializeNodeWithId(
     mirror,
     blockClass,
     blockSelector,
-    ignoreAttribute,
+    excludeAttribute,
+    includeAttribute,
     needsMask,
     inlineStylesheet,
     maskInputOptions,
@@ -1116,7 +1116,8 @@ export function serializeNodeWithId(
       needsMask,
       maskTextClass,
       maskTextSelector,
-      ignoreAttribute,
+      excludeAttribute,
+      includeAttribute,
       skipChild,
       inlineStylesheet,
       maskInputOptions,
@@ -1193,7 +1194,8 @@ export function serializeNodeWithId(
             needsMask,
             maskTextClass,
             maskTextSelector,
-            ignoreAttribute,
+            excludeAttribute,
+            includeAttribute,
             skipChild: false,
             inlineStylesheet,
             maskInputOptions,
@@ -1246,7 +1248,8 @@ export function serializeNodeWithId(
             needsMask,
             maskTextClass,
             maskTextSelector,
-            ignoreAttribute,
+            excludeAttribute,
+            includeAttribute,
             skipChild: false,
             inlineStylesheet,
             maskInputOptions,
@@ -1288,7 +1291,8 @@ function snapshot(
     blockSelector?: string | null;
     maskTextClass?: string | RegExp;
     maskTextSelector?: string | null;
-    ignoreAttribute?: string | RegExp;
+    excludeAttribute?: string | RegExp;
+    includeAttribute?: string | RegExp;
     inlineStylesheet?: boolean;
     maskAllInputs?: boolean | MaskInputOptions;
     maskTextFn?: MaskTextFn;
@@ -1318,7 +1322,8 @@ function snapshot(
     blockSelector = null,
     maskTextClass = 'rr-mask',
     maskTextSelector = null,
-    ignoreAttribute = 'rr-ignore',
+    excludeAttribute = /^$a/,
+    includeAttribute = /.+/i,
     inlineStylesheet = true,
     inlineImages = false,
     recordCanvas = false,
@@ -1386,7 +1391,8 @@ function snapshot(
     blockSelector,
     maskTextClass,
     maskTextSelector,
-    ignoreAttribute,
+    excludeAttribute,
+    includeAttribute,
     skipChild: false,
     inlineStylesheet,
     maskInputOptions,
