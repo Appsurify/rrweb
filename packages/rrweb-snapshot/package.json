@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-snapshot",
-  "version": "2.1.0-alpha.5",
+  "version": "2.1.0-alpha.6",
   "description": "rrweb's component to take a snapshot of DOM, aka DOM serializer",
   "scripts": {
     "prepare": "npm run prepack",
@@ -54,8 +54,8 @@
   },
   "homepage": "https://github.com/rrweb-io/rrweb/tree/master/packages/rrweb-snapshot#readme",
   "devDependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.5",
-    "@appsurify-testmap/rrweb-utils": "^2.1.0-alpha.5",
+    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.6",
+    "@appsurify-testmap/rrweb-utils": "^2.1.0-alpha.6",
     "@types/jsdom": "^20.0.0",
     "@types/node": "^18.15.11",
     "@types/puppeteer": "^5.4.4",

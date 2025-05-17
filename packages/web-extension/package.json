@@ -1,7 +1,7 @@
 {
   "name": "@appsurify-testmap/rrweb-web-extension",
   "private": true,
-  "version": "2.1.0-alpha.5",
+  "version": "2.1.0-alpha.6",
   "description": "The web extension of rrweb which helps to run rrweb on any website out of box",
   "author": "rrweb-io",
   "license": "MIT",
@@ -18,7 +18,7 @@
     "prepublish": "yarn build"
   },
   "devDependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.5",
+    "@appsurify-testmap/rrweb-types": "^2.1.0-alpha.6",
     "@types/chrome": "^0.0.287",
     "@types/react-dom": "^18.0.6",
     "@types/semver": "^7.5.8",
@@ -32,8 +32,8 @@
     "webextension-polyfill": "^0.10.0"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb": "^2.1.0-alpha.5",
-    "@appsurify-testmap/rrweb-player": "^2.1.0-alpha.5",
+    "@appsurify-testmap/rrweb": "^2.1.0-alpha.6",
+    "@appsurify-testmap/rrweb-player": "^2.1.0-alpha.6",
     "@chakra-ui/react": "^2.3.4",
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
