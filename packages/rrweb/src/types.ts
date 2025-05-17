@@ -70,6 +70,7 @@ export type recordOptions<T> = {
   recordCanvas?: boolean;
   recordCrossOriginIframes?: boolean;
   recordAfter?: 'DOMContentLoaded' | 'load';
+  flushCustomQueue?: 'before' | 'after';
   userTriggeredOnInput?: boolean;
   collectFonts?: boolean;
   inlineImages?: boolean;

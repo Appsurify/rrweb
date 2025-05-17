@@ -96,6 +96,7 @@ function record<T = eventWithTime>(
     recordAfter = options.recordAfter === 'DOMContentLoaded'
       ? options.recordAfter
       : 'load',
+    flushCustomQueue = options.flushCustomQueue !== undefined ? options.flushCustomQueue : 'after',
     userTriggeredOnInput = false,
     collectFonts = false,
     inlineImages = false,
@@ -605,11 +606,18 @@ function record<T = eventWithTime>(
     });
 
     const init = () => {
+      if (flushCustomQueue === 'before') {
+        flushPreRecordingEvents();
+      }
+
       takeFullSnapshot();
       handlers.push(observe(document));
       recording = true;
-      // flush buffered custom events
-      flushPreRecordingEvents();
+
+      if (flushCustomQueue === 'after') {
+        flushPreRecordingEvents();
+      }
+
     };
     if (
       document.readyState === 'interactive' ||
