@@ -47,6 +47,8 @@ let takeFullSnapshot!: (isCheckout?: boolean) => void;
 let canvasManager!: CanvasManager;
 let recording = false;
 
+const preRecordingCustomEvents: eventWithoutTime[] = [];
+
 // Multiple tools (i.e. MooTools, Prototype.js) override Array.from and drop support for the 2nd parameter
 // Try to pull a clean implementation from a newly created iframe
 try {
@@ -606,6 +608,8 @@ function record<T = eventWithTime>(
       takeFullSnapshot();
       handlers.push(observe(document));
       recording = true;
+      // flush buffered custom events
+      flushPreRecordingEvents();
     };
     if (
       document.readyState === 'interactive' ||
@@ -637,6 +641,7 @@ function record<T = eventWithTime>(
       );
     }
     return () => {
+      flushPreRecordingEvents();
       handlers.forEach((h) => h());
       processedNodeManager.destroy();
       recording = false;
@@ -648,17 +653,29 @@ function record<T = eventWithTime>(
   }
 }
 
-record.addCustomEvent = <T>(tag: string, payload: T) => {
-  if (!recording) {
-    throw new Error('please add custom event after start recording');
+function flushPreRecordingEvents() {
+  for (const e of preRecordingCustomEvents) {
+    wrappedEmit(e);
   }
-  wrappedEmit({
+  preRecordingCustomEvents.length = 0;
+}
+
+record.addCustomEvent = <T>(tag: string, payload: T) => {
+  const customEvent: eventWithoutTime = {
     type: EventType.Custom,
     data: {
       tag,
       payload,
     },
-  });
+  };
+
+  if (!recording) {
+    console.warn(`[rrweb] CustomEvent buffered before recording start: ${tag}`);
+    preRecordingCustomEvents.push(customEvent);
+    return;
+  }
+
+  wrappedEmit(customEvent);
 };
 
 record.freezePage = () => {
