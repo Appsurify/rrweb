@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-plugin-canvas-webrtc-record",
-  "version": "2.1.0-alpha.6",
+  "version": "2.1.0-alpha.7",
   "description": "",
   "type": "module",
   "main": "./dist/rrweb-plugin-canvas-webrtc-record.umd.cjs",
@@ -43,7 +43,7 @@
   },
   "homepage": "https://github.com/rrweb-io/rrweb#readme",
   "devDependencies": {
-    "@appsurify-testmap/rrweb": "^2.1.0-alpha.6",
+    "@appsurify-testmap/rrweb": "^2.1.0-alpha.7",
     "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "vite-plugin-dts": "^3.9.1"
