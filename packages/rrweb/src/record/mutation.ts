@@ -10,7 +10,6 @@ import {
   isNativeShadowDom,
   getInputType,
   toLowerCase,
-  isIncludeAttribute,
   isExcludeAttribute,
 } from '@appsurify-testmap/rrweb-snapshot';
 import type { observerParam, MutationBufferParam } from '../types';
@@ -634,10 +633,7 @@ export default class MutationBuffer {
             typeof propValue === 'undefined'
           );
 
-        if (
-          isPhantomAttributeMutation &&
-          !isIncludeAttribute(attributeName, this.includeAttribute)
-        ) {
+        if (isPhantomAttributeMutation) {
           return;
         }
 
@@ -707,13 +703,13 @@ export default class MutationBuffer {
             toLowerCase(attributeName),
             value,
           );
-          if (value === item.attributes[attributeName] && !isIncludeAttribute(attributeName, this.includeAttribute)) {
-
-            delete item.attributes[attributeName];
-            if (Object.keys(item.attributes).length === 0) {
-              this.attributes = this.attributes.filter((a) => a !== item);
-              this.attributeMap.delete(m.target);
-            }
+          if (value === item.attributes[attributeName]) {
+            // delete item.attributes[attributeName];
+            // if (Object.keys(item.attributes).length === 0) {
+            //   this.attributes = this.attributes.filter((a) => a !== item);
+            //   this.attributeMap.delete(m.target);
+            // }
+            console.debug('[rrweb-record] A questionable mutation that needs to be investigated in the future.')
             return;
           }
 
