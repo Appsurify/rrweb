@@ -13,7 +13,6 @@ import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-seq
 let stopFn: (() => void) | null = null;
 
 function startRecord(config: recordOptions<eventWithTime>) {
-  console.debug(`${Date.now()} [rrweb-web-extension] inject:startRecord:config:`, config);
   stopFn =
     record({
       emit: (event) => {

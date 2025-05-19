@@ -9,7 +9,6 @@ import snapshot, {
   IGNORED_NODE,
   genId,
   isExcludeAttribute,
-  isIncludeAttribute,
 } from './snapshot';
 import rebuild, {
   buildNodeWithSN,
@@ -29,7 +28,6 @@ export {
   transformAttribute,
   ignoreAttribute,
   isExcludeAttribute,
-  isIncludeAttribute,
   visitSnapshot,
   cleanupSnapshot,
   needMaskingText,

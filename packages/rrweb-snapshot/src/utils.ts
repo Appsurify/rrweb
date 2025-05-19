@@ -595,106 +595,232 @@ export function markCssSplits(
   return splitCssText(cssText, style).join('/* rr_split */');
 }
 
-
-export function getXPath(node: Node): string {
-  // console.info(node.nodeType, node);
-
-  if (node.nodeType === Node.DOCUMENT_NODE) {
-    // Корневой узел документа всегда возвращает "/"
-    return '/';
+// Проверка уникальности селектора
+function isSelectorUnique(selector: string, target: Element): boolean {
+  try {
+    const matches = document.querySelectorAll(selector);
+    return matches.length === 1 && matches[0] === target;
+  } catch {
+    return false;
   }
-
-  if (node.nodeType === Node.DOCUMENT_TYPE_NODE) {
-    // Узел типа документа (DOCTYPE)
-    return '/html/doctype';
-  }
-
-  if (node.nodeType === Node.ELEMENT_NODE) {
-    const element = node as Element;
-
-    if (element.id) {
-      // Если у элемента есть уникальный ID, используем его
-      return `//*[@id="${element.id}"]`;
-    }
-
-    if (element.tagName && element.tagName.toLowerCase() === 'html') {
-      return '/html'
-    }
-
-    if (element === document.head) {
-      return '/html/head'
-    }
-
-    if (element === document.body) {
-      // Узел body
-      return '/html/body';
-    }
-
-    const parentNode = element.parentNode;
-    // if (!parentNode || !(parentNode instanceof Element)) {
-    if (!parentNode) {
-      // Если родительский узел недоступен или не является элементом, путь построить нельзя
-      return '';
-    }
-
-    const siblings = Array.from(parentNode.children).filter(
-      (sibling) => sibling.tagName === element.tagName
-    );
-
-    const index = siblings.length > 1 ? `[${siblings.indexOf(element) + 1}]` : '';
-
-    // Рекурсивное построение пути
-    return `${getXPath(parentNode)}/${element.tagName.toLowerCase()}${index}`;
-  }
-
-  if (node.nodeType === Node.TEXT_NODE) {
-    const parent = node.parentNode;
-    if (!parent) {
-      // Если текстовый узел не имеет родителя, путь построить нельзя
-      return '';
-    }
-
-    const textSiblings = Array.from(parent.childNodes).filter(
-      (sibling) => sibling.nodeType === Node.TEXT_NODE
-    );
-
-    const index = textSiblings.length > 1 ? `[${textSiblings.indexOf((node as Element)) + 1}]` : '';
-
-    return `${getXPath(parent)}/text()${index}`;
-  }
-
-  if (node.nodeType === Node.CDATA_SECTION_NODE) {
-    const parent = node.parentNode;
-    if (!parent) {
-      return '';
-    }
-
-    const cdataSiblings = Array.from(parent.childNodes).filter(
-      (sibling) => sibling.nodeType === Node.CDATA_SECTION_NODE
-    );
-
-    const index = cdataSiblings.length > 1 ? `[${cdataSiblings.indexOf((node as Element)) + 1}]` : '';
-
-    return `${getXPath(parent)}/text()${index}`;
-  }
-
-  if (node.nodeType === Node.COMMENT_NODE) {
-    const parent = node.parentNode;
-    if (!parent) {
-      return '';
-    }
-
-    const commentSiblings = Array.from(parent.childNodes).filter(
-      (sibling) => sibling.nodeType === Node.COMMENT_NODE
-    );
-
-    const index = commentSiblings.length > 1 ? `[${commentSiblings.indexOf((node as Element)) + 1}]` : '';
-
-    return `${getXPath(parent)}/comment()${index}`;
-  }
-
-  return ''; // Если тип узла не поддерживается
 }
+
+export function buildSelector(node: Node): string | null {
+  if (!(node instanceof Element)) return null;
+
+  // 1. Если есть ID — это самый приоритетный и уникальный селектор
+  if (node.id) {
+    return `#${CSS.escape(node.id)}`;
+  }
+
+  // 2. Собираем data-* атрибуты и class-ы
+  const parts: string[] = [];
+  const tag = node.tagName.toLowerCase();
+
+  // Добавим class, если он есть
+  if (node.classList.length) {
+    parts.push(...Array.from(node.classList).map(cls => `.${CSS.escape(cls)}`));
+  }
+
+  // Добавим data-* атрибуты
+  Array.from(node.attributes).forEach(attr => {
+    if (attr.name.startsWith('data-')) {
+      parts.push(`[${attr.name}="${CSS.escape(attr.value)}"]`);
+    }
+  });
+
+  // Попробуем сгенерировать короткий селектор вида tag.class1.class2[data-*]
+  const shortSelector = `${tag}${parts.join('')}`;
+  if (isSelectorUnique(shortSelector, node)) {
+    return shortSelector;
+  }
+
+  // 3. Построим путь с :nth-child (снизу вверх)
+  let path = '';
+  let current: Element | null = node;
+
+  while (current && current.nodeType === Node.ELEMENT_NODE) {
+    const parent = current.parentElement as Element;
+    const tagName = current.tagName.toLowerCase();
+
+    let nth = '';
+    if (parent) {
+      const siblings = Array.from(parent.children).filter(
+        el => el.tagName.toLowerCase() === tagName
+      );
+      if (siblings.length > 1) {
+        const index = siblings.indexOf(current) + 1;
+        nth = `:nth-of-type(${index})`;
+      }
+    }
+
+    path = `${tagName}${nth} > ${path}`;
+    current = parent;
+  }
+
+  path = path.trim().replace(/> $/, ''); // удалить последний " > "
+  return path || null;
+}
+
+export function buildXPath(node: Node): string {
+  switch (node.nodeType) {
+    case Node.DOCUMENT_NODE:
+      return '/';
+
+    case Node.DOCUMENT_TYPE_NODE:
+      return '/html/doctype';
+
+    case Node.ELEMENT_NODE: {
+      const element = node as Element;
+
+      // Уникальный ID
+      if (element.id) {
+        return `//*[@id="${element.id}"]`;
+      }
+
+      // Специальные случаи
+      if (element.tagName.toLowerCase() === 'html') return '/html';
+      if (element === document.head) return '/html/head';
+      if (element === document.body) return '/html/body';
+
+      const parent = element.parentNode;
+      if (!parent) return '';
+
+      // Индекс по tagName среди siblings
+      const tag = element.tagName.toLowerCase();
+      const siblings = Array.from(parent.children).filter(
+        el => el.tagName.toLowerCase() === tag
+      );
+      const index = siblings.length > 1 ? `[${siblings.indexOf(element) + 1}]` : '';
+
+      return `${buildXPath(parent)}/${tag}${index}`;
+    }
+
+    case Node.TEXT_NODE:
+    case Node.CDATA_SECTION_NODE:
+    case Node.COMMENT_NODE: {
+      const parent = node.parentNode;
+      if (!parent) return '';
+
+      const typeMap = {
+        [Node.TEXT_NODE]: 'text()',
+        [Node.CDATA_SECTION_NODE]: 'text()', // XPath не различает CDATA и TEXT
+        [Node.COMMENT_NODE]: 'comment()'
+      };
+
+      const sameTypeSiblings = Array.from(parent.childNodes).filter(
+        (sibling) => sibling.nodeType === node.nodeType
+      );
+      const index = sameTypeSiblings.length > 1 ? `[${sameTypeSiblings.indexOf(node as Element) + 1}]` : '';
+      const nodeExpr = typeMap[node.nodeType] || '';
+
+      return `${buildXPath(parent)}/${nodeExpr}${index}`;
+    }
+
+    default:
+      return '';
+  }
+}
+
+// TODO: Maybe depricated
+// export function getXPath(node: Node): string {
+//
+//   if (node.nodeType === Node.DOCUMENT_NODE) {
+//     // Корневой узел документа всегда возвращает "/"
+//     return '/';
+//   }
+//
+//   if (node.nodeType === Node.DOCUMENT_TYPE_NODE) {
+//     // Узел типа документа (DOCTYPE)
+//     return '/html/doctype';
+//   }
+//
+//   if (node.nodeType === Node.ELEMENT_NODE) {
+//     const element = node as Element;
+//
+//     if (element.id) {
+//       // Если у элемента есть уникальный ID, используем его
+//       return `//*[@id="${element.id}"]`;
+//     }
+//
+//     if (element.tagName && element.tagName.toLowerCase() === 'html') {
+//       return '/html'
+//     }
+//
+//     if (element === document.head) {
+//       return '/html/head'
+//     }
+//
+//     if (element === document.body) {
+//       // Узел body
+//       return '/html/body';
+//     }
+//
+//     const parentNode = element.parentNode;
+//     // if (!parentNode || !(parentNode instanceof Element)) {
+//     if (!parentNode) {
+//       // Если родительский узел недоступен или не является элементом, путь построить нельзя
+//       return '';
+//     }
+//
+//     const siblings = Array.from(parentNode.children).filter(
+//       (sibling) => sibling.tagName === element.tagName
+//     );
+//
+//     const index = siblings.length > 1 ? `[${siblings.indexOf(element) + 1}]` : '';
+//
+//     // Рекурсивное построение пути
+//     return `${getXPath(parentNode)}/${element.tagName.toLowerCase()}${index}`;
+//   }
+//
+//   if (node.nodeType === Node.TEXT_NODE) {
+//     const parent = node.parentNode;
+//     if (!parent) {
+//       // Если текстовый узел не имеет родителя, путь построить нельзя
+//       return '';
+//     }
+//
+//     const textSiblings = Array.from(parent.childNodes).filter(
+//       (sibling) => sibling.nodeType === Node.TEXT_NODE
+//     );
+//
+//     const index = textSiblings.length > 1 ? `[${textSiblings.indexOf((node as Element)) + 1}]` : '';
+//
+//     return `${getXPath(parent)}/text()${index}`;
+//   }
+//
+//   if (node.nodeType === Node.CDATA_SECTION_NODE) {
+//     const parent = node.parentNode;
+//     if (!parent) {
+//       return '';
+//     }
+//
+//     const cdataSiblings = Array.from(parent.childNodes).filter(
+//       (sibling) => sibling.nodeType === Node.CDATA_SECTION_NODE
+//     );
+//
+//     const index = cdataSiblings.length > 1 ? `[${cdataSiblings.indexOf((node as Element)) + 1}]` : '';
+//
+//     return `${getXPath(parent)}/text()${index}`;
+//   }
+//
+//   if (node.nodeType === Node.COMMENT_NODE) {
+//     const parent = node.parentNode;
+//     if (!parent) {
+//       return '';
+//     }
+//
+//     const commentSiblings = Array.from(parent.childNodes).filter(
+//       (sibling) => sibling.nodeType === Node.COMMENT_NODE
+//     );
+//
+//     const index = commentSiblings.length > 1 ? `[${commentSiblings.indexOf((node as Element)) + 1}]` : '';
+//
+//     return `${getXPath(parent)}/comment()${index}`;
+//   }
+//
+//   return ''; // Если тип узла не поддерживается
+// }
 
 export function isTextVisible(n: Text): boolean {
   // const parentElement = n.parentElement;
@@ -730,7 +856,6 @@ export function isElementVisible(n: Element): boolean {
   return result;
 }
 
-
 function isRectVisible(rect: DOMRect, win: Window = window): boolean {
   const height = win?.innerHeight ?? win?.document?.documentElement?.clientHeight ?? 0;
   const width = win?.innerWidth ?? win?.document?.documentElement?.clientWidth ?? 0;
@@ -740,78 +865,6 @@ function isRectVisible(rect: DOMRect, win: Window = window): boolean {
     rect.bottom <= height &&
     rect.right <= width;
 }
-
-// TODO: Original with bug
-// function getInteractiveEvents(): string[] {
-//   return Object.keys(InteractiveEvent)
-//     .filter(key => isNaN(Number(key)))
-//     .map(key => key.toLowerCase().replace(/_/g, '-'));
-// }
-//
-// function getInteractiveTags(): string[] {
-//   return Object.keys(interactiveTag)
-//     .filter(key => isNaN(Number(key)))
-//     .map(key => key.toLowerCase().replace(/_/g, '-'));
-// }
-//
-//
-// function hasEventListeners(n: Node): boolean {
-//   return getInteractiveEvents().some(eventType => {
-//     let hasListener = false;
-//     const testListener = () => { hasListener = true; };
-//
-//     n.addEventListener(eventType, testListener);
-//     // n.dispatchEvent(new Event(eventType));
-//     n.removeEventListener(eventType, testListener);
-//
-//     return hasListener;
-//   });
-// }
-//
-//
-// export function isElementInteractive(n: Node): boolean {
-//   const allowedTags = getInteractiveTags();
-//
-//   if (n.nodeType === Node.ELEMENT_NODE) {
-//     const element = n as Element;
-//     const tagName = element.tagName.toLowerCase();
-//
-//     if (!allowedTags.includes(tagName)) {
-//       return false;
-//     }
-//
-//     const hasTabIndex = element.hasAttribute('tabindex') && element.getAttribute('tabindex') !== '-1';
-//     const hasRoleInteractive = ['button', 'link', 'checkbox', 'switch', 'menuitem'].includes(
-//       element.getAttribute('role') || ''
-//     );
-//
-//     const result = (
-//       hasEventListeners(element) ||
-//       hasTabIndex ||
-//       hasRoleInteractive ||
-//       (element instanceof HTMLAnchorElement && element.hasAttribute('href')) ||
-//       (element instanceof HTMLButtonElement && !element.disabled)
-//     );
-//
-//     return result;
-//   }
-//
-//   if (n.nodeType === Node.TEXT_NODE) {
-//     const textNode = n as Text;
-//     const parentElement = textNode.parentElement;
-//
-//     return (
-//       parentElement !== null &&
-//       allowedTags.includes(parentElement.tagName.toLowerCase()) &&
-//       isElementVisible(parentElement) &&
-//       textNode.textContent?.trim().length !== 0 &&
-//       isElementInteractive(parentElement)
-//     );
-//   }
-//
-//   return false;
-// }
-
 
 export const interactiveEvents = [
   'change',

@@ -16,7 +16,6 @@ import type {
   addedNodeMutation,
   blockClass,
   excludeAttribute,
-  includeAttribute,
   canvasMutationCallback,
   customElementCallback,
   eventWithTime,
@@ -54,7 +53,6 @@ export type recordOptions<T> = {
   maskTextClass?: maskTextClass;
   maskTextSelector?: string;
   excludeAttribute?: excludeAttribute;
-  includeAttribute?: includeAttribute;
   maskAllInputs?: boolean;
   maskInputOptions?: MaskInputOptions;
   maskInputFn?: MaskInputFn;
@@ -97,7 +95,6 @@ export type observerParam = {
   ignoreClass: string;
   ignoreSelector: string | null;
   excludeAttribute: excludeAttribute;
-  includeAttribute: includeAttribute;
   maskTextClass: maskTextClass;
   maskTextSelector: string | null;
   maskInputOptions: MaskInputOptions;
@@ -145,7 +142,6 @@ export type MutationBufferParam = Pick<
   | 'maskTextClass'
   | 'maskTextSelector'
   | 'excludeAttribute'
-  | 'includeAttribute'
   | 'inlineStylesheet'
   | 'maskInputOptions'
   | 'maskTextFn'

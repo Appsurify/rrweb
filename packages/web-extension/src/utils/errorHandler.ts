@@ -12,7 +12,6 @@ export function handleError(
   defaultMessage: string,
 ): void {
   const message = (error as ErrorWithMessage)?.message || defaultMessage;
-  console.error(message, error);
   toast({
     title: 'Error',
     description: message,

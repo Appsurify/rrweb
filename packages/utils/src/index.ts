@@ -265,6 +265,15 @@ export function patch(
   }
 }
 
+export function describeNode(el: Element): string {
+  const tag = el.tagName.toLowerCase();
+  const id = el.id ? `#${el.id}` : '';
+  const classes = el.classList.length
+    ? '.' + Array.from(el.classList).join('.')
+    : '';
+  return `${tag}${id}${classes}`;
+}
+
 export default {
   childNodes,
   parentNode,
@@ -279,4 +288,5 @@ export default {
   querySelectorAll,
   mutationObserver: mutationObserverCtor,
   patch,
+  describeNode,
 };

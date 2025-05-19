@@ -30,9 +30,6 @@ import {
   extractFileExtension,
   absolutifyURLs,
   markCssSplits,
-  isElementVisible,
-  isTextVisible,
-  getXPath, isElementInteractive,
 } from "./utils";
 import dom from '@appsurify-testmap/rrweb-utils';
 
@@ -416,7 +413,6 @@ function serializeNode(
     blockClass: string | RegExp;
     blockSelector: string | null;
     excludeAttribute: string | RegExp;
-    includeAttribute: string | RegExp;
     needsMask: boolean;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
@@ -439,7 +435,6 @@ function serializeNode(
     blockClass,
     blockSelector,
     excludeAttribute,
-    includeAttribute,
     needsMask,
     inlineStylesheet,
     maskInputOptions = {},
@@ -454,7 +449,6 @@ function serializeNode(
   } = options;
   // Only record root id when document object is not the base document
   const rootId = getRootId(doc, mirror);
-  const xPath = getXPath(n as Element);
 
   switch (n.nodeType) {
     case n.DOCUMENT_NODE:
@@ -462,14 +456,12 @@ function serializeNode(
         return {
           type: NodeType.Document,
           childNodes: [],
-          xPath: xPath,
           compatMode: (n as Document).compatMode, // probably "BackCompat"
         };
       } else {
         return {
           type: NodeType.Document,
           childNodes: [],
-          xPath: xPath
         };
       }
     case n.DOCUMENT_TYPE_NODE:
@@ -479,7 +471,6 @@ function serializeNode(
         publicId: (n as DocumentType).publicId,
         systemId: (n as DocumentType).systemId,
         rootId,
-        xPath: xPath
       };
     case n.ELEMENT_NODE:
       return serializeElementNode(n as HTMLElement, {
@@ -487,7 +478,6 @@ function serializeNode(
         blockClass,
         blockSelector,
         excludeAttribute,
-        includeAttribute,
         inlineStylesheet,
         maskInputOptions,
         maskInputFn,
@@ -497,7 +487,6 @@ function serializeNode(
         keepIframeSrcFn,
         newlyAddedElement,
         rootId,
-        xPath,
       });
     case n.TEXT_NODE:
       return serializeTextNode(n as Text, {
@@ -506,21 +495,18 @@ function serializeNode(
         maskTextFn,
         rootId,
         cssCaptured,
-        xPath,
       });
     case n.CDATA_SECTION_NODE:
       return {
         type: NodeType.CDATA,
         textContent: '',
         rootId,
-        xPath: xPath
       };
     case n.COMMENT_NODE:
       return {
         type: NodeType.Comment,
         textContent: dom.textContent(n as Comment) || '',
         rootId,
-        xPath: xPath
       };
     default:
       return false;
@@ -541,10 +527,9 @@ function serializeTextNode(
     maskTextFn: MaskTextFn | undefined;
     rootId: number | undefined;
     cssCaptured?: boolean;
-    xPath: string;
   },
 ): serializedNode {
-  const { needsMask, maskTextFn, rootId, cssCaptured, xPath } = options;
+  const { needsMask, maskTextFn, rootId, cssCaptured } = options;
   // The parent node may not be a html element which has a tagName attribute.
   // So just let it be undefined which is ok in this use case.
   const parent = dom.parentNode(n);
@@ -570,16 +555,10 @@ function serializeTextNode(
       : textContent.replace(/[\S]/g, '*');
   }
 
-  const isVisible = isTextVisible(n);
-  const isInteractive = isElementInteractive(n);
-
   return {
     type: NodeType.Text,
     textContent: textContent || '',
     rootId,
-    isVisible: isVisible,
-    isInteractive: isInteractive,
-    xPath: xPath
   };
 }
 
@@ -590,7 +569,6 @@ function serializeElementNode(
     blockClass: string | RegExp;
     blockSelector: string | null;
     excludeAttribute: string | RegExp;
-    includeAttribute: string | RegExp;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
     maskInputFn: MaskInputFn | undefined;
@@ -603,7 +581,6 @@ function serializeElementNode(
      */
     newlyAddedElement?: boolean;
     rootId: number | undefined;
-    xPath: string;
   },
 ): serializedNode | false {
   const {
@@ -611,7 +588,6 @@ function serializeElementNode(
     blockClass,
     blockSelector,
     excludeAttribute,
-    includeAttribute,
     inlineStylesheet,
     maskInputOptions = {},
     maskInputFn,
@@ -621,7 +597,6 @@ function serializeElementNode(
     keepIframeSrcFn,
     newlyAddedElement = false,
     rootId,
-    xPath
   } = options;
   const needBlock = _isBlockedElement(n, blockClass, blockSelector);
   const tagName = getValidTagName(n);
@@ -629,7 +604,7 @@ function serializeElementNode(
   const len = n.attributes.length;
   for (let i = 0; i < len; i++) {
     const attr = n.attributes[i];
-    if (isExcludeAttribute(attr.name, excludeAttribute) && !isIncludeAttribute(attr.name, includeAttribute)) {
+    if (isExcludeAttribute(attr.name, excludeAttribute)) {
       continue;
     }
     if (!ignoreAttribute(tagName, attr.name, attr.value)) {
@@ -837,9 +812,6 @@ function serializeElementNode(
     // In case old browsers don't support customElements
   }
 
-  const isVisible = isElementVisible(n);
-  const isInteractive = isElementInteractive(n);
-
   return {
     type: NodeType.Element,
     tagName,
@@ -849,9 +821,6 @@ function serializeElementNode(
     needBlock,
     rootId,
     isCustom: isCustomElement,
-    isVisible: isVisible,
-    isInteractive: isInteractive,
-    xPath: xPath
   };
 }
 
@@ -966,7 +935,6 @@ export function serializeNodeWithId(
     maskTextClass: string | RegExp;
     maskTextSelector: string | null;
     excludeAttribute: string | RegExp;
-    includeAttribute: string | RegExp;
     skipChild: boolean;
     inlineStylesheet: boolean;
     newlyAddedElement?: boolean;
@@ -1002,7 +970,6 @@ export function serializeNodeWithId(
     maskTextClass,
     maskTextSelector,
     excludeAttribute,
-    includeAttribute,
     skipChild = false,
     inlineStylesheet = true,
     maskInputOptions = {},
@@ -1041,7 +1008,6 @@ export function serializeNodeWithId(
     blockClass,
     blockSelector,
     excludeAttribute,
-    includeAttribute,
     needsMask,
     inlineStylesheet,
     maskInputOptions,
@@ -1117,7 +1083,6 @@ export function serializeNodeWithId(
       maskTextClass,
       maskTextSelector,
       excludeAttribute,
-      includeAttribute,
       skipChild,
       inlineStylesheet,
       maskInputOptions,
@@ -1195,7 +1160,6 @@ export function serializeNodeWithId(
             maskTextClass,
             maskTextSelector,
             excludeAttribute,
-            includeAttribute,
             skipChild: false,
             inlineStylesheet,
             maskInputOptions,
@@ -1249,7 +1213,6 @@ export function serializeNodeWithId(
             maskTextClass,
             maskTextSelector,
             excludeAttribute,
-            includeAttribute,
             skipChild: false,
             inlineStylesheet,
             maskInputOptions,
@@ -1292,7 +1255,6 @@ function snapshot(
     maskTextClass?: string | RegExp;
     maskTextSelector?: string | null;
     excludeAttribute?: string | RegExp;
-    includeAttribute?: string | RegExp;
     inlineStylesheet?: boolean;
     maskAllInputs?: boolean | MaskInputOptions;
     maskTextFn?: MaskTextFn;
@@ -1322,8 +1284,7 @@ function snapshot(
     blockSelector = null,
     maskTextClass = 'rr-mask',
     maskTextSelector = null,
-    excludeAttribute = /^$a/,
-    includeAttribute = /.+/i,
+    excludeAttribute = /.^/,
     inlineStylesheet = true,
     inlineImages = false,
     recordCanvas = false,
@@ -1392,7 +1353,6 @@ function snapshot(
     maskTextClass,
     maskTextSelector,
     excludeAttribute,
-    includeAttribute,
     skipChild: false,
     inlineStylesheet,
     maskInputOptions,

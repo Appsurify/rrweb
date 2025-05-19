@@ -47,7 +47,9 @@ let takeFullSnapshot!: (isCheckout?: boolean) => void;
 let canvasManager!: CanvasManager;
 let recording = false;
 
-const preRecordingCustomEvents: eventWithoutTime[] = [];
+const customEventQueue: eventWithoutTime[] = [];
+let flushCustomEventQueue!: () => void;
+
 
 // Multiple tools (i.e. MooTools, Prototype.js) override Array.from and drop support for the 2nd parameter
 // Try to pull a clean implementation from a newly created iframe
@@ -76,7 +78,6 @@ function record<T = eventWithTime>(
     ignoreClass = 'rr-ignore',
     ignoreSelector = null,
     excludeAttribute: _excludeAttribute,
-    includeAttribute: _includeAttribute,
     maskTextClass = 'rr-mask',
     maskTextSelector = null,
     inlineStylesheet = true,
@@ -144,9 +145,6 @@ function record<T = eventWithTime>(
   const excludeAttribute = _excludeAttribute === undefined
     ? /^$a/
     : _excludeAttribute;
-  const includeAttribute = _includeAttribute === undefined
-    ? /.+/i
-    : _includeAttribute;
 
   const maskInputOptions: MaskInputOptions =
     maskAllInputs === true
@@ -353,7 +351,6 @@ function record<T = eventWithTime>(
       maskTextClass,
       maskTextSelector,
       excludeAttribute,
-      includeAttribute,
       inlineStylesheet,
       maskInputOptions,
       dataURLOptions,
@@ -401,7 +398,6 @@ function record<T = eventWithTime>(
       maskTextClass,
       maskTextSelector,
       excludeAttribute,
-      includeAttribute,
       inlineStylesheet,
       maskAllInputs: maskInputOptions,
       maskTextFn,
@@ -455,6 +451,13 @@ function record<T = eventWithTime>(
         mirror.getId(document),
       );
   };
+
+  flushCustomEventQueue = () => {
+    for (const e of customEventQueue) {
+      wrappedEmit(e);
+    }
+    customEventQueue.length = 0;
+  }
 
   try {
     const handlers: listenerHandler[] = [];
@@ -553,7 +556,6 @@ function record<T = eventWithTime>(
           maskTextClass,
           maskTextSelector,
           excludeAttribute,
-          includeAttribute,
           maskInputOptions,
           inlineStylesheet,
           sampling,
@@ -607,7 +609,7 @@ function record<T = eventWithTime>(
 
     const init = () => {
       if (flushCustomQueue === 'before') {
-        flushPreRecordingEvents();
+        flushCustomEventQueue();
       }
 
       takeFullSnapshot();
@@ -615,7 +617,7 @@ function record<T = eventWithTime>(
       recording = true;
 
       if (flushCustomQueue === 'after') {
-        flushPreRecordingEvents();
+        flushCustomEventQueue();
       }
 
     };
@@ -649,7 +651,7 @@ function record<T = eventWithTime>(
       );
     }
     return () => {
-      flushPreRecordingEvents();
+      flushCustomEventQueue();
       handlers.forEach((h) => h());
       processedNodeManager.destroy();
       recording = false;
@@ -661,12 +663,11 @@ function record<T = eventWithTime>(
   }
 }
 
-function flushPreRecordingEvents() {
-  for (const e of preRecordingCustomEvents) {
-    wrappedEmit(e);
-  }
-  preRecordingCustomEvents.length = 0;
+record.flushCustomEventQueue = () => {
+  console.warn(`[rrweb] CustomEvent flushing: ${customEventQueue.length} events`);
+  flushCustomEventQueue();
 }
+
 
 record.addCustomEvent = <T>(tag: string, payload: T) => {
   const customEvent: eventWithoutTime = {
@@ -678,8 +679,8 @@ record.addCustomEvent = <T>(tag: string, payload: T) => {
   };
 
   if (!recording) {
-    console.warn(`[rrweb] CustomEvent buffered before recording start: ${tag}`);
-    preRecordingCustomEvents.push(customEvent);
+    console.warn(`[rrweb] CustomEvent buffered before/after recording start: ${tag}`);
+    customEventQueue.push(customEvent);
     return;
   }
 

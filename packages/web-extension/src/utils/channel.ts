@@ -39,7 +39,6 @@ class Channel {
       ((message: string, sender: Runtime.MessageSender) => {
         const parsed = JSON.parse(message) as Message | null | undefined;
         if (!parsed || !parsed.type) {
-          console.error(`Bad message: ${message}`);
           return;
         }
         switch (parsed.type) {
@@ -52,9 +51,6 @@ class Channel {
             return server(parsed.params, sender);
           }
           default:
-            console.error(
-              `Unknown message type: ${(parsed as { type: string }).type}`,
-            );
             break;
         }
         return;

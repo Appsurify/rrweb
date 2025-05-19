@@ -148,7 +148,6 @@ export class APIClient {
         jwtRefreshToken: currentApiSettings.authType.jwtRefreshToken,
       };
     } catch (error) {
-      console.error('Token refresh error', error);
       throw error;
     }
   }

@@ -187,8 +187,6 @@ export type maskTextClass = string | RegExp;
 
 export type excludeAttribute = string | RegExp;
 
-export type includeAttribute = string | RegExp;
-
 export type SamplingStrategy = Partial<{
   /**
    * false means not to record mouse/touch move events
@@ -289,6 +287,7 @@ export type textCursor = {
   node: Node;
   value: string | null;
 };
+
 export type textMutation = {
   id: number;
   value: string | null;
@@ -724,7 +723,6 @@ export type documentNode = {
   type: NodeType.Document;
   childNodes: serializedNodeWithId[];
   compatMode?: string;
-  xPath?: string;
 };
 
 export type documentTypeNode = {
@@ -732,7 +730,6 @@ export type documentTypeNode = {
   name: string;
   publicId: string;
   systemId: string;
-  xPath?: string;
 };
 
 type cssTextKeyAttr = {
@@ -781,9 +778,6 @@ export type elementNode = {
   tagName: string;
   attributes: attributes;
   childNodes: serializedNodeWithId[];
-  xPath?: string;
-  isVisible?: boolean;
-  isInteractive?: boolean;
   isSVG?: true;
   needBlock?: boolean;
   // This is a custom element or not.
@@ -793,9 +787,6 @@ export type elementNode = {
 export type textNode = {
   type: NodeType.Text;
   textContent: string;
-  xPath?: string;
-  isVisible?: boolean;
-  isInteractive?: boolean;
   /**
    * @deprecated styles are now always snapshotted against parent <style> element
    * style mutations can still happen via an added textNode, but they don't need this attribute for correct replay
@@ -806,13 +797,11 @@ export type textNode = {
 export type cdataNode = {
   type: NodeType.CDATA;
   textContent: '';
-  xPath?: string;
 };
 
 export type commentNode = {
   type: NodeType.Comment;
   textContent: string;
-  xPath?: string;
 };
 
 export type serializedNode = (

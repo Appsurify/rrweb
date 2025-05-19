@@ -11,6 +11,7 @@ import {
   getInputType,
   toLowerCase,
   isExcludeAttribute,
+  isElementVisible
 } from '@appsurify-testmap/rrweb-snapshot';
 import type { observerParam, MutationBufferParam } from '../types';
 import type {
@@ -31,8 +32,8 @@ import {
   isSerializedStylesheet,
   inDom,
   getShadowHost,
-  closestElementOfNode,
-} from '../utils';
+  closestElementOfNode, nowTimestamp,
+} from "../utils";
 import dom from '@appsurify-testmap/rrweb-utils';
 
 type DoubleLinkedListNode = {
@@ -136,7 +137,7 @@ class DoubleLinkedList {
 const moveKey = (id: number, parentId: number) => `${id}@${parentId}`;
 
 /**
- * controls behaviour of a MutationObserver
+ * controls the behaviour of a MutationObserver
  */
 export default class MutationBuffer {
   private frozen = false;
@@ -154,11 +155,11 @@ export default class MutationBuffer {
    * the browser MutationObserver emits multiple mutations after
    * a delay for performance reasons, making tracing added nodes hard
    * in our `processMutations` callback function.
-   * For example, if we append an element el_1 into body, and then append
+   * For example, if we append an element el_1 into body and then append
    * another element el_2 into el_1, these two mutations may be passed to the
    * callback function together when the two operations were done.
-   * Generally we need to trace child nodes of newly added nodes, but in this
-   * case if we count el_2 as el_1's child node in the first mutation record,
+   * Generally, we need to trace child nodes of newly added nodes, but in this
+   * case, if we count el_2 as el_1's child node in the first mutation record,
    * then we will count el_2 again in the second mutation record which was
    * duplicated.
    * To avoid of duplicate counting added nodes, we use a Set to store
@@ -178,7 +179,6 @@ export default class MutationBuffer {
   private maskTextClass: observerParam['maskTextClass'];
   private maskTextSelector: observerParam['maskTextSelector'];
   private excludeAttribute: observerParam['excludeAttribute'];
-  private includeAttribute: observerParam['includeAttribute'];
   private inlineStylesheet: observerParam['inlineStylesheet'];
   private maskInputOptions: observerParam['maskInputOptions'];
   private maskTextFn: observerParam['maskTextFn'];
@@ -206,7 +206,6 @@ export default class MutationBuffer {
         'maskTextClass',
         'maskTextSelector',
         'excludeAttribute',
-        'includeAttribute',
         'inlineStylesheet',
         'maskInputOptions',
         'maskTextFn',
@@ -358,7 +357,6 @@ export default class MutationBuffer {
         maskTextClass: this.maskTextClass,
         maskTextSelector: this.maskTextSelector,
         excludeAttribute: this.excludeAttribute,
-        includeAttribute: this.includeAttribute,
         skipChild: true,
         newlyAddedElement: true,
         inlineStylesheet: this.inlineStylesheet,
@@ -403,12 +401,14 @@ export default class MutationBuffer {
     };
 
     while (this.mapRemoves.length) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.mirror.removeNodeFromMap(this.mapRemoves.shift()!);
     }
 
     for (const n of this.movedSet) {
       if (
         isParentRemoved(this.removesSubTreeCache, n, this.mirror) &&
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         !this.movedSet.has(dom.parentNode(n)!)
       ) {
         continue;
@@ -620,24 +620,67 @@ export default class MutationBuffer {
         const target = m.target as HTMLElement;
         let attributeName = m.attributeName as string;
         let value = (m.target as HTMLElement).getAttribute(attributeName);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-        const propValue = (target as any)[attributeName];
+        const attrKey = attributeName as keyof HTMLElement;
+        const propValue = target[attrKey];
+
+        const isBooleanAttr = typeof propValue === 'boolean';
+        const inDOM = document.contains(target);
+        const isVisible = isElementVisible(target);
+        const isExcludeAttributeName = isExcludeAttribute(attributeName, this.excludeAttribute);
 
         const isPhantomAttributeMutation =
-          value === null &&
-          !target.hasAttribute(attributeName) &&
-          m.oldValue !== null &&
+          value === null &&                       // текущего атрибута нет
+          !target.hasAttribute(attributeName) && // явно подтверждаем отсутствие
+          m.oldValue !== null &&                 // раньше он был
           (
-            propValue === '' ||
-            propValue === null ||
-            typeof propValue === 'undefined'
+            propValue === '' ||                 // свойство = пустая строка
+            propValue === null ||              // или null
+            typeof propValue === 'undefined'   // или undefined
           );
 
         if (isPhantomAttributeMutation) {
+          console.debug(
+  `[${nowTimestamp()}] [rrweb:record/mutation] ⛔ phantom attribute mutation ignored`,
+            {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+              node: dom.describeNode(target),
+              tag: target.tagName,
+              nodeType: target.nodeType,
+              attribute: attributeName,
+              value: value,
+              oldValue: m.oldValue,
+              excludeAttribute: this.excludeAttribute,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              propValue,
+              isBooleanAttr,
+              inDOM,
+              isVisible,
+              isExcludeAttributeName
+            }
+          );
           return;
         }
 
         if (isExcludeAttribute(attributeName, this.excludeAttribute)) {
+          console.debug(
+            `[${nowTimestamp()}] [rrweb:record/mutation] ⛔ excluded attribute mutation ignored`,
+            {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+              node: dom.describeNode(target),
+              tag: target.tagName,
+              nodeType: target.nodeType,
+              attribute: attributeName,
+              value: value,
+              oldValue: m.oldValue,
+              excludeAttribute: this.excludeAttribute,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              propValue,
+              isBooleanAttr,
+              inDOM,
+              isVisible,
+              isExcludeAttributeName
+            }
+          );
           return;
         }
 
@@ -703,14 +746,42 @@ export default class MutationBuffer {
             toLowerCase(attributeName),
             value,
           );
-          if (value === item.attributes[attributeName]) {
-            // delete item.attributes[attributeName];
-            // if (Object.keys(item.attributes).length === 0) {
-            //   this.attributes = this.attributes.filter((a) => a !== item);
-            //   this.attributeMap.delete(m.target);
-            // }
-            console.debug('[rrweb-record] A questionable mutation that needs to be investigated in the future.')
-            return;
+
+          const isSuspiciousClassMutation =
+            attributeName !== 'class' &&
+            (
+              m.oldValue === null || // ранее не было класса
+              value === '' ||        // класс удалён
+              value !== m.oldValue   // структура явно поменялась
+            );
+
+          // не игнорировать мутацию, даже если значение совпало
+          if (isSuspiciousClassMutation) {
+            console.debug(
+              `[${nowTimestamp()}] [rrweb:record/mutation] ⚠️ suspicious attribute mutation`,
+              {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+                reason: [
+                  value === m.oldValue ? 'no change in value' : null,
+                  value === propValue ? 'mirrored in DOM property' : null,
+                  value === item.attributes[attributeName] ? 'redundant assignment' : null,
+                ].filter(Boolean).join(', ') || 'uncategorized',
+                node: dom.describeNode(target),
+                tag: target.tagName,
+                nodeType: target.nodeType,
+                attribute: attributeName,
+                value: value,
+                oldValue: m.oldValue,
+                transformedValue: item.attributes[attributeName],
+                excludeAttribute: this.excludeAttribute,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                propValue,
+                isBooleanAttr,
+                inDOM,
+                isVisible,
+                isExcludeAttributeName
+              }
+            );
           }
 
           if (attributeName === 'style') {
@@ -906,6 +977,7 @@ function isParentRemoved(removes: Set<Node>, n: Node, mirror: Mirror): boolean {
 function _isParentRemoved(
   removes: Set<Node>,
   n: Node,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _mirror: Mirror,
 ): boolean {
   const node: ParentNode | null = dom.parentNode(n);
