@@ -839,6 +839,7 @@ export type serializedNode = (
   isShadowHost?: boolean;
   isShadow?: boolean;
   isVisible?: boolean;
+  isInteractive?: boolean;
   xpath?: string;
   selector?: string;
 };

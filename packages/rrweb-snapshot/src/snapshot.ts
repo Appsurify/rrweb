@@ -31,7 +31,10 @@ import {
   absolutifyURLs,
   markCssSplits,
   buildXPath,
-  buildSelector, isTextVisible, isElementVisible,
+  buildSelector,
+  isTextVisible,
+  isElementVisible,
+  isElementInteractive,
 } from "./utils";
 import dom from '@appsurify-testmap/rrweb-utils';
 
@@ -1048,6 +1051,7 @@ export function serializeNodeWithId(
     }
     if (n.nodeType === Node.ELEMENT_NODE) {
       serializedNode.isVisible = isElementVisible(n as Element);
+      serializedNode.isInteractive = isElementInteractive(n as Element);
     }
   }
   // add IGNORED_NODE to mirror to track nextSiblings
