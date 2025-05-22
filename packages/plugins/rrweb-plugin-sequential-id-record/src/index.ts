@@ -6,7 +6,7 @@ export type SequentialIdOptions = {
 };
 
 const defaultOptions: SequentialIdOptions = {
-  key: '_sid',
+  key: 'id',
 };
 
 export let globalSequentialId = 0;

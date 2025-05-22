@@ -34,12 +34,12 @@ export type TestSuite = {
 
 export type CheckoutEveryNth = { type: 'checkoutEveryNth'; value: number };
 export type CheckoutEveryNms = { type: 'checkoutEveryNms'; value: number };
-export type CheckoutEveryEvc = { type: 'checkoutEveryEvc'; value: boolean };
+export type CheckoutEveryNvm = { type: 'checkoutEveryNvm'; value: number };
 
 export type CheckoutType =
   | CheckoutEveryNth
   | CheckoutEveryNms
-  | CheckoutEveryEvc;
+  | CheckoutEveryNvm;
 
 export type RecordSettings = {
   checkoutType: CheckoutType;

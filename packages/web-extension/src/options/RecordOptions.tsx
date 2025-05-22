@@ -95,12 +95,9 @@ export function RecordOptions() {
 
   // Handler for changing checkout type with explicit object literal creation
   const handleCheckoutTypeChange = (
-    type: 'checkoutEveryEvc' | 'checkoutEveryNth' | 'checkoutEveryNms',
+    type: 'checkoutEveryNvm' | 'checkoutEveryNth' | 'checkoutEveryNms',
   ) => {
-    const newCheckoutType: RecordSettings['checkoutType'] =
-      type === 'checkoutEveryEvc'
-        ? { type: 'checkoutEveryEvc', value: true }
-        : { type, value: 0 };
+    const newCheckoutType: RecordSettings['checkoutType'] = { type, value: 0 };
     const newSettings: RecordSettings = {
       ...recordSettings,
       checkoutType: newCheckoutType,
@@ -172,12 +169,12 @@ export function RecordOptions() {
             value={recordSettings.checkoutType.type}
             onChange={(value: string) =>
               handleCheckoutTypeChange(
-                value as 'checkoutEveryEvc' | 'checkoutEveryNth' | 'checkoutEveryNms'
+                value as 'checkoutEveryNvm' | 'checkoutEveryNth' | 'checkoutEveryNms'
               )
             }
           >
             <Stack direction="row">
-              <Radio value="checkoutEveryEvc">Every Evc</Radio>
+              <Radio value="checkoutEveryNvm">Every Nvm</Radio>
               <Radio value="checkoutEveryNth">Every Nth</Radio>
               <Radio value="checkoutEveryNms">Every Nms</Radio>
             </Stack>
@@ -185,13 +182,9 @@ export function RecordOptions() {
           <FormHelperText>Every Nth - take a snapshot every N actions</FormHelperText>
           <FormHelperText>Every Nms - take a snapshot every N milliseconds</FormHelperText>
         </FormControl>
-        {(recordSettings.checkoutType.type === 'checkoutEveryNth' ||
-          recordSettings.checkoutType.type === 'checkoutEveryNms') && (
-          <FormControl mb={2}>
+        <FormControl mb={2}>
             <FormLabel>
-              {recordSettings.checkoutType.type === 'checkoutEveryNth'
-                ? 'Nth Value'
-                : 'Nms Value'}
+              Value
             </FormLabel>
             <NumberInput
               value={recordSettings.checkoutType.value.toString()}
@@ -203,7 +196,6 @@ export function RecordOptions() {
               <NumberInputField />
             </NumberInput>
           </FormControl>
-        )}
       </Box>
 
       <Divider mb={4} />

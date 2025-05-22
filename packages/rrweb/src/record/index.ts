@@ -27,13 +27,15 @@ import {
   type scrollCallback,
   type canvasMutationParam,
   type adoptedStyleSheetParam,
-} from '@appsurify-testmap/rrweb-types';
+  type visibilityMutationCallbackParam,
+} from "@appsurify-testmap/rrweb-types";
 import type { CrossOriginIframeMessageEventContent } from '../types';
 import { IframeManager } from './iframe-manager';
 import { ShadowDomManager } from './shadow-dom-manager';
 import { CanvasManager } from './observers/canvas/canvas-manager';
 import { StylesheetManager } from './stylesheet-manager';
 import ProcessedNodeManager from './processed-node-manager';
+import { VisibilityManager} from './observers/visibility/visibility-manager';
 import {
   callbackWrapper,
   registerErrorHandler,
@@ -41,10 +43,12 @@ import {
 } from './error-handler';
 import dom from '@appsurify-testmap/rrweb-utils';
 
+
 let wrappedEmit!: (e: eventWithoutTime, isCheckout?: boolean) => void;
 
 let takeFullSnapshot!: (isCheckout?: boolean) => void;
 let canvasManager!: CanvasManager;
+let visibilityManager!: VisibilityManager;
 let recording = false;
 
 const customEventQueue: eventWithoutTime[] = [];
@@ -73,6 +77,7 @@ function record<T = eventWithTime>(
     emit,
     checkoutEveryNms,
     checkoutEveryNth,
+    checkoutEveryNvm,
     blockClass = 'rr-block',
     blockSelector = null,
     ignoreClass = 'rr-ignore',
@@ -97,7 +102,7 @@ function record<T = eventWithTime>(
     recordAfter = options.recordAfter === 'DOMContentLoaded'
       ? options.recordAfter
       : 'load',
-    flushCustomQueue = options.flushCustomQueue !== undefined ? options.flushCustomQueue : 'after',
+    flushCustomEvent = options.flushCustomEvent !== undefined ? options.flushCustomEvent : 'after',
     userTriggeredOnInput = false,
     collectFonts = false,
     inlineImages = false,
@@ -106,7 +111,6 @@ function record<T = eventWithTime>(
     ignoreCSSAttributes = new Set([]),
     errorHandler,
   } = options;
-  // console.debug(`${Date.now()} [rrweb] record:options:`, options);
   registerErrorHandler(errorHandler);
 
   const inEmittingFrame = recordCrossOriginIframes
@@ -143,7 +147,7 @@ function record<T = eventWithTime>(
   mirror.reset();
 
   const excludeAttribute = _excludeAttribute === undefined
-    ? /^$a/
+    ? /.^/
     : _excludeAttribute;
 
   const maskInputOptions: MaskInputOptions =
@@ -195,6 +199,10 @@ function record<T = eventWithTime>(
 
   let lastFullSnapshotEvent: eventWithTime;
   let incrementalSnapshotCount = 0;
+  let recentVisibilityChanges = 0;
+  const onVisibilityActivity = (count: number) => {
+    recentVisibilityChanges += count;
+  };
 
   const eventProcessor = (e: eventWithTime): T => {
     for (const plugin of plugins || []) {
@@ -211,6 +219,7 @@ function record<T = eventWithTime>(
     }
     return e as unknown as T;
   };
+
   wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
     const e = r as eventWithTime;
     e.timestamp = nowTimestamp();
@@ -260,8 +269,13 @@ function record<T = eventWithTime>(
       const exceedTime =
         checkoutEveryNms &&
         e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
+      const exceedVisibility =
+        checkoutEveryNvm && recentVisibilityChanges >= checkoutEveryNvm;
 
-      if (exceedCount || exceedTime) {
+      if (exceedCount || exceedTime || exceedVisibility) {
+        if (exceedVisibility) {
+          recentVisibilityChanges = 0;
+        }
         takeFullSnapshot(true);
       }
 
@@ -277,6 +291,7 @@ function record<T = eventWithTime>(
       },
     });
   };
+
   const wrappedScrollEmit: scrollCallback = (p) =>
     wrappedEmit({
       type: EventType.IncrementalSnapshot,
@@ -293,6 +308,16 @@ function record<T = eventWithTime>(
         ...p,
       },
     });
+  const wrappedVisibilityMutationEmit = (p: visibilityMutationCallbackParam) => {
+    hooks?.visibilityMutation?.(p);
+    wrappedEmit({
+      type: EventType.IncrementalSnapshot,
+      data: {
+        source: IncrementalSource.VisibilityMutation,
+        ...p
+      }
+    })
+  };
 
   const wrappedAdoptedStyleSheetEmit = (a: adoptedStyleSheetParam) =>
     wrappedEmit({
@@ -342,6 +367,14 @@ function record<T = eventWithTime>(
     dataURLOptions,
   });
 
+  visibilityManager = new VisibilityManager({
+    doc: window.document,
+    mirror: mirror,
+    sampling: sampling.visibility,
+    mutationCb: wrappedVisibilityMutationEmit,
+    notifyActivity: onVisibilityActivity,
+  });
+
   const shadowDomManager = new ShadowDomManager({
     mutationCb: wrappedMutationEmit,
     scrollCb: wrappedScrollEmit,
@@ -363,6 +396,7 @@ function record<T = eventWithTime>(
       iframeManager,
       stylesheetManager,
       canvasManager,
+      visibilityManager,
       keepIframeSrcFn,
       processedNodeManager,
     },
@@ -524,6 +558,7 @@ function record<T = eventWithTime>(
               },
             }),
           canvasMutationCb: wrappedCanvasMutationEmit,
+          visibilityMutationCb: wrappedVisibilityMutationEmit,
           fontCb: (p) =>
             wrappedEmit({
               type: EventType.IncrementalSnapshot,
@@ -577,6 +612,7 @@ function record<T = eventWithTime>(
           shadowDomManager,
           processedNodeManager,
           canvasManager,
+          visibilityManager,
           ignoreCSSAttributes,
           plugins:
             plugins
@@ -608,7 +644,7 @@ function record<T = eventWithTime>(
     });
 
     const init = () => {
-      if (flushCustomQueue === 'before') {
+      if (flushCustomEvent === 'before') {
         flushCustomEventQueue();
       }
 
@@ -616,7 +652,7 @@ function record<T = eventWithTime>(
       handlers.push(observe(document));
       recording = true;
 
-      if (flushCustomQueue === 'after') {
+      if (flushCustomEvent === 'after') {
         flushCustomEventQueue();
       }
 
@@ -667,7 +703,6 @@ record.flushCustomEventQueue = () => {
   console.warn(`[rrweb] CustomEvent flushing: ${customEventQueue.length} events`);
   flushCustomEventQueue();
 }
-
 
 record.addCustomEvent = <T>(tag: string, payload: T) => {
   const customEvent: eventWithoutTime = {

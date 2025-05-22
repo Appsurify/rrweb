@@ -15,7 +15,14 @@ let stopFn: (() => void) | null = null;
 function startRecord(config: recordOptions<eventWithTime>) {
   stopFn =
     record({
-      emit: (event) => {
+      emit: (event, isCheckout) => {
+        console.debug(
+          `[${performance.now()+performance.timeOrigin}] [web-extension:content/inject] emit`,
+          {
+            isCheckout,
+            event
+          }
+        );
         postMessage({
           message: MessageName.EmitEvent,
           event,
@@ -23,11 +30,10 @@ function startRecord(config: recordOptions<eventWithTime>) {
       },
       plugins: [
         getRecordSequentialIdPlugin({
-          key: '_sid', // default value
+          key: 'id', // default value
         }),
       ],
       ...config
-
     }) || null;
 
   postMessage({

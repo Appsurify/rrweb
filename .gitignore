@@ -41,3 +41,5 @@ vite.config.ts.timestamp-*
 
 /builds/
 /dev-runtime/
+/snippets/
+

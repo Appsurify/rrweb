@@ -7,7 +7,7 @@ type Options = SequentialIdOptions & {
 };
 
 const defaultOptions: Options = {
-  key: '_sid',
+  key: 'id',
   warnOnMissingId: true,
 };
 

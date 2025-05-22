@@ -608,39 +608,34 @@ function isSelectorUnique(selector: string, target: Element): boolean {
 export function buildSelector(node: Node): string | null {
   if (!(node instanceof Element)) return null;
 
-  // 1. Если есть ID — это самый приоритетный и уникальный селектор
   if (node.id) {
     return `#${CSS.escape(node.id)}`;
   }
 
-  // 2. Собираем data-* атрибуты и class-ы
   const parts: string[] = [];
   const tag = node.tagName.toLowerCase();
 
-  // Добавим class, если он есть
   if (node.classList.length) {
     parts.push(...Array.from(node.classList).map(cls => `.${CSS.escape(cls)}`));
   }
 
-  // Добавим data-* атрибуты
   Array.from(node.attributes).forEach(attr => {
     if (attr.name.startsWith('data-')) {
       parts.push(`[${attr.name}="${CSS.escape(attr.value)}"]`);
     }
   });
 
-  // Попробуем сгенерировать короткий селектор вида tag.class1.class2[data-*]
   const shortSelector = `${tag}${parts.join('')}`;
   if (isSelectorUnique(shortSelector, node)) {
     return shortSelector;
   }
 
-  // 3. Построим путь с :nth-child (снизу вверх)
-  let path = '';
+  // ✅ Собираем путь как массив
+  const pathParts: string[] = [];
   let current: Element | null = node;
 
   while (current && current.nodeType === Node.ELEMENT_NODE) {
-    const parent = current.parentElement as Element;
+    const parent: Element | null = current.parentElement;
     const tagName = current.tagName.toLowerCase();
 
     let nth = '';
@@ -649,17 +644,15 @@ export function buildSelector(node: Node): string | null {
         el => el.tagName.toLowerCase() === tagName
       );
       if (siblings.length > 1) {
-        const index = siblings.indexOf(current) + 1;
-        nth = `:nth-of-type(${index})`;
+        nth = `:nth-of-type(${siblings.indexOf(current) + 1})`;
       }
     }
 
-    path = `${tagName}${nth} > ${path}`;
+    pathParts.unshift(`${tagName}${nth}`);
     current = parent;
   }
 
-  path = path.trim().replace(/> $/, ''); // удалить последний " > "
-  return path || null;
+  return pathParts.join(' > ') || null;
 }
 
 export function buildXPath(node: Node): string {
@@ -673,12 +666,10 @@ export function buildXPath(node: Node): string {
     case Node.ELEMENT_NODE: {
       const element = node as Element;
 
-      // Уникальный ID
       if (element.id) {
-        return `//*[@id="${element.id}"]`;
+        return `//*[@id="${CSS.escape(element.id)}"]`;
       }
 
-      // Специальные случаи
       if (element.tagName.toLowerCase() === 'html') return '/html';
       if (element === document.head) return '/html/head';
       if (element === document.body) return '/html/body';
@@ -686,12 +677,13 @@ export function buildXPath(node: Node): string {
       const parent = element.parentNode;
       if (!parent) return '';
 
-      // Индекс по tagName среди siblings
       const tag = element.tagName.toLowerCase();
       const siblings = Array.from(parent.children).filter(
-        el => el.tagName.toLowerCase() === tag
+        el => el.tagName.toLowerCase() === tag,
       );
-      const index = siblings.length > 1 ? `[${siblings.indexOf(element) + 1}]` : '';
+      const index = siblings.length > 1
+        ? `[${siblings.indexOf(element) + 1}]`
+        : '';
 
       return `${buildXPath(parent)}/${tag}${index}`;
     }
@@ -704,17 +696,18 @@ export function buildXPath(node: Node): string {
 
       const typeMap = {
         [Node.TEXT_NODE]: 'text()',
-        [Node.CDATA_SECTION_NODE]: 'text()', // XPath не различает CDATA и TEXT
-        [Node.COMMENT_NODE]: 'comment()'
+        [Node.CDATA_SECTION_NODE]: 'text()', // CDATA ≡ text() в XPath
+        [Node.COMMENT_NODE]: 'comment()',
       };
 
       const sameTypeSiblings = Array.from(parent.childNodes).filter(
-        (sibling) => sibling.nodeType === node.nodeType
+        sibling => sibling.nodeType === node.nodeType,
       );
-      const index = sameTypeSiblings.length > 1 ? `[${sameTypeSiblings.indexOf(node as Element) + 1}]` : '';
-      const nodeExpr = typeMap[node.nodeType] || '';
+      const index = sameTypeSiblings.length > 1
+        ? `[${sameTypeSiblings.indexOf(node as ChildNode)}]`
+        : '';
 
-      return `${buildXPath(parent)}/${nodeExpr}${index}`;
+      return `${buildXPath(parent)}/${typeMap[node.nodeType]}${index}`;
     }
 
     default:
@@ -824,7 +817,6 @@ export function buildXPath(node: Node): string {
 
 export function isTextVisible(n: Text): boolean {
   // const parentElement = n.parentElement;
-
   // The parent node may not be a html element which has a tagName attribute.
   // So just let it be undefined which is ok in this use case.
   const parent = dom.parentNode(n);
@@ -840,31 +832,11 @@ export function isTextVisible(n: Text): boolean {
   return textContent !== '';
 }
 
-export function isElementVisible(n: Element): boolean {
-  const win = n.ownerDocument?.defaultView ?? null;
-  const style = win ? win.getComputedStyle(n) : null;
-
-  const isStyleVisible = style != null &&
-    style.display !== 'none' &&
-    style.visibility !== 'hidden' &&
-    parseFloat(style.opacity) !== 0;
-
-  const rect = n.getBoundingClientRect();
-
-  const result = isStyleVisible && isRectVisible(rect);
-
-  return result;
+export function isElementVisible(el: Element): boolean {
+  const visibility = dom.getElementVisibility(el);
+  return visibility.isVisible;
 }
 
-function isRectVisible(rect: DOMRect, win: Window = window): boolean {
-  const height = win?.innerHeight ?? win?.document?.documentElement?.clientHeight ?? 0;
-  const width = win?.innerWidth ?? win?.document?.documentElement?.clientWidth ?? 0;
-
-  return rect.width > 0 && rect.height > 0 &&
-    rect.top >= 0 && rect.left >= 0 &&
-    rect.bottom <= height &&
-    rect.right <= width;
-}
 
 export const interactiveEvents = [
   'change',

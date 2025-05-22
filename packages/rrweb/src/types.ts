@@ -39,13 +39,19 @@ import type {
   viewportResizeCallback,
   PackFn,
   UnpackFn,
+  visibilityMutationCallback,
 } from '@appsurify-testmap/rrweb-types';
 import type ProcessedNodeManager from './record/processed-node-manager';
+import type {
+  VisibilityManager
+} from "./record/observers/visibility/visibility-manager";
+
 
 export type recordOptions<T> = {
   emit?: (e: T, isCheckout?: boolean) => void;
   checkoutEveryNth?: number;
   checkoutEveryNms?: number;
+  checkoutEveryNvm?: number; // every N visibility mutations
   blockClass?: blockClass;
   blockSelector?: string;
   ignoreClass?: string;
@@ -68,7 +74,7 @@ export type recordOptions<T> = {
   recordCanvas?: boolean;
   recordCrossOriginIframes?: boolean;
   recordAfter?: 'DOMContentLoaded' | 'load';
-  flushCustomQueue?: 'before' | 'after';
+  flushCustomEvent?: 'before' | 'after';
   userTriggeredOnInput?: boolean;
   collectFonts?: boolean;
   inlineImages?: boolean;
@@ -105,6 +111,7 @@ export type observerParam = {
   styleSheetRuleCb: styleSheetRuleCallback;
   styleDeclarationCb: styleDeclarationCallback;
   canvasMutationCb: canvasMutationCallback;
+  visibilityMutationCb: visibilityMutationCallback;
   customElementCb: customElementCallback;
   fontCb: fontCallback;
   sampling: SamplingStrategy;
@@ -121,6 +128,7 @@ export type observerParam = {
   stylesheetManager: StylesheetManager;
   shadowDomManager: ShadowDomManager;
   canvasManager: CanvasManager;
+  visibilityManager: VisibilityManager;
   processedNodeManager: ProcessedNodeManager;
   ignoreCSSAttributes: Set<string>;
   plugins: Array<{
@@ -157,6 +165,7 @@ export type MutationBufferParam = Pick<
   | 'stylesheetManager'
   | 'shadowDomManager'
   | 'canvasManager'
+  | 'visibilityManager'
   | 'processedNodeManager'
 >;
 

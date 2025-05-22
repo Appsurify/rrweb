@@ -36,6 +36,10 @@ export function RecordSettingsToRecordOptions(
       checkoutType.type === 'checkoutEveryNms'
         ? checkoutType.value
         : undefined,
+    checkoutEveryNvm:
+      checkoutType.type === 'checkoutEveryNvm'
+        ? checkoutType.value
+        : undefined,
     excludeAttribute: excludeAttribute,
     maskInputOptions: { ...maskInputOptions },
     slimDOMOptions: resolvedSlimDOM,

@@ -32,8 +32,9 @@ import {
   isSerializedStylesheet,
   inDom,
   getShadowHost,
-  closestElementOfNode, nowTimestamp,
-} from "../utils";
+  closestElementOfNode,
+  nowTimestamp,
+} from '../utils';
 import dom from '@appsurify-testmap/rrweb-utils';
 
 type DoubleLinkedListNode = {
@@ -194,6 +195,7 @@ export default class MutationBuffer {
   private stylesheetManager: observerParam['stylesheetManager'];
   private shadowDomManager: observerParam['shadowDomManager'];
   private canvasManager: observerParam['canvasManager'];
+  private visibilityManager: observerParam['visibilityManager'];
   private processedNodeManager: observerParam['processedNodeManager'];
   private unattachedDoc: HTMLDocument;
 
@@ -221,6 +223,7 @@ export default class MutationBuffer {
         'stylesheetManager',
         'shadowDomManager',
         'canvasManager',
+        'visibilityManager',
         'processedNodeManager',
       ] as const
     ).forEach((key) => {
@@ -232,11 +235,13 @@ export default class MutationBuffer {
   public freeze() {
     this.frozen = true;
     this.canvasManager.freeze();
+    this.visibilityManager.freeze();
   }
 
   public unfreeze() {
     this.frozen = false;
     this.canvasManager.unfreeze();
+    this.visibilityManager.unfreeze();
     this.emit();
   }
 
@@ -247,53 +252,23 @@ export default class MutationBuffer {
   public lock() {
     this.locked = true;
     this.canvasManager.lock();
+    this.visibilityManager.lock();
   }
 
   public unlock() {
     this.locked = false;
     this.canvasManager.unlock();
+    this.visibilityManager.unlock();
     this.emit();
   }
 
   public reset() {
     this.shadowDomManager.reset();
     this.canvasManager.reset();
+    this.visibilityManager.reset();
   }
 
   public processMutations = (mutations: mutationRecord[]) => {
-    // mutations.map((m) => {
-    //
-    //   switch (m.type) {
-    //     case 'attributes': {
-    //       const target = m.target as HTMLElement;
-    //       const attributeName = m.attributeName as string;
-    //       const value = target.getAttribute(attributeName) as string;
-    //       const oldValue = m.oldValue as string;
-    //       const shouldIgnore = shouldIgnoreAttribute(this.ignoreAttribute, attributeName);
-    //       const realAttributeExist = target.hasAttribute(attributeName);
-    //       console.debug(`[${Date.now()}] [rrweb processMutations] :call:`, {
-    //         attributeName, value, oldValue, shouldIgnore, realAttributeExist, target
-    //       });
-    //       if (attributeName === 'data-cypress-el' || attributeName === 'name') {
-    //         return ;
-    //       }
-    //
-    //
-    //       break;
-    //     }
-    //     default:
-    //       break;
-    //
-    //   }
-    //
-    //   return m;
-    // }).forEach((mutation) => {
-    //   if (mutation) {
-    //     this.processMutation(mutation);
-    //   }
-    //
-    // });
-
     mutations.forEach(this.processMutation); // adds mutations to the buffer
     this.emit(); // clears buffer if not locked/frozen
   };
@@ -640,7 +615,7 @@ export default class MutationBuffer {
 
         if (isPhantomAttributeMutation) {
           console.debug(
-  `[${nowTimestamp()}] [rrweb:record/mutation] ⛔ phantom attribute mutation ignored`,
+            `[${nowTimestamp()}] [rrweb:record/mutation] ⛔ phantom attribute mutation ignored`,
             {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
               node: dom.describeNode(target),

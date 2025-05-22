@@ -18,14 +18,19 @@ import {
   StyleSheetMirror,
   nowTimestamp,
 } from '../utils';
-import { patch } from '@appsurify-testmap/rrweb-utils';
-import type { observerParam, MutationBufferParam } from '../types';
+import {
+  patch,
+} from '@appsurify-testmap/rrweb-utils';
+import type {
+  observerParam,
+  MutationBufferParam,
+} from '../types';
 import {
   IncrementalSource,
   MouseInteractions,
   PointerTypes,
-  MediaInteractions,
-} from '@appsurify-testmap/rrweb-types';
+  MediaInteractions, type visibilityMutationCallback,
+} from "@appsurify-testmap/rrweb-types";
 import type {
   mutationCallBack,
   mousemoveCallBack,
@@ -1270,6 +1275,7 @@ function mergeHooks(o: observerParam, hooks: hooksParam) {
     styleSheetRuleCb,
     styleDeclarationCb,
     canvasMutationCb,
+    visibilityMutationCb,
     fontCb,
     selectionCb,
     customElementCb,
@@ -1334,6 +1340,12 @@ function mergeHooks(o: observerParam, hooks: hooksParam) {
     }
     canvasMutationCb(...p);
   };
+  o.visibilityMutationCb = (...p: Arguments<visibilityMutationCallback>) => {
+    if (hooks.visibilityMutation) {
+      hooks.visibilityMutation(...p);
+    }
+    visibilityMutationCb(...p);
+  }
   o.fontCb = (...p: Arguments<fontCallback>) => {
     if (hooks.font) {
       hooks.font(...p);
@@ -1399,7 +1411,6 @@ export function initObservers(
   }
   const selectionObserver = initSelectionObserver(o);
   const customElementObserver = initCustomElementObserver(o);
-
   // plugins
   const pluginHandlers: listenerHandler[] = [];
   for (const plugin of o.plugins) {

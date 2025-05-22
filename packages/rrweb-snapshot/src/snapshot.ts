@@ -30,6 +30,8 @@ import {
   extractFileExtension,
   absolutifyURLs,
   markCssSplits,
+  buildXPath,
+  buildSelector, isTextVisible, isElementVisible,
 } from "./utils";
 import dom from '@appsurify-testmap/rrweb-utils';
 
@@ -213,15 +215,6 @@ export function ignoreAttribute(
   _value: unknown,
 ): boolean {
   return (tagName === 'video' || tagName === 'audio') && name === 'autoplay';
-}
-
-export function isIncludeAttribute(
-  name: string,
-  include: string | RegExp
-): boolean {
-  return typeof include === 'string'
-    ? name.includes(include)
-    : include.test(name);
 }
 
 export function isExcludeAttribute(
@@ -1042,6 +1035,21 @@ export function serializeNodeWithId(
   }
 
   const serializedNode = Object.assign(_serializedNode, { id });
+  if (isElement(n) || n.nodeType === Node.TEXT_NODE) {
+    serializedNode.xpath = buildXPath(n);
+    if (isElement(n)) {
+      const selector = buildSelector(n);
+      if (selector) {
+        serializedNode.selector = selector;
+      }
+    }
+    if (n.nodeType === Node.TEXT_NODE) {
+      serializedNode.isVisible = isTextVisible(n as Text);
+    }
+    if (n.nodeType === Node.ELEMENT_NODE) {
+      serializedNode.isVisible = isElementVisible(n as Element);
+    }
+  }
   // add IGNORED_NODE to mirror to track nextSiblings
   mirror.add(n, serializedNode);
 

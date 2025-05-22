@@ -274,6 +274,56 @@ export function describeNode(el: Element): string {
   return `${tag}${id}${classes}`;
 }
 
+export function getElementVisibility(el: Element): {
+  isVisible: boolean;
+  ratio: number;
+} {
+  const win = el.ownerDocument?.defaultView ?? window;
+  const rect = el.getBoundingClientRect();
+
+  const viewportWidth =
+    win.innerWidth || win.document.documentElement.clientWidth || 0;
+  const viewportHeight =
+    win.innerHeight || win.document.documentElement.clientHeight || 0;
+
+  const isRectVisible =
+    rect.width > 0 &&
+    rect.height > 0 &&
+    rect.bottom > 0 &&
+    rect.right > 0 &&
+    rect.top < viewportHeight &&
+    rect.left < viewportWidth;
+
+  const style = win.getComputedStyle?.(el);
+  const isStyleVisible =
+    !!style &&
+    style.display !== 'none' &&
+    style.visibility !== 'hidden' &&
+    (parseFloat(style.opacity) || 0) > 0;
+
+  const isVisible = isStyleVisible && isRectVisible;
+
+  let ratio = 0;
+  if (isVisible) {
+    const xOverlap = Math.max(
+      0,
+      Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0),
+    );
+    const yOverlap = Math.max(
+      0,
+      Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0),
+    );
+    const intersectionArea = xOverlap * yOverlap;
+    const elementArea = rect.width * rect.height;
+    ratio = elementArea > 0 ? intersectionArea / elementArea : 0;
+  }
+
+  return {
+    isVisible,
+    ratio,
+  };
+}
+
 export default {
   childNodes,
   parentNode,
@@ -289,4 +339,5 @@ export default {
   mutationObserver: mutationObserverCtor,
   patch,
   describeNode,
+  getElementVisibility,
 };
