@@ -81,6 +81,8 @@ void (async () => {
 
     if (recorderStatus.status === RecorderStatus.RECORDING) {
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       const stopResponse = (await channel.requestToTab(recorderStatus.activeTabId, ServiceName.StopRecord, {})
       .catch(() => ({
         message: MessageName.RecordStopped,

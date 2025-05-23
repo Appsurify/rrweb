@@ -5,7 +5,8 @@ import path from 'path';
 import fs from 'fs';
 
 
-import UICoverageReport from '../dist/rrweb-ui-report.js';
+import UICoverageReportV1 from '../dist/rrweb-ui-report.js';
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const libPath = pathToFileURL(path.resolve(__dirname, '../dist/rrweb-ui-report.js')).href;
@@ -21,7 +22,7 @@ if (!inputPath) {
 // Read, parse, process
 const jsonFile = fs.readFileSync(inputPath, 'utf-8');
 const json = JSON.parse(jsonFile);
-const uiReport = new UICoverageReport(json.events);
+const uiReport = new UICoverageReportV1(json.events);
 const report = uiReport.report;
 
 fs.writeFileSync(outputPath, JSON.stringify(report, null, 2));
