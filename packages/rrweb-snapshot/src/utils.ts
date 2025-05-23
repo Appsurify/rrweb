@@ -967,26 +967,8 @@ export function isElementInteractive(n: Node): boolean {
       (element instanceof HTMLAnchorElement && element.hasAttribute('href')) ||
       (element instanceof HTMLButtonElement && !element.disabled);
 
-    // console.info("Element: ", element, " is interactive: ", result, " hasTabIndex: ", hasTabIndex, " hasRoleInteractive: ", hasRoleInteractive, " hasEventListeners: ", hasEventListeners(element), " anchorElement: ", element instanceof HTMLAnchorElement, " buttonElement: ", element instanceof HTMLButtonElement);
     return result;
   }
-
-  // Для текстовых узлов и прочих оставляем существующую логику...
-  // if (n.nodeType === Node.TEXT_NODE) {
-  //   const textNode = n as Text;
-  //   const parentElement = textNode.parentElement;
-  //
-  //   if (parentElement !== null && interactiveTags.includes(parentElement.tagName.toLowerCase())) {
-  //     return true;
-  //   }
-  //
-  //   return (
-  //     parentElement !== null &&
-  //     isElementVisible(parentElement) &&
-  //     textNode.textContent?.trim().length !== 0 &&
-  //     isElementInteractive(parentElement)
-  //   );
-  // }
 
   return false;
 }
