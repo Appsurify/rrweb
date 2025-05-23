@@ -15,6 +15,7 @@
       "@appsurify-testmap/rrweb-types",
       "@appsurify-testmap/rrweb-packer",
       "@appsurify-testmap/rrweb-utils",
+      "@appsurify-testmap/rrweb-ui-report",
       "@appsurify-testmap/rrweb-web-extension",
       "@appsurify-testmap/rrvideo",
       "@appsurify-testmap/rrweb-plugin-console-record",
