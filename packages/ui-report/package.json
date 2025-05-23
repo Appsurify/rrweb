@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-ui-report",
-  "version": "2.1.1-alpha.2",
+  "version": "2.1.1-alpha.5",
   "publishConfig": {
     "access": "public"
   },
@@ -50,7 +50,7 @@
     "package.json"
   ],
   "dependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.1.1-alpha.2"
+    "@appsurify-testmap/rrweb-types": "^2.1.1-alpha.5"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
