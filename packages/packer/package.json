@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-packer",
-  "version": "2.1.1-alpha.1",
+  "version": "2.1.1-alpha.2",
   "publishConfig": {
     "access": "public"
   },
@@ -77,7 +77,7 @@
     "vitest": "^1.4.0"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb-types": "^2.1.1-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^2.1.1-alpha.2",
     "fflate": "^0.4.4"
   },
   "browserslist": [
