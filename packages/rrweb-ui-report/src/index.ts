@@ -19,8 +19,7 @@ import {
   extractActionFromSnapshot,
 } from './utils'
 
-
-export function generateReport(
+function generateReport(
   {
     events,
     metadata
@@ -173,3 +172,4 @@ function createSnapshot(events: eventWithTime[], snapshotIndex: number): UICover
 }
 
 
+export default generateReport;

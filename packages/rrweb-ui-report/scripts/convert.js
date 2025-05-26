@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 
 
-import {generateReport} from '../dist/rrweb-ui-report.js';
+import generateReport from '../dist/rrweb-ui-report.js';
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

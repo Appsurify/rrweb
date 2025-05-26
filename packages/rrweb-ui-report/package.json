@@ -6,7 +6,7 @@
   },
   "keywords": [
     "rrweb",
-    "@rrweb/ui-report"
+    "@appsurify-testmap/rrweb-ui-report"
   ],
   "scripts": {
     "dev": "vite build --watch",
@@ -28,23 +28,19 @@
     "url": "git+https://github.com/rrweb-io/rrweb.git"
   },
   "license": "MIT",
-  "type": "module",
   "main": "./dist/rrweb-ui-report.umd.cjs",
   "module": "./dist/rrweb-ui-report.js",
+  "browser": "./dist/rrweb-ui-report.umd.cjs",
   "unpkg": "./dist/rrweb-ui-report.umd.cjs",
-  "typings": "dist/index.d.ts",
+  "typings": "./dist/rrweb-ui-report.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/rrweb-ui-report.js"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/rrweb-ui-report.umd.cjs"
-      }
+      "require": "./dist/rrweb-ui-report.umd.cjs",
+      "import": "./dist/rrweb-ui-report.js",
+      "types": "./dist/rrweb-ui-report.d.ts"
     }
   },
+  "type": "module",
   "files": [
     "dist",
     "package.json"

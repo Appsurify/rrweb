@@ -42,12 +42,13 @@ declare module '$env/static/private' {
 	export const npm_package_devDependencies_vite: string;
 	export const npm_package_dependencies_devalue: string;
 	export const HOMEBREW_REPOSITORY: string;
-	export const TMPDIR: string;
 	export const CPPFLAGS: string;
+	export const TMPDIR: string;
 	export const npm_package_scripts_lint: string;
 	export const npm_config_init_license: string;
 	export const npm_package_dependencies_set_cookie_parser: string;
 	export const npm_package_dependencies_cookie: string;
+	export const TERM_SESSION_ID: string;
 	export const npm_package_devDependencies_svelte_preprocess: string;
 	export const npm_config_registry: string;
 	export const LC_ALL: string;
@@ -57,6 +58,7 @@ declare module '$env/static/private' {
 	export const USER: string;
 	export const npm_package_exports___node_import: string;
 	export const npm_package_description: string;
+	export const PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: string;
 	export const npm_package_exports___package_json: string;
 	export const npm_package_dependencies_esm_env: string;
 	export const npm_package_license: string;
@@ -74,6 +76,7 @@ declare module '$env/static/private' {
 	export const PATH: string;
 	export const npm_config_argv: string;
 	export const npm_package_scripts_postinstall: string;
+	export const TERMINAL_EMULATOR: string;
 	export const npm_package_devDependencies_rollup: string;
 	export const npm_package_dependencies_magic_string: string;
 	export const _: string;
@@ -119,6 +122,7 @@ declare module '$env/static/private' {
 	export const PREFIX: string;
 	export const npm_lifecycle_script: string;
 	export const npm_package_peerDependencies_svelte: string;
+	export const LC_CTYPE: string;
 	export const npm_config_ignore_path: string;
 	export const npm_package_devDependencies__types_set_cookie_parser: string;
 	export const npm_package_files_3: string;
@@ -193,12 +197,13 @@ declare module '$env/dynamic/private' {
 		npm_package_devDependencies_vite: string;
 		npm_package_dependencies_devalue: string;
 		HOMEBREW_REPOSITORY: string;
-		TMPDIR: string;
 		CPPFLAGS: string;
+		TMPDIR: string;
 		npm_package_scripts_lint: string;
 		npm_config_init_license: string;
 		npm_package_dependencies_set_cookie_parser: string;
 		npm_package_dependencies_cookie: string;
+		TERM_SESSION_ID: string;
 		npm_package_devDependencies_svelte_preprocess: string;
 		npm_config_registry: string;
 		LC_ALL: string;
@@ -208,6 +213,7 @@ declare module '$env/dynamic/private' {
 		USER: string;
 		npm_package_exports___node_import: string;
 		npm_package_description: string;
+		PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: string;
 		npm_package_exports___package_json: string;
 		npm_package_dependencies_esm_env: string;
 		npm_package_license: string;
@@ -225,6 +231,7 @@ declare module '$env/dynamic/private' {
 		PATH: string;
 		npm_config_argv: string;
 		npm_package_scripts_postinstall: string;
+		TERMINAL_EMULATOR: string;
 		npm_package_devDependencies_rollup: string;
 		npm_package_dependencies_magic_string: string;
 		_: string;
@@ -270,6 +277,7 @@ declare module '$env/dynamic/private' {
 		PREFIX: string;
 		npm_lifecycle_script: string;
 		npm_package_peerDependencies_svelte: string;
+		LC_CTYPE: string;
 		npm_config_ignore_path: string;
 		npm_package_devDependencies__types_set_cookie_parser: string;
 		npm_package_files_3: string;

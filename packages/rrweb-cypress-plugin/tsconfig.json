@@ -1,7 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "include": [
-    "src",
+    "src"
+  ],
+  "exclude": [
+    "vite.config.ts",
+    "dist",
+    "node_modules",
+    "./src/**/__tests__/*"
   ],
   "compilerOptions": {
     "rootDir": "src",
@@ -12,10 +18,16 @@
       "path": "../rrweb"
     },
     {
+      "path": "../plugins/rrweb-plugin-sequential-id-record"
+    },
+    {
+      "path": "../rrweb-snapshot"
+    },
+    {
       "path": "../types"
     },
     {
-      "path": "../utils"
+      "path": "../rrweb-ui-report"
     }
   ]
 }

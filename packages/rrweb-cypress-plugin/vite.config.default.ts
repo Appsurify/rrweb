@@ -139,9 +139,9 @@ export default function (
       minify: false,
 
       sourcemap: true,
-      // rollupOptions: {
-      //   external: ['fs', 'path', 'os'],
-      // },
+      rollupOptions: {
+        external: ['fs', 'path', 'os'],
+      },
       // rollupOptions: {
       //   output: {
       //     manualChunks: {},
@@ -166,7 +166,7 @@ export default function (
       }),
       minifyAndUMDPlugin({ name, outDir }),
       visualizer({
-        filename: resolve(__dirname, name + '-bundle-analysis.html'), // Path for the HTML report
+        filename: resolve(__dirname, '..', '..', name + '-bundle-analysis.html'), // Path for the HTML report
         open: false, // don't Automatically open the report in the browser
       }),
       {
