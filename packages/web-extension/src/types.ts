@@ -139,11 +139,14 @@ export type SessionMetadata = {
   team?: Team;
 };
 
+export type BrowserInfo = Record<string, string | number | boolean | undefined | null>;
+
 export type Session = {
   id: string;
   metadata: SessionMetadata;
   name: string;
   tags: string[];
+  browser: BrowserInfo;
   createTimestamp: number;
   modifyTimestamp: number;
   recorderVersion: string;

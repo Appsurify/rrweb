@@ -1,11 +1,98 @@
 import type {
-  eventWithTime,
-  serializedNodeWithId,
-  IncrementalSource
+    eventWithTime,
+    serializedNodeWithId,
+    elementNode,
+    incrementalData,
+    metaEvent,
+    fullSnapshotEvent,
 } from '@appsurify-testmap/rrweb-types';
 
+import {
+    IncrementalSource,
+    MediaInteractions,
+    MouseInteractions,
+    NodeType,
+    EventType,
+} from '@appsurify-testmap/rrweb-types';
+
+export type TestInfoInvocationDetails = {
+    absoluteFile: string;
+    column?: number;
+    fileUrl?: string;
+    function?: string;
+    line?: number;
+    originalFile?: string;
+    relativeFile: string;
+};
+
+export type TestSuiteInfo = {
+    id: string;
+    file?: string | null;
+    invocationDetails: TestInfoInvocationDetails;
+    order?: number;
+    pending: boolean
+    root: boolean;
+    title: string;
+    type: string;
+}
+
+export type TestInfo = {
+    suite?: TestSuiteInfo;
+    duration?: number;
+    file?: string | null;
+    hasAttemptPassed?: boolean;
+    id?: string;
+    invocationDetails?: TestInfoInvocationDetails;
+    order?: number;
+    pending: boolean;
+    state?: string;
+    sync: boolean;
+    timedOut: unknown;
+    title: string;
+    titlePath: string[];
+    fullTitle: string;
+    type: string;
+}
+
+export type SpecInfo = {
+    name: string;
+    relative: string;
+    absolute: string;
+    specFilter?: string;
+    specType?: string;
+    baseName?: string;
+    fileExtension?: string;
+    fileName?: string;
+    id?: string;
+}
+
+export type BrowserInfo = {
+    name: string;
+    version: string;
+    displayName?: string;
+    family?: string;
+    isHeaded?: boolean;
+    isHeadless?: boolean;
+    majorVersion?: string | number;
+    channel?: string;
+    path?: string;
+}
+
+export type UICoverageMetadata = {
+    source: 'extension' | 'test' | 'manual' | 'other';
+    spec?: SpecInfo;
+    test?: TestInfo;
+    suite?: TestSuiteInfo;
+    browser?: BrowserInfo;
+};
+
+export type GenerateReportOptions = {
+  events: eventWithTime[];
+  metadata?: Partial<UICoverageMetadata>; // можно частично
+};
 
 export type UICoverageReport = {
+    metadata?: Partial<UICoverageMetadata>;
     pages: UICoveragePage[];
 };
 
@@ -58,3 +145,20 @@ export type UICoverageAction = {
 };
 
 export type NodeLookup = Map<number, serializedNodeWithId>;
+
+export type {
+    eventWithTime,
+    serializedNodeWithId,
+    elementNode,
+    incrementalData,
+    metaEvent,
+    fullSnapshotEvent
+}
+
+export {
+    IncrementalSource,
+    MediaInteractions,
+    MouseInteractions,
+    NodeType,
+    EventType,
+}

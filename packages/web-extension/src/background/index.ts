@@ -16,11 +16,10 @@ import type {
   RecordStoppedMessage,
   Session,
 } from '~/types';
-import { isFirefox } from '~/utils';
+import { isFirefox, getBrowserInfo } from '~/utils';
 import { addSession, updateSession } from '~/utils/storage';
 import { RecordSettingsToRecordOptions } from '~/utils/settingsMapper';
 import { apiClient } from '~/utils/apiClient';
-
 import { settingsManager } from '~/utils/settingsManager';
 
 void (async () => {
@@ -277,11 +276,13 @@ void (async () => {
 })();
 
 function generateSession(title: string, metadata: SessionMetadata) {
+  const browserInfo = getBrowserInfo();
   const newSession: Session = {
     id: nanoid(),
     name: title,
     metadata, // there might be empty fields
     tags: [],
+    browser: browserInfo,
     createTimestamp: Date.now(),
     modifyTimestamp: Date.now(),
     recorderVersion: Browser.runtime.getManifest().version_name || 'unknown',
