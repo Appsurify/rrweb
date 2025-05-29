@@ -41,7 +41,7 @@ import {
   registerErrorHandler,
   unregisterErrorHandler,
 } from './error-handler';
-import dom from '@appsurify-testmap/rrweb-utils';
+import dom from "@appsurify-testmap/rrweb-utils";
 
 
 let wrappedEmit!: (e: eventWithoutTime, isCheckout?: boolean) => void;
@@ -53,6 +53,89 @@ let recording = false;
 
 const customEventQueue: eventWithoutTime[] = [];
 let flushCustomEventQueue!: () => void;
+
+function waitForDOMStabilization(win: Window): Promise<void> {
+  const maxWaitMs = 5000;
+
+  return new Promise((resolve) => {
+    const captureAfterPaint = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          resolve();
+        });
+      });
+    };
+
+    const safeResolve = (() => {
+      let called = false;
+      return () => {
+        if (!called) {
+          called = true;
+          captureAfterPaint();
+        }
+      };
+    })();
+
+    if (['interactive', 'complete'].includes(win.document.readyState)) {
+      safeResolve();
+    } else {
+      win.addEventListener('DOMContentLoaded', safeResolve, { once: true });
+      win.addEventListener('load', safeResolve, { once: true });
+      setTimeout(() => {
+        safeResolve();
+      }, maxWaitMs);
+    }
+  });
+}
+
+// function waitForDOMStabilization(win: Window): Promise<void> {
+//   const maxWaitMs = 5000;
+//   const stableDuration = 150;
+//
+//   return new Promise((resolve) => {
+//     let lastMutationTime = performance.now();
+//     let timeoutId: number;
+//
+//     const checkStability = () => {
+//       const elapsed = performance.now() - lastMutationTime;
+//       if (elapsed >= stableDuration) {
+//         cleanup();
+//         resolve();
+//       } else {
+//         timeoutId = win.setTimeout(checkStability, stableDuration - elapsed);
+//       }
+//     };
+//
+//     const cleanup = () => {
+//       observer.disconnect();
+//       clearTimeout(timeoutId);
+//     };
+//
+//     // ✅ Получаем чистый конструктор MutationObserver
+//     const ObserverCtor = mutationObserverCtor() as typeof MutationObserver;
+//     const observer = new ObserverCtor(() => {
+//       lastMutationTime = performance.now();
+//       clearTimeout(timeoutId);
+//       timeoutId = win.setTimeout(checkStability, stableDuration);
+//     });
+//
+//     observer.observe(win.document, {
+//       attributes: true,
+//       childList: true,
+//       characterData: true,
+//       subtree: true,
+//     });
+//
+//     // На случай, если мутаций не будет — запускаем таймер проверки
+//     timeoutId = win.setTimeout(checkStability, stableDuration);
+//
+//     // Safety fallback
+//     win.setTimeout(() => {
+//       cleanup();
+//       resolve();
+//     }, maxWaitMs);
+//   });
+// }
 
 
 // Multiple tools (i.e. MooTools, Prototype.js) override Array.from and drop support for the 2nd parameter
@@ -70,6 +153,7 @@ try {
 }
 
 const mirror = createMirror();
+
 function record<T = eventWithTime>(
   options: recordOptions<T> = {},
 ): listenerHandler | undefined {
@@ -643,6 +727,8 @@ function record<T = eventWithTime>(
       }
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const init = () => {
       if (flushCustomEvent === 'before') {
         flushCustomEventQueue();
@@ -655,13 +741,39 @@ function record<T = eventWithTime>(
       if (flushCustomEvent === 'after') {
         flushCustomEventQueue();
       }
-
     };
+
+    const runInit = async () => {
+      if (flushCustomEvent === 'before') {
+        flushCustomEventQueue();
+      }
+
+      if (recordAfter === 'DOMContentStabilized') {
+        console.log(`[rrweb] 🟢 Waiting for DOM stabilization...`);
+        await waitForDOMStabilization(window);
+        console.log(`[rrweb] ✅ DOM stabilized, starting recording`);
+      }
+
+      takeFullSnapshot();
+      handlers.push(observe(document));
+      recording = true;
+
+      if (flushCustomEvent === 'after') {
+        flushCustomEventQueue();
+      }
+    };
+
     if (
       document.readyState === 'interactive' ||
       document.readyState === 'complete'
     ) {
-      init();
+      // init();
+      // void runInit();
+      if (recordAfter === 'DOMContentStabilized') {
+        void runInit(); // ждет paint
+      } else {
+        init(); // немедленно
+      }
     } else {
       handlers.push(
         on('DOMContentLoaded', () => {
@@ -669,7 +781,10 @@ function record<T = eventWithTime>(
             type: EventType.DomContentLoaded,
             data: {},
           });
-          if (recordAfter === 'DOMContentLoaded') init();
+          // if (recordAfter === 'DOMContentLoaded') init();
+          if (recordAfter === 'DOMContentLoaded' || recordAfter === 'DOMContentStabilized') {
+            void runInit();
+          }
         }),
       );
       handlers.push(
@@ -680,7 +795,8 @@ function record<T = eventWithTime>(
               type: EventType.Load,
               data: {},
             });
-            if (recordAfter === 'load') init();
+            // if (recordAfter === 'load') init();
+            if (recordAfter === 'load') void runInit();
           },
           window,
         ),
@@ -698,6 +814,8 @@ function record<T = eventWithTime>(
     console.warn(error);
   }
 }
+
+record.isRecording = () => recording;
 
 record.flushCustomEventQueue = () => {
   console.warn(`[rrweb] CustomEvent flushing: ${customEventQueue.length} events`);

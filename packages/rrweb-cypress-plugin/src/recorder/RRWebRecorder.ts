@@ -1,10 +1,10 @@
 import type { record } from '@appsurify-testmap/rrweb';
 import type { Mirror } from '@appsurify-testmap/rrweb-snapshot';
-
 import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-sequential-id-record';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-import rrSrc from './releases/rrweb-record.umd.cjs.src?raw';
+// @ts-ignore
+import rrSrc from './releases/rrweb-record.umd.cjs.src';
 
 import type { RecorderContext, Recorder, RecorderEvent } from './types';
 
@@ -55,6 +55,7 @@ export class RRWebRecorder implements Recorder {
 
     const script = win.document.createElement('script');
     script.type = 'text/javascript';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     script.innerHTML = rrSrc;
     win.document.head.appendChild(script);
 
@@ -104,13 +105,13 @@ export class RRWebRecorder implements Recorder {
           TouchStart: false,
           TouchEnd: false,
         },
-        scroll: 1000,
-        media: 1000,
+        scroll: 100,
+        media: 100,
         input: 'last',
         canvas: 'all',
         visibility: {
           mode: 'debounce',
-          debounce: 100,
+          debounce: 50,
           threshold: 0.5,
           sensitivity: 0.05,
           rafThrottle: 50
@@ -121,6 +122,7 @@ export class RRWebRecorder implements Recorder {
       collectFonts: true,
       inlineImages: true,
       flushCustomEvent: 'after',
+      // recordAfter: 'DOMContentStabilized',
       recordAfter: 'DOMContentLoaded',
     });
 

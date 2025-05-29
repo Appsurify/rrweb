@@ -111,10 +111,12 @@ function getUntaintedPrototype$1(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win) return defaultObj.prototype;
+    if (!win)
+      return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject) return defaultPrototype;
+    if (!untaintedObject)
+      return defaultPrototype;
     return untaintedBasePrototype$1[key] = untaintedObject;
   } catch (e) {
     return defaultPrototype;
@@ -133,7 +135,8 @@ function getUntaintedAccessor$1(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor) return instance[accessor];
+  if (!untaintedAccessor)
+    return instance[accessor];
   untaintedAccessorCache$1[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -146,7 +149,8 @@ function getUntaintedMethod$1(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype$1(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function") return instance[method];
+  if (typeof untaintedMethod !== "function")
+    return instance[method];
   untaintedMethodCache$1[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -169,14 +173,16 @@ function getRootNode$1(n2) {
   return getUntaintedMethod$1("Node", n2, "getRootNode")();
 }
 function host$1(n2) {
-  if (!n2 || !("host" in n2)) return null;
+  if (!n2 || !("host" in n2))
+    return null;
   return getUntaintedAccessor$1("ShadowRoot", n2, "host");
 }
 function styleSheets$1(n2) {
   return n2.styleSheets;
 }
 function shadowRoot$1(n2) {
-  if (!n2 || !("shadowRoot" in n2)) return null;
+  if (!n2 || !("shadowRoot" in n2))
+    return null;
   return getUntaintedAccessor$1("Element", n2, "shadowRoot");
 }
 function querySelector$1(n2, selectors) {
@@ -294,7 +300,8 @@ function fixBrowserCompatibilityIssuesInCSS(cssText) {
 }
 function escapeImportStatement(rule2) {
   const { cssText } = rule2;
-  if (cssText.split('"').length < 3) return cssText;
+  if (cssText.split('"').length < 3)
+    return cssText;
   const statement = ["@import", `url(${JSON.stringify(rule2.href)})`];
   if (rule2.layerName === "") {
     statement.push(`layer`);
@@ -371,7 +378,8 @@ class Mirror {
   }
   getId(n2) {
     var _a2;
-    if (!n2) return -1;
+    if (!n2)
+      return -1;
     const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
     return id != null ? id : -1;
   }
@@ -410,7 +418,8 @@ class Mirror {
     const oldNode = this.getNode(id);
     if (oldNode) {
       const meta = this.nodeMetaMap.get(oldNode);
-      if (meta) this.nodeMetaMap.set(n2, meta);
+      if (meta)
+        this.nodeMetaMap.set(n2, meta);
     }
     this.idNodeMap.set(id, n2);
   }
@@ -447,7 +456,8 @@ function toLowerCase(str) {
 const ORIGINAL_ATTRIBUTE_NAME = "__rrweb_original__";
 function is2DCanvasBlank(canvas) {
   const ctx = canvas.getContext("2d");
-  if (!ctx) return true;
+  if (!ctx)
+    return true;
   const chunkSize = 50;
   for (let x2 = 0; x2 < canvas.width; x2 += chunkSize) {
     for (let y = 0; y < canvas.height; y += chunkSize) {
@@ -463,7 +473,8 @@ function is2DCanvasBlank(canvas) {
           Math.min(chunkSize, canvas.height - y)
         ).data.buffer
       );
-      if (pixelBuffer.some((pixel) => pixel !== 0)) return false;
+      if (pixelBuffer.some((pixel) => pixel !== 0))
+        return false;
     }
   }
   return true;
@@ -649,7 +660,8 @@ function isSelectorUnique(selector, target) {
   }
 }
 function buildSelector(node2) {
-  if (!(node2 instanceof Element)) return null;
+  if (!(node2 instanceof Element))
+    return null;
   if (node2.id) {
     return `#${CSS.escape(node2.id)}`;
   }
@@ -697,11 +709,15 @@ function buildXPath(node2) {
       if (element.id) {
         return `//*[@id="${CSS.escape(element.id)}"]`;
       }
-      if (element.tagName.toLowerCase() === "html") return "/html";
-      if (element === document.head) return "/html/head";
-      if (element === document.body) return "/html/body";
+      if (element.tagName.toLowerCase() === "html")
+        return "/html";
+      if (element === document.head)
+        return "/html/head";
+      if (element === document.body)
+        return "/html/body";
       const parent = element.parentNode;
-      if (!parent) return "";
+      if (!parent)
+        return "";
       const tag = element.tagName.toLowerCase();
       const siblings = Array.from(parent.children).filter(
         (el) => el.tagName.toLowerCase() === tag
@@ -713,7 +729,8 @@ function buildXPath(node2) {
     case Node.CDATA_SECTION_NODE:
     case Node.COMMENT_NODE: {
       const parent = node2.parentNode;
-      if (!parent) return "";
+      if (!parent)
+        return "";
       const typeMap = {
         [Node.TEXT_NODE]: "text()",
         [Node.CDATA_SECTION_NODE]: "text()",
@@ -1004,9 +1021,11 @@ function _isBlockedElement(element, blockClass, blockSelector) {
   return false;
 }
 function classMatchesRegex(node2, regex, checkAncestors) {
-  if (!node2) return false;
+  if (!node2)
+    return false;
   if (node2.nodeType !== node2.ELEMENT_NODE) {
-    if (!checkAncestors) return false;
+    if (!checkAncestors)
+      return false;
     return classMatchesRegex(index$1.parentNode(node2), regex, checkAncestors);
   }
   for (let eIndex = node2.classList.length; eIndex--; ) {
@@ -1015,7 +1034,8 @@ function classMatchesRegex(node2, regex, checkAncestors) {
       return true;
     }
   }
-  if (!checkAncestors) return false;
+  if (!checkAncestors)
+    return false;
   return classMatchesRegex(index$1.parentNode(node2), regex, checkAncestors);
 }
 function needMaskingText(node2, maskTextClass, maskTextSelector, checkAncestors) {
@@ -1033,18 +1053,23 @@ function needMaskingText(node2, maskTextClass, maskTextSelector, checkAncestors)
   try {
     if (typeof maskTextClass === "string") {
       if (checkAncestors) {
-        if (el.closest(`.${maskTextClass}`)) return true;
+        if (el.closest(`.${maskTextClass}`))
+          return true;
       } else {
-        if (el.classList.contains(maskTextClass)) return true;
+        if (el.classList.contains(maskTextClass))
+          return true;
       }
     } else {
-      if (classMatchesRegex(el, maskTextClass, checkAncestors)) return true;
+      if (classMatchesRegex(el, maskTextClass, checkAncestors))
+        return true;
     }
     if (maskTextSelector) {
       if (checkAncestors) {
-        if (el.closest(maskTextSelector)) return true;
+        if (el.closest(maskTextSelector))
+          return true;
       } else {
-        if (el.matches(maskTextSelector)) return true;
+        if (el.matches(maskTextSelector))
+          return true;
       }
     }
   } catch (e2) {
@@ -1092,7 +1117,8 @@ function onceStylesheetLoaded(link, listener, styleSheetLoadTimeout) {
   } catch (error) {
     return;
   }
-  if (styleSheetLoaded) return;
+  if (styleSheetLoaded)
+    return;
   const timer = setTimeout(() => {
     if (!fired) {
       listener();
@@ -1189,7 +1215,8 @@ function serializeNode(n2, options) {
   }
 }
 function getRootId(doc, mirror2) {
-  if (!mirror2.hasNode(doc)) return void 0;
+  if (!mirror2.hasNode(doc))
+    return void 0;
   const docId = mirror2.getId(doc);
   return docId === 1 ? void 0 : docId;
 }
@@ -1350,7 +1377,8 @@ function serializeElementNode(n2, options) {
           image.crossOrigin = "anonymous";
           if (image.complete && image.naturalWidth !== 0)
             recordInlineImage();
-          else image.addEventListener("load", recordInlineImage);
+          else
+            image.addEventListener("load", recordInlineImage);
           return;
         } else {
           console.warn(
@@ -1362,8 +1390,10 @@ function serializeElementNode(n2, options) {
         priorCrossOrigin ? attributes.crossOrigin = priorCrossOrigin : image.removeAttribute("crossorigin");
       }
     };
-    if (image.complete && image.naturalWidth !== 0) recordInlineImage();
-    else image.addEventListener("load", recordInlineImage);
+    if (image.complete && image.naturalWidth !== 0)
+      recordInlineImage();
+    else
+      image.addEventListener("load", recordInlineImage);
   }
   if (tagName === "audio" || tagName === "video") {
     const mediaAttributes = attributes;
@@ -1398,7 +1428,8 @@ function serializeElementNode(n2, options) {
   }
   let isCustomElement;
   try {
-    if (customElements.get(tagName)) isCustomElement = true;
+    if (customElements.get(tagName))
+      isCustomElement = true;
   } catch (e2) {
   }
   return {
@@ -1582,7 +1613,8 @@ function serializeNodeWithId(n2, options) {
       keepIframeSrcFn,
       cssCaptured: false
     };
-    if (serializedNode.type === NodeType$3.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0) ;
+    if (serializedNode.type === NodeType$3.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0)
+      ;
     else {
       if (serializedNode.type === NodeType$3.Element && serializedNode.attributes._cssText !== void 0 && typeof serializedNode.attributes._cssText === "string") {
         bypassOptions.cssCaptured = true;
@@ -1787,7 +1819,8 @@ function getDefaultExportFromCjs$1(x2) {
   return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
 function getAugmentedNamespace$1(n2) {
-  if (n2.__esModule) return n2;
+  if (n2.__esModule)
+    return n2;
   var f2 = n2.default;
   if (typeof f2 == "function") {
     var a2 = function a22() {
@@ -1797,7 +1830,8 @@ function getAugmentedNamespace$1(n2) {
       return f2.apply(this, arguments);
     };
     a2.prototype = f2.prototype;
-  } else a2 = {};
+  } else
+    a2 = {};
   Object.defineProperty(a2, "__esModule", { value: true });
   Object.keys(n2).forEach(function(k) {
     var d = Object.getOwnPropertyDescriptor(n2, k);
@@ -1865,11 +1899,14 @@ let CssSyntaxError$3$1 = class CssSyntaxError extends Error {
     this.message += ": " + this.reason;
   }
   showSourceCode(color) {
-    if (!this.source) return "";
+    if (!this.source)
+      return "";
     let css = this.source;
-    if (color == null) color = pico$1.isColorSupported;
+    if (color == null)
+      color = pico$1.isColorSupported;
     if (terminalHighlight$1$1) {
-      if (color) css = terminalHighlight$1$1(css);
+      if (color)
+        css = terminalHighlight$1$1(css);
     }
     let lines = css.split(/\r?\n/);
     let start = Math.max(this.line - 3, 0);
@@ -1962,7 +1999,8 @@ let Stringifier$2$1 = class Stringifier {
     if (value.includes("\n")) {
       let indent = this.raw(node2, null, "indent");
       if (indent.length) {
-        for (let step = 0; step < depth; step++) value += indent;
+        for (let step = 0; step < depth; step++)
+          value += indent;
       }
     }
     return value;
@@ -1977,20 +2015,23 @@ let Stringifier$2$1 = class Stringifier {
     } else {
       after = this.raw(node2, "after", "emptyBody");
     }
-    if (after) this.builder(after);
+    if (after)
+      this.builder(after);
     this.builder("}", node2, "end");
   }
   body(node2) {
     let last = node2.nodes.length - 1;
     while (last > 0) {
-      if (node2.nodes[last].type !== "comment") break;
+      if (node2.nodes[last].type !== "comment")
+        break;
       last -= 1;
     }
     let semicolon = this.raw(node2, "semicolon");
     for (let i2 = 0; i2 < node2.nodes.length; i2++) {
       let child = node2.nodes[i2];
       let before = this.raw(child, "before");
-      if (before) this.builder(before);
+      if (before)
+        this.builder(before);
       this.stringify(child, last !== i2 || semicolon);
     }
   }
@@ -2005,7 +2046,8 @@ let Stringifier$2$1 = class Stringifier {
     if (node2.important) {
       string += node2.raws.important || " !important";
     }
-    if (semicolon) string += ";";
+    if (semicolon)
+      string += ";";
     this.builder(string, node2);
   }
   document(node2) {
@@ -2013,10 +2055,12 @@ let Stringifier$2$1 = class Stringifier {
   }
   raw(node2, own, detect) {
     let value;
-    if (!detect) detect = own;
+    if (!detect)
+      detect = own;
     if (own) {
       value = node2.raws[own];
-      if (typeof value !== "undefined") return value;
+      if (typeof value !== "undefined")
+        return value;
     }
     let parent = node2.parent;
     if (detect === "before") {
@@ -2027,9 +2071,11 @@ let Stringifier$2$1 = class Stringifier {
         return "";
       }
     }
-    if (!parent) return DEFAULT_RAW$1[detect];
+    if (!parent)
+      return DEFAULT_RAW$1[detect];
     let root2 = node2.root();
-    if (!root2.rawCache) root2.rawCache = {};
+    if (!root2.rawCache)
+      root2.rawCache = {};
     if (typeof root2.rawCache[detect] !== "undefined") {
       return root2.rawCache[detect];
     }
@@ -2042,11 +2088,13 @@ let Stringifier$2$1 = class Stringifier {
       } else {
         root2.walk((i2) => {
           value = i2.raws[own];
-          if (typeof value !== "undefined") return false;
+          if (typeof value !== "undefined")
+            return false;
         });
       }
     }
-    if (typeof value === "undefined") value = DEFAULT_RAW$1[detect];
+    if (typeof value === "undefined")
+      value = DEFAULT_RAW$1[detect];
     root2.rawCache[detect] = value;
     return value;
   }
@@ -2063,7 +2111,8 @@ let Stringifier$2$1 = class Stringifier {
         }
       }
     });
-    if (value) value = value.replace(/\S/g, "");
+    if (value)
+      value = value.replace(/\S/g, "");
     return value;
   }
   rawBeforeComment(root2, node2) {
@@ -2107,7 +2156,8 @@ let Stringifier$2$1 = class Stringifier {
     root2.walk((i2) => {
       if (i2.type !== "decl") {
         value = i2.raws.between;
-        if (typeof value !== "undefined") return false;
+        if (typeof value !== "undefined")
+          return false;
       }
     });
     return value;
@@ -2125,7 +2175,8 @@ let Stringifier$2$1 = class Stringifier {
         }
       }
     });
-    if (value) value = value.replace(/\S/g, "");
+    if (value)
+      value = value.replace(/\S/g, "");
     return value;
   }
   rawColon(root2) {
@@ -2143,13 +2194,15 @@ let Stringifier$2$1 = class Stringifier {
     root2.walk((i2) => {
       if (i2.nodes && i2.nodes.length === 0) {
         value = i2.raws.after;
-        if (typeof value !== "undefined") return false;
+        if (typeof value !== "undefined")
+          return false;
       }
     });
     return value;
   }
   rawIndent(root2) {
-    if (root2.raws.indent) return root2.raws.indent;
+    if (root2.raws.indent)
+      return root2.raws.indent;
     let value;
     root2.walk((i2) => {
       let p = i2.parent;
@@ -2169,7 +2222,8 @@ let Stringifier$2$1 = class Stringifier {
     root2.walk((i2) => {
       if (i2.nodes && i2.nodes.length && i2.last.type === "decl") {
         value = i2.raws.semicolon;
-        if (typeof value !== "undefined") return false;
+        if (typeof value !== "undefined")
+          return false;
       }
     });
     return value;
@@ -2184,7 +2238,8 @@ let Stringifier$2$1 = class Stringifier {
   }
   root(node2) {
     this.body(node2);
-    if (node2.raws.after) this.builder(node2.raws.after);
+    if (node2.raws.after)
+      this.builder(node2.raws.after);
   }
   rule(node2) {
     this.block(node2, this.rawValue(node2, "selector"));
@@ -2220,17 +2275,20 @@ function cloneNode$1(obj, parent) {
     if (!Object.prototype.hasOwnProperty.call(obj, i2)) {
       continue;
     }
-    if (i2 === "proxyCache") continue;
+    if (i2 === "proxyCache")
+      continue;
     let value = obj[i2];
     let type = typeof value;
     if (i2 === "parent" && type === "object") {
-      if (parent) cloned[i2] = parent;
+      if (parent)
+        cloned[i2] = parent;
     } else if (i2 === "source") {
       cloned[i2] = value;
     } else if (Array.isArray(value)) {
       cloned[i2] = value.map((j) => cloneNode$1(j, cloned));
     } else {
-      if (type === "object" && value !== null) value = cloneNode$1(value);
+      if (type === "object" && value !== null)
+        value = cloneNode$1(value);
       cloned[i2] = value;
     }
   }
@@ -2284,7 +2342,8 @@ let Node$5$1 = class Node2 {
   cleanRaws(keepBetween) {
     delete this.raws.before;
     delete this.raws.after;
-    if (!keepBetween) delete this.raws.between;
+    if (!keepBetween)
+      delete this.raws.between;
   }
   clone(overrides = {}) {
     let cloned = cloneNode$1(this);
@@ -2327,7 +2386,8 @@ let Node$5$1 = class Node2 {
         }
       },
       set(node2, prop, value) {
-        if (node2[prop] === value) return true;
+        if (node2[prop] === value)
+          return true;
         node2[prop] = value;
         if (prop === "prop" || prop === "value" || prop === "name" || prop === "params" || prop === "important" || /* c8 ignore next */
         prop === "text") {
@@ -2347,7 +2407,8 @@ let Node$5$1 = class Node2 {
     }
   }
   next() {
-    if (!this.parent) return void 0;
+    if (!this.parent)
+      return void 0;
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 + 1];
   }
@@ -2358,7 +2419,8 @@ let Node$5$1 = class Node2 {
     } else if (opts.word) {
       stringRepresentation = this.toString();
       let index2 = stringRepresentation.indexOf(opts.word);
-      if (index2 !== -1) pos = this.positionInside(index2, stringRepresentation);
+      if (index2 !== -1)
+        pos = this.positionInside(index2, stringRepresentation);
     }
     return pos;
   }
@@ -2377,7 +2439,8 @@ let Node$5$1 = class Node2 {
     return { column, line };
   }
   prev() {
-    if (!this.parent) return void 0;
+    if (!this.parent)
+      return void 0;
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 - 1];
   }
@@ -2472,7 +2535,8 @@ let Node$5$1 = class Node2 {
       if (!Object.prototype.hasOwnProperty.call(this, name)) {
         continue;
       }
-      if (name === "parent" || name === "proxyCache") continue;
+      if (name === "parent" || name === "proxyCache")
+        continue;
       let value = this[name];
       if (Array.isArray(value)) {
         fixed[name] = value.map((i2) => {
@@ -2512,7 +2576,8 @@ let Node$5$1 = class Node2 {
     return this.proxyCache;
   }
   toString(stringifier2 = stringify$3$1) {
-    if (stringifier2.stringify) stringifier2 = stringifier2.stringify;
+    if (stringifier2.stringify)
+      stringifier2 = stringifier2.stringify;
     let result2 = "";
     stringifier2(this, (i2) => {
       result2 += i2;
@@ -2521,7 +2586,8 @@ let Node$5$1 = class Node2 {
   }
   warn(result2, text, opts) {
     let data = { node: this };
-    for (let i2 in opts) data[i2] = opts[i2];
+    for (let i2 in opts)
+      data[i2] = opts[i2];
     return result2.warn(text, data);
   }
   get proxyOf() {
@@ -2577,7 +2643,8 @@ function fromBase64$1(str) {
 }
 let PreviousMap$2$1 = class PreviousMap {
   constructor(css, opts) {
-    if (opts.map === false) return;
+    if (opts.map === false)
+      return;
     this.loadAnnotation(css);
     this.inline = this.startWith(this.annotation, "data:");
     let prev = opts.map ? opts.map.prev : void 0;
@@ -2585,8 +2652,10 @@ let PreviousMap$2$1 = class PreviousMap {
     if (!this.mapFile && opts.from) {
       this.mapFile = opts.from;
     }
-    if (this.mapFile) this.root = dirname$1$1(this.mapFile);
-    if (text) this.text = text;
+    if (this.mapFile)
+      this.root = dirname$1$1(this.mapFile);
+    if (text)
+      this.text = text;
   }
   consumer() {
     if (!this.consumerCache) {
@@ -2612,12 +2681,14 @@ let PreviousMap$2$1 = class PreviousMap {
     return sourceMapString.replace(/^\/\*\s*# sourceMappingURL=/, "").trim();
   }
   isMap(map) {
-    if (typeof map !== "object") return false;
+    if (typeof map !== "object")
+      return false;
     return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
   }
   loadAnnotation(css) {
     let comments = css.match(/\/\*\s*# sourceMappingURL=/gm);
-    if (!comments) return;
+    if (!comments)
+      return;
     let start = css.lastIndexOf(comments.pop());
     let end = css.indexOf("*/", start);
     if (start > -1 && end > -1) {
@@ -2632,7 +2703,8 @@ let PreviousMap$2$1 = class PreviousMap {
     }
   }
   loadMap(file, prev) {
-    if (prev === false) return false;
+    if (prev === false)
+      return false;
     if (prev) {
       if (typeof prev === "string") {
         return prev;
@@ -2662,12 +2734,14 @@ let PreviousMap$2$1 = class PreviousMap {
       return this.decodeInline(this.annotation);
     } else if (this.annotation) {
       let map = this.annotation;
-      if (file) map = join$1(dirname$1$1(file), map);
+      if (file)
+        map = join$1(dirname$1$1(file), map);
       return this.loadFile(map);
     }
   }
   startWith(string, start) {
-    if (!string) return false;
+    if (!string)
+      return false;
     return string.substr(0, start.length) === start;
   }
   withContent() {
@@ -2710,13 +2784,15 @@ let Input$4$1 = class Input {
       if (map.text) {
         this.map = map;
         let file = map.consumer().file;
-        if (!this.file && file) this.file = this.mapResolve(file);
+        if (!this.file && file)
+          this.file = this.mapResolve(file);
       }
     }
     if (!this.file) {
       this.id = "<input css " + nanoid$2(6) + ">";
     }
-    if (this.map) this.map.file = this.from;
+    if (this.map)
+      this.map.file = this.from;
   }
   error(message, line, column, opts = {}) {
     let result2, endLine, endColumn;
@@ -2818,10 +2894,12 @@ let Input$4$1 = class Input {
     return resolve$1$1(this.map.consumer().sourceRoot || this.map.root || ".", file);
   }
   origin(line, column, endLine, endColumn) {
-    if (!this.map) return false;
+    if (!this.map)
+      return false;
     let consumer = this.map.consumer();
     let from = consumer.originalPositionFor({ column, line });
-    if (!from.source) return false;
+    if (!from.source)
+      return false;
     let to;
     if (typeof endLine === "number") {
       to = consumer.originalPositionFor({ column: endColumn, line: endLine });
@@ -2850,7 +2928,8 @@ let Input$4$1 = class Input {
       }
     }
     let source = consumer.sourceContentFor(from.source);
-    if (source) result2.source = source;
+    if (source)
+      result2.source = source;
     return result2;
   }
   toJSON() {
@@ -2908,7 +2987,8 @@ let MapGenerator$2$1 = class MapGenerator {
       content = this.outputFile() + ".map";
     }
     let eol = "\n";
-    if (this.css.includes("\r\n")) eol = "\r\n";
+    if (this.css.includes("\r\n"))
+      eol = "\r\n";
     this.css += eol + "/*# sourceMappingURL=" + content + " */";
   }
   applyPrevMaps() {
@@ -2928,12 +3008,14 @@ let MapGenerator$2$1 = class MapGenerator {
     }
   }
   clearAnnotation() {
-    if (this.mapOpts.annotation === false) return;
+    if (this.mapOpts.annotation === false)
+      return;
     if (this.root) {
       let node2;
       for (let i2 = this.root.nodes.length - 1; i2 >= 0; i2--) {
         node2 = this.root.nodes[i2];
-        if (node2.type !== "comment") continue;
+        if (node2.type !== "comment")
+          continue;
         if (node2.text.indexOf("# sourceMappingURL=") === 0) {
           this.root.removeChild(i2);
         }
@@ -2974,9 +3056,12 @@ let MapGenerator$2$1 = class MapGenerator {
         source: this.opts.from ? this.toUrl(this.path(this.opts.from)) : "<no source>"
       });
     }
-    if (this.isSourcesContent()) this.setSourcesContent();
-    if (this.root && this.previous().length > 0) this.applyPrevMaps();
-    if (this.isAnnotation()) this.addAnnotation();
+    if (this.isSourcesContent())
+      this.setSourcesContent();
+    if (this.root && this.previous().length > 0)
+      this.applyPrevMaps();
+    if (this.isAnnotation())
+      this.addAnnotation();
     if (this.isInline()) {
       return [this.css];
     } else {
@@ -3096,11 +3181,15 @@ let MapGenerator$2$1 = class MapGenerator {
     }
   }
   path(file) {
-    if (this.mapOpts.absolute) return file;
-    if (file.charCodeAt(0) === 60) return file;
-    if (/^\w+:\/\//.test(file)) return file;
+    if (this.mapOpts.absolute)
+      return file;
+    if (file.charCodeAt(0) === 60)
+      return file;
+    if (/^\w+:\/\//.test(file))
+      return file;
     let cached = this.memoizedPaths.get(file);
-    if (cached) return cached;
+    if (cached)
+      return cached;
     let from = this.opts.to ? dirname$2(this.opts.to) : ".";
     if (typeof this.mapOpts.annotation === "string") {
       from = dirname$2(resolve$2(from, this.mapOpts.annotation));
@@ -3123,7 +3212,8 @@ let MapGenerator$2$1 = class MapGenerator {
         });
       } else {
         let input2 = new Input$3$1(this.originalCSS, this.opts);
-        if (input2.map) this.previousMaps.push(input2.map);
+        if (input2.map)
+          this.previousMaps.push(input2.map);
       }
     }
     return this.previousMaps;
@@ -3164,7 +3254,8 @@ let MapGenerator$2$1 = class MapGenerator {
   }
   toFileUrl(path) {
     let cached = this.memoizedFileURLs.get(path);
-    if (cached) return cached;
+    if (cached)
+      return cached;
     if (pathToFileURL$2) {
       let fileURL = pathToFileURL$2(path).toString();
       this.memoizedFileURLs.set(path, fileURL);
@@ -3177,7 +3268,8 @@ let MapGenerator$2$1 = class MapGenerator {
   }
   toUrl(path) {
     let cached = this.memoizedURLs.get(path);
-    if (cached) return cached;
+    if (cached)
+      return cached;
     if (sep$1 === "\\") {
       path = path.replace(/\\/g, "/");
     }
@@ -3206,7 +3298,8 @@ let AtRule$4$1;
 let Root$6$1;
 function cleanSource$1(nodes) {
   return nodes.map((i2) => {
-    if (i2.nodes) i2.nodes = cleanSource$1(i2.nodes);
+    if (i2.nodes)
+      i2.nodes = cleanSource$1(i2.nodes);
     delete i2.source;
     return i2;
   });
@@ -3223,7 +3316,8 @@ let Container$7$1 = class Container extends Node$2$1 {
   append(...children) {
     for (let child of children) {
       let nodes = this.normalize(child, this.last);
-      for (let node2 of nodes) this.proxyOf.nodes.push(node2);
+      for (let node2 of nodes)
+        this.proxyOf.nodes.push(node2);
     }
     this.markDirty();
     return this;
@@ -3231,17 +3325,20 @@ let Container$7$1 = class Container extends Node$2$1 {
   cleanRaws(keepBetween) {
     super.cleanRaws(keepBetween);
     if (this.nodes) {
-      for (let node2 of this.nodes) node2.cleanRaws(keepBetween);
+      for (let node2 of this.nodes)
+        node2.cleanRaws(keepBetween);
     }
   }
   each(callback) {
-    if (!this.proxyOf.nodes) return void 0;
+    if (!this.proxyOf.nodes)
+      return void 0;
     let iterator = this.getIterator();
     let index2, result2;
     while (this.indexes[iterator] < this.proxyOf.nodes.length) {
       index2 = this.indexes[iterator];
       result2 = callback(this.proxyOf.nodes[index2], index2);
-      if (result2 === false) break;
+      if (result2 === false)
+        break;
       this.indexes[iterator] += 1;
     }
     delete this.indexes[iterator];
@@ -3251,8 +3348,10 @@ let Container$7$1 = class Container extends Node$2$1 {
     return this.nodes.every(condition);
   }
   getIterator() {
-    if (!this.lastEach) this.lastEach = 0;
-    if (!this.indexes) this.indexes = {};
+    if (!this.lastEach)
+      this.lastEach = 0;
+    if (!this.indexes)
+      this.indexes = {};
     this.lastEach += 1;
     let iterator = this.lastEach;
     this.indexes[iterator] = 0;
@@ -3294,7 +3393,8 @@ let Container$7$1 = class Container extends Node$2$1 {
         }
       },
       set(node2, prop, value) {
-        if (node2[prop] === value) return true;
+        if (node2[prop] === value)
+          return true;
         node2[prop] = value;
         if (prop === "name" || prop === "params" || prop === "selector") {
           node2.markDirty();
@@ -3304,15 +3404,18 @@ let Container$7$1 = class Container extends Node$2$1 {
     };
   }
   index(child) {
-    if (typeof child === "number") return child;
-    if (child.proxyOf) child = child.proxyOf;
+    if (typeof child === "number")
+      return child;
+    if (child.proxyOf)
+      child = child.proxyOf;
     return this.proxyOf.nodes.indexOf(child);
   }
   insertAfter(exist, add) {
     let existIndex = this.index(exist);
     let nodes = this.normalize(add, this.proxyOf.nodes[existIndex]).reverse();
     existIndex = this.index(exist);
-    for (let node2 of nodes) this.proxyOf.nodes.splice(existIndex + 1, 0, node2);
+    for (let node2 of nodes)
+      this.proxyOf.nodes.splice(existIndex + 1, 0, node2);
     let index2;
     for (let id in this.indexes) {
       index2 = this.indexes[id];
@@ -3328,7 +3431,8 @@ let Container$7$1 = class Container extends Node$2$1 {
     let type = existIndex === 0 ? "prepend" : false;
     let nodes = this.normalize(add, this.proxyOf.nodes[existIndex], type).reverse();
     existIndex = this.index(exist);
-    for (let node2 of nodes) this.proxyOf.nodes.splice(existIndex, 0, node2);
+    for (let node2 of nodes)
+      this.proxyOf.nodes.splice(existIndex, 0, node2);
     let index2;
     for (let id in this.indexes) {
       index2 = this.indexes[id];
@@ -3347,12 +3451,14 @@ let Container$7$1 = class Container extends Node$2$1 {
     } else if (Array.isArray(nodes)) {
       nodes = nodes.slice(0);
       for (let i2 of nodes) {
-        if (i2.parent) i2.parent.removeChild(i2, "ignore");
+        if (i2.parent)
+          i2.parent.removeChild(i2, "ignore");
       }
     } else if (nodes.type === "root" && this.type !== "document") {
       nodes = nodes.nodes.slice(0);
       for (let i2 of nodes) {
-        if (i2.parent) i2.parent.removeChild(i2, "ignore");
+        if (i2.parent)
+          i2.parent.removeChild(i2, "ignore");
       }
     } else if (nodes.type) {
       nodes = [nodes];
@@ -3373,10 +3479,13 @@ let Container$7$1 = class Container extends Node$2$1 {
       throw new Error("Unknown node type in node creation");
     }
     let processed = nodes.map((i2) => {
-      if (!i2[my$1$1]) Container.rebuild(i2);
+      if (!i2[my$1$1])
+        Container.rebuild(i2);
       i2 = i2.proxyOf;
-      if (i2.parent) i2.parent.removeChild(i2);
-      if (i2[isClean$1$1]) markDirtyUp$1(i2);
+      if (i2.parent)
+        i2.parent.removeChild(i2);
+      if (i2[isClean$1$1])
+        markDirtyUp$1(i2);
       if (typeof i2.raws.before === "undefined") {
         if (sample && typeof sample.raws.before !== "undefined") {
           i2.raws.before = sample.raws.before.replace(/\S/g, "");
@@ -3391,7 +3500,8 @@ let Container$7$1 = class Container extends Node$2$1 {
     children = children.reverse();
     for (let child of children) {
       let nodes = this.normalize(child, this.first, "prepend").reverse();
-      for (let node2 of nodes) this.proxyOf.nodes.unshift(node2);
+      for (let node2 of nodes)
+        this.proxyOf.nodes.unshift(node2);
       for (let id in this.indexes) {
         this.indexes[id] = this.indexes[id] + nodes.length;
       }
@@ -3405,7 +3515,8 @@ let Container$7$1 = class Container extends Node$2$1 {
     return this;
   }
   removeAll() {
-    for (let node2 of this.proxyOf.nodes) node2.parent = void 0;
+    for (let node2 of this.proxyOf.nodes)
+      node2.parent = void 0;
     this.proxyOf.nodes = [];
     this.markDirty();
     return this;
@@ -3430,8 +3541,10 @@ let Container$7$1 = class Container extends Node$2$1 {
       opts = {};
     }
     this.walkDecls((decl) => {
-      if (opts.props && !opts.props.includes(decl.prop)) return;
-      if (opts.fast && !decl.value.includes(opts.fast)) return;
+      if (opts.props && !opts.props.includes(decl.prop))
+        return;
+      if (opts.fast && !decl.value.includes(opts.fast))
+        return;
       decl.value = decl.value.replace(pattern, callback);
     });
     this.markDirty();
@@ -3528,11 +3641,13 @@ let Container$7$1 = class Container extends Node$2$1 {
     });
   }
   get first() {
-    if (!this.proxyOf.nodes) return void 0;
+    if (!this.proxyOf.nodes)
+      return void 0;
     return this.proxyOf.nodes[0];
   }
   get last() {
-    if (!this.proxyOf.nodes) return void 0;
+    if (!this.proxyOf.nodes)
+      return void 0;
     return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
   }
 };
@@ -3594,7 +3709,8 @@ var document$1$1 = Document$3$1;
 Document$3$1.default = Document$3$1;
 let printed$1 = {};
 var warnOnce$2$1 = function warnOnce(message) {
-  if (printed$1[message]) return;
+  if (printed$1[message])
+    return;
   printed$1[message] = true;
   if (typeof console !== "undefined" && console.warn) {
     console.warn(message);
@@ -3611,7 +3727,8 @@ let Warning$2$1 = class Warning {
       this.endLine = range.end.line;
       this.endColumn = range.end.column;
     }
-    for (let opt in opts) this[opt] = opts[opt];
+    for (let opt in opts)
+      this[opt] = opts[opt];
   }
   toString() {
     if (this.node) {
@@ -3703,8 +3820,10 @@ var tokenize$1 = function tokenizer(input2, options = {}) {
     return returned.length === 0 && pos >= length;
   }
   function nextToken(opts) {
-    if (returned.length) return returned.pop();
-    if (pos >= length) return;
+    if (returned.length)
+      return returned.pop();
+    if (pos >= length)
+      return;
     let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
     code = css.charCodeAt(pos);
     switch (code) {
@@ -3876,11 +3995,13 @@ let AtRule$3$1 = class AtRule extends Container$5$1 {
     this.type = "atrule";
   }
   append(...children) {
-    if (!this.proxyOf.nodes) this.nodes = [];
+    if (!this.proxyOf.nodes)
+      this.nodes = [];
     return super.append(...children);
   }
   prepend(...children) {
-    if (!this.proxyOf.nodes) this.nodes = [];
+    if (!this.proxyOf.nodes)
+      this.nodes = [];
     return super.prepend(...children);
   }
 };
@@ -3894,7 +4015,8 @@ let Root$5$1 = class Root extends Container$4$1 {
   constructor(defaults) {
     super(defaults);
     this.type = "root";
-    if (!this.nodes) this.nodes = [];
+    if (!this.nodes)
+      this.nodes = [];
   }
   normalize(child, sample, type) {
     let nodes = super.normalize(child);
@@ -3965,19 +4087,23 @@ let list$2$1 = {
       } else if (letter === "(") {
         func += 1;
       } else if (letter === ")") {
-        if (func > 0) func -= 1;
+        if (func > 0)
+          func -= 1;
       } else if (func === 0) {
-        if (separators.includes(letter)) split = true;
+        if (separators.includes(letter))
+          split = true;
       }
       if (split) {
-        if (current !== "") array.push(current.trim());
+        if (current !== "")
+          array.push(current.trim());
         current = "";
         split = false;
       } else {
         current += letter;
       }
     }
-    if (last || current !== "") array.push(current.trim());
+    if (last || current !== "")
+      array.push(current.trim());
     return array;
   }
 };
@@ -3989,7 +4115,8 @@ let Rule$3$1 = class Rule extends Container$3$1 {
   constructor(defaults) {
     super(defaults);
     this.type = "rule";
-    if (!this.nodes) this.nodes = [];
+    if (!this.nodes)
+      this.nodes = [];
   }
   get selectors() {
     return list$1$1.comma(this.selector);
@@ -4017,7 +4144,8 @@ function findLastWithPosition$1(tokens) {
   for (let i2 = tokens.length - 1; i2 >= 0; i2--) {
     let token = tokens[i2];
     let pos = token[3] || token[2];
-    if (pos) return pos;
+    if (pos)
+      return pos;
   }
 }
 let Parser$1$1 = class Parser {
@@ -4110,14 +4238,16 @@ let Parser$1$1 = class Parser {
   }
   checkMissedSemicolon(tokens) {
     let colon = this.colon(tokens);
-    if (colon === false) return;
+    if (colon === false)
+      return;
     let founded = 0;
     let token;
     for (let j = colon - 1; j >= 0; j--) {
       token = tokens[j];
       if (token[0] !== "space") {
         founded += 1;
-        if (founded === 2) break;
+        if (founded === 2)
+          break;
       }
     }
     throw this.input.error(
@@ -4183,7 +4313,8 @@ let Parser$1$1 = class Parser {
     );
     node2.source.end.offset++;
     while (tokens[0][0] !== "word") {
-      if (tokens.length === 1) this.unknownWord(tokens);
+      if (tokens.length === 1)
+        this.unknownWord(tokens);
       node2.raws.before += tokens.shift()[1];
     }
     node2.source.start = this.getPosition(tokens[0][2]);
@@ -4217,7 +4348,8 @@ let Parser$1$1 = class Parser {
     let next;
     while (tokens.length) {
       next = tokens[0][0];
-      if (next !== "space" && next !== "comment") break;
+      if (next !== "space" && next !== "comment")
+        break;
       firstSpaces.push(tokens.shift());
     }
     this.precheckMissedSemicolon(tokens);
@@ -4227,7 +4359,8 @@ let Parser$1$1 = class Parser {
         node2.important = true;
         let string = this.stringFrom(tokens, i2);
         string = this.spacesFromEnd(tokens) + string;
-        if (string !== " !important") node2.raws.important = string;
+        if (string !== " !important")
+          node2.raws.important = string;
         break;
       } else if (token[1].toLowerCase() === "important") {
         let cache = tokens.slice(0);
@@ -4289,7 +4422,8 @@ let Parser$1$1 = class Parser {
     }
   }
   endFile() {
-    if (this.current.parent) this.unclosedBlock();
+    if (this.current.parent)
+      this.unclosedBlock();
     if (this.current.nodes && this.current.nodes.length) {
       this.current.raws.semicolon = this.semicolon;
     }
@@ -4323,7 +4457,8 @@ let Parser$1$1 = class Parser {
     };
     node2.raws.before = this.spaces;
     this.spaces = "";
-    if (node2.type !== "comment") this.semicolon = false;
+    if (node2.type !== "comment")
+      this.semicolon = false;
   }
   other(start) {
     let end = false;
@@ -4338,10 +4473,12 @@ let Parser$1$1 = class Parser {
       type = token[0];
       tokens.push(token);
       if (type === "(" || type === "[") {
-        if (!bracket) bracket = token;
+        if (!bracket)
+          bracket = token;
         brackets.push(type === "(" ? ")" : "]");
       } else if (customProperty && colon && type === "{") {
-        if (!bracket) bracket = token;
+        if (!bracket)
+          bracket = token;
         brackets.push("}");
       } else if (brackets.length === 0) {
         if (type === ";") {
@@ -4363,17 +4500,21 @@ let Parser$1$1 = class Parser {
         }
       } else if (type === brackets[brackets.length - 1]) {
         brackets.pop();
-        if (brackets.length === 0) bracket = null;
+        if (brackets.length === 0)
+          bracket = null;
       }
       token = this.tokenizer.nextToken();
     }
-    if (this.tokenizer.endOfFile()) end = true;
-    if (brackets.length > 0) this.unclosedBracket(bracket);
+    if (this.tokenizer.endOfFile())
+      end = true;
+    if (brackets.length > 0)
+      this.unclosedBracket(bracket);
     if (end && colon) {
       if (!customProperty) {
         while (tokens.length) {
           token = tokens[tokens.length - 1][0];
-          if (token !== "space" && token !== "comment") break;
+          if (token !== "space" && token !== "comment")
+            break;
           this.tokenizer.back(tokens.pop());
         }
       }
@@ -4460,7 +4601,8 @@ let Parser$1$1 = class Parser {
     let spaces = "";
     while (tokens.length) {
       lastTokenType = tokens[tokens.length - 1][0];
-      if (lastTokenType !== "space" && lastTokenType !== "comment") break;
+      if (lastTokenType !== "space" && lastTokenType !== "comment")
+        break;
       spaces = tokens.pop()[1] + spaces;
     }
     return spaces;
@@ -4471,7 +4613,8 @@ let Parser$1$1 = class Parser {
     let spaces = "";
     while (tokens.length) {
       next = tokens[0][0];
-      if (next !== "space" && next !== "comment") break;
+      if (next !== "space" && next !== "comment")
+        break;
       spaces += tokens.shift()[1];
     }
     return spaces;
@@ -4481,7 +4624,8 @@ let Parser$1$1 = class Parser {
     let spaces = "";
     while (tokens.length) {
       lastTokenType = tokens[tokens.length - 1][0];
-      if (lastTokenType !== "space") break;
+      if (lastTokenType !== "space")
+        break;
       spaces = tokens.pop()[1] + spaces;
     }
     return spaces;
@@ -4643,7 +4787,8 @@ function toStack$1(node2) {
 }
 function cleanMarks$1(node2) {
   node2[isClean$3] = false;
-  if (node2.nodes) node2.nodes.forEach((i2) => cleanMarks$1(i2));
+  if (node2.nodes)
+    node2.nodes.forEach((i2) => cleanMarks$1(i2));
   return node2;
 }
 let postcss$2$1 = {};
@@ -4657,15 +4802,20 @@ let LazyResult$2$1 = class LazyResult {
     } else if (css instanceof LazyResult || css instanceof Result$2$1) {
       root2 = cleanMarks$1(css.root);
       if (css.map) {
-        if (typeof opts.map === "undefined") opts.map = {};
-        if (!opts.map.inline) opts.map.inline = false;
+        if (typeof opts.map === "undefined")
+          opts.map = {};
+        if (!opts.map.inline)
+          opts.map.inline = false;
         opts.map.prev = css.map;
       }
     } else {
       let parser2 = parse$2$1;
-      if (opts.syntax) parser2 = opts.syntax.parse;
-      if (opts.parser) parser2 = opts.parser;
-      if (parser2.parse) parser2 = parser2.parse;
+      if (opts.syntax)
+        parser2 = opts.syntax.parse;
+      if (opts.parser)
+        parser2 = opts.parser;
+      if (parser2.parse)
+        parser2 = parser2.parse;
       try {
         root2 = parser2(css, opts);
       } catch (error) {
@@ -4687,8 +4837,10 @@ let LazyResult$2$1 = class LazyResult {
     });
   }
   async() {
-    if (this.error) return Promise.reject(this.error);
-    if (this.processed) return Promise.resolve(this.result);
+    if (this.error)
+      return Promise.reject(this.error);
+    if (this.processed)
+      return Promise.resolve(this.result);
     if (!this.processing) {
       this.processing = this.runAsync();
     }
@@ -4706,7 +4858,8 @@ let LazyResult$2$1 = class LazyResult {
   handleError(error, node2) {
     let plugin22 = this.result.lastPlugin;
     try {
-      if (node2) node2.addToError(error);
+      if (node2)
+        node2.addToError(error);
       this.error = error;
       if (error.name === "CssSyntaxError" && !error.plugin) {
         error.plugin = plugin22.postcssPlugin;
@@ -4726,14 +4879,16 @@ let LazyResult$2$1 = class LazyResult {
         }
       }
     } catch (err) {
-      if (console && console.error) console.error(err);
+      if (console && console.error)
+        console.error(err);
     }
     return error;
   }
   prepareVisitors() {
     this.listeners = {};
     let add = (plugin22, type, cb) => {
-      if (!this.listeners[type]) this.listeners[type] = [];
+      if (!this.listeners[type])
+        this.listeners[type] = [];
       this.listeners[type].push([plugin22, cb]);
     };
     for (let plugin22 of this.plugins) {
@@ -4840,15 +4995,20 @@ let LazyResult$2$1 = class LazyResult {
     }
   }
   stringify() {
-    if (this.error) throw this.error;
-    if (this.stringified) return this.result;
+    if (this.error)
+      throw this.error;
+    if (this.stringified)
+      return this.result;
     this.stringified = true;
     this.sync();
     let opts = this.result.opts;
     let str = stringify$2$1;
-    if (opts.syntax) str = opts.syntax.stringify;
-    if (opts.stringifier) str = opts.stringifier;
-    if (str.stringify) str = str.stringify;
+    if (opts.syntax)
+      str = opts.syntax.stringify;
+    if (opts.stringifier)
+      str = opts.stringifier;
+    if (str.stringify)
+      str = str.stringify;
     let map = new MapGenerator$1$1(str, this.result.root, this.result.opts);
     let data = map.generate();
     this.result.css = data[0];
@@ -4856,8 +5016,10 @@ let LazyResult$2$1 = class LazyResult {
     return this.result;
   }
   sync() {
-    if (this.error) throw this.error;
-    if (this.processed) return this.result;
+    if (this.error)
+      throw this.error;
+    if (this.processed)
+      return this.result;
     this.processed = true;
     if (this.processing) {
       throw this.getAsyncError();
@@ -4976,13 +5138,15 @@ let LazyResult$2$1 = class LazyResult {
       if (event === CHILDREN$1) {
         if (node2.nodes) {
           node2.each((child) => {
-            if (!child[isClean$3]) this.walkSync(child);
+            if (!child[isClean$3])
+              this.walkSync(child);
           });
         }
       } else {
         let visitors = this.listeners[event];
         if (visitors) {
-          if (this.visitSync(visitors, node2.toProxy())) return;
+          if (this.visitSync(visitors, node2.toProxy()))
+            return;
         }
       }
     }
@@ -5060,7 +5224,8 @@ let NoWorkResult$1$1 = class NoWorkResult {
     }
   }
   async() {
-    if (this.error) return Promise.reject(this.error);
+    if (this.error)
+      return Promise.reject(this.error);
     return Promise.resolve(this.result);
   }
   catch(onRejected) {
@@ -5070,7 +5235,8 @@ let NoWorkResult$1$1 = class NoWorkResult {
     return this.async().then(onFinally, onFinally);
   }
   sync() {
-    if (this.error) throw this.error;
+    if (this.error)
+      throw this.error;
     return this.result;
   }
   then(onFulfilled, onRejected) {
@@ -5190,7 +5356,8 @@ let Input$1$1 = input$1;
 let Root$1$1 = root$1;
 let Rule$1$1 = rule$1;
 function fromJSON$1$1(json, inputs) {
-  if (Array.isArray(json)) return json.map((n2) => fromJSON$1$1(n2));
+  if (Array.isArray(json))
+    return json.map((n2) => fromJSON$1$1(n2));
   let _a2 = json, { inputs: ownInputs } = _a2, defaults = __objRest(_a2, ["inputs"]);
   if (ownInputs) {
     inputs = [];
@@ -5276,7 +5443,8 @@ postcss$3.plugin = function plugin(name, initializer) {
   let cache;
   Object.defineProperty(creator, "postcss", {
     get() {
-      if (!cache) cache = creator();
+      if (!cache)
+        cache = creator();
       return cache;
     }
   });
@@ -5422,7 +5590,8 @@ function getDefaultExportFromCjs(x2) {
   return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
 function getAugmentedNamespace(n2) {
-  if (n2.__esModule) return n2;
+  if (n2.__esModule)
+    return n2;
   var f2 = n2.default;
   if (typeof f2 == "function") {
     var a2 = function a22() {
@@ -5432,7 +5601,8 @@ function getAugmentedNamespace(n2) {
       return f2.apply(this, arguments);
     };
     a2.prototype = f2.prototype;
-  } else a2 = {};
+  } else
+    a2 = {};
   Object.defineProperty(a2, "__esModule", { value: true });
   Object.keys(n2).forEach(function(k) {
     var d = Object.getOwnPropertyDescriptor(n2, k);
@@ -5500,11 +5670,14 @@ let CssSyntaxError$3 = class CssSyntaxError2 extends Error {
     this.message += ": " + this.reason;
   }
   showSourceCode(color) {
-    if (!this.source) return "";
+    if (!this.source)
+      return "";
     let css = this.source;
-    if (color == null) color = pico.isColorSupported;
+    if (color == null)
+      color = pico.isColorSupported;
     if (terminalHighlight$1) {
-      if (color) css = terminalHighlight$1(css);
+      if (color)
+        css = terminalHighlight$1(css);
     }
     let lines = css.split(/\r?\n/);
     let start = Math.max(this.line - 3, 0);
@@ -5597,7 +5770,8 @@ let Stringifier$2 = class Stringifier2 {
     if (value.includes("\n")) {
       let indent = this.raw(node2, null, "indent");
       if (indent.length) {
-        for (let step = 0; step < depth; step++) value += indent;
+        for (let step = 0; step < depth; step++)
+          value += indent;
       }
     }
     return value;
@@ -5612,20 +5786,23 @@ let Stringifier$2 = class Stringifier2 {
     } else {
       after = this.raw(node2, "after", "emptyBody");
     }
-    if (after) this.builder(after);
+    if (after)
+      this.builder(after);
     this.builder("}", node2, "end");
   }
   body(node2) {
     let last = node2.nodes.length - 1;
     while (last > 0) {
-      if (node2.nodes[last].type !== "comment") break;
+      if (node2.nodes[last].type !== "comment")
+        break;
       last -= 1;
     }
     let semicolon = this.raw(node2, "semicolon");
     for (let i2 = 0; i2 < node2.nodes.length; i2++) {
       let child = node2.nodes[i2];
       let before = this.raw(child, "before");
-      if (before) this.builder(before);
+      if (before)
+        this.builder(before);
       this.stringify(child, last !== i2 || semicolon);
     }
   }
@@ -5640,7 +5817,8 @@ let Stringifier$2 = class Stringifier2 {
     if (node2.important) {
       string += node2.raws.important || " !important";
     }
-    if (semicolon) string += ";";
+    if (semicolon)
+      string += ";";
     this.builder(string, node2);
   }
   document(node2) {
@@ -5648,10 +5826,12 @@ let Stringifier$2 = class Stringifier2 {
   }
   raw(node2, own, detect) {
     let value;
-    if (!detect) detect = own;
+    if (!detect)
+      detect = own;
     if (own) {
       value = node2.raws[own];
-      if (typeof value !== "undefined") return value;
+      if (typeof value !== "undefined")
+        return value;
     }
     let parent = node2.parent;
     if (detect === "before") {
@@ -5662,9 +5842,11 @@ let Stringifier$2 = class Stringifier2 {
         return "";
       }
     }
-    if (!parent) return DEFAULT_RAW[detect];
+    if (!parent)
+      return DEFAULT_RAW[detect];
     let root2 = node2.root();
-    if (!root2.rawCache) root2.rawCache = {};
+    if (!root2.rawCache)
+      root2.rawCache = {};
     if (typeof root2.rawCache[detect] !== "undefined") {
       return root2.rawCache[detect];
     }
@@ -5677,11 +5859,13 @@ let Stringifier$2 = class Stringifier2 {
       } else {
         root2.walk((i2) => {
           value = i2.raws[own];
-          if (typeof value !== "undefined") return false;
+          if (typeof value !== "undefined")
+            return false;
         });
       }
     }
-    if (typeof value === "undefined") value = DEFAULT_RAW[detect];
+    if (typeof value === "undefined")
+      value = DEFAULT_RAW[detect];
     root2.rawCache[detect] = value;
     return value;
   }
@@ -5698,7 +5882,8 @@ let Stringifier$2 = class Stringifier2 {
         }
       }
     });
-    if (value) value = value.replace(/\S/g, "");
+    if (value)
+      value = value.replace(/\S/g, "");
     return value;
   }
   rawBeforeComment(root2, node2) {
@@ -5742,7 +5927,8 @@ let Stringifier$2 = class Stringifier2 {
     root2.walk((i2) => {
       if (i2.type !== "decl") {
         value = i2.raws.between;
-        if (typeof value !== "undefined") return false;
+        if (typeof value !== "undefined")
+          return false;
       }
     });
     return value;
@@ -5760,7 +5946,8 @@ let Stringifier$2 = class Stringifier2 {
         }
       }
     });
-    if (value) value = value.replace(/\S/g, "");
+    if (value)
+      value = value.replace(/\S/g, "");
     return value;
   }
   rawColon(root2) {
@@ -5778,13 +5965,15 @@ let Stringifier$2 = class Stringifier2 {
     root2.walk((i2) => {
       if (i2.nodes && i2.nodes.length === 0) {
         value = i2.raws.after;
-        if (typeof value !== "undefined") return false;
+        if (typeof value !== "undefined")
+          return false;
       }
     });
     return value;
   }
   rawIndent(root2) {
-    if (root2.raws.indent) return root2.raws.indent;
+    if (root2.raws.indent)
+      return root2.raws.indent;
     let value;
     root2.walk((i2) => {
       let p = i2.parent;
@@ -5804,7 +5993,8 @@ let Stringifier$2 = class Stringifier2 {
     root2.walk((i2) => {
       if (i2.nodes && i2.nodes.length && i2.last.type === "decl") {
         value = i2.raws.semicolon;
-        if (typeof value !== "undefined") return false;
+        if (typeof value !== "undefined")
+          return false;
       }
     });
     return value;
@@ -5819,7 +6009,8 @@ let Stringifier$2 = class Stringifier2 {
   }
   root(node2) {
     this.body(node2);
-    if (node2.raws.after) this.builder(node2.raws.after);
+    if (node2.raws.after)
+      this.builder(node2.raws.after);
   }
   rule(node2) {
     this.block(node2, this.rawValue(node2, "selector"));
@@ -5855,17 +6046,20 @@ function cloneNode(obj, parent) {
     if (!Object.prototype.hasOwnProperty.call(obj, i2)) {
       continue;
     }
-    if (i2 === "proxyCache") continue;
+    if (i2 === "proxyCache")
+      continue;
     let value = obj[i2];
     let type = typeof value;
     if (i2 === "parent" && type === "object") {
-      if (parent) cloned[i2] = parent;
+      if (parent)
+        cloned[i2] = parent;
     } else if (i2 === "source") {
       cloned[i2] = value;
     } else if (Array.isArray(value)) {
       cloned[i2] = value.map((j) => cloneNode(j, cloned));
     } else {
-      if (type === "object" && value !== null) value = cloneNode(value);
+      if (type === "object" && value !== null)
+        value = cloneNode(value);
       cloned[i2] = value;
     }
   }
@@ -5919,7 +6113,8 @@ let Node$5 = class Node22 {
   cleanRaws(keepBetween) {
     delete this.raws.before;
     delete this.raws.after;
-    if (!keepBetween) delete this.raws.between;
+    if (!keepBetween)
+      delete this.raws.between;
   }
   clone(overrides = {}) {
     let cloned = cloneNode(this);
@@ -5962,7 +6157,8 @@ let Node$5 = class Node22 {
         }
       },
       set(node2, prop, value) {
-        if (node2[prop] === value) return true;
+        if (node2[prop] === value)
+          return true;
         node2[prop] = value;
         if (prop === "prop" || prop === "value" || prop === "name" || prop === "params" || prop === "important" || /* c8 ignore next */
         prop === "text") {
@@ -5982,7 +6178,8 @@ let Node$5 = class Node22 {
     }
   }
   next() {
-    if (!this.parent) return void 0;
+    if (!this.parent)
+      return void 0;
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 + 1];
   }
@@ -5993,7 +6190,8 @@ let Node$5 = class Node22 {
     } else if (opts.word) {
       stringRepresentation = this.toString();
       let index2 = stringRepresentation.indexOf(opts.word);
-      if (index2 !== -1) pos = this.positionInside(index2, stringRepresentation);
+      if (index2 !== -1)
+        pos = this.positionInside(index2, stringRepresentation);
     }
     return pos;
   }
@@ -6012,7 +6210,8 @@ let Node$5 = class Node22 {
     return { column, line };
   }
   prev() {
-    if (!this.parent) return void 0;
+    if (!this.parent)
+      return void 0;
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 - 1];
   }
@@ -6107,7 +6306,8 @@ let Node$5 = class Node22 {
       if (!Object.prototype.hasOwnProperty.call(this, name)) {
         continue;
       }
-      if (name === "parent" || name === "proxyCache") continue;
+      if (name === "parent" || name === "proxyCache")
+        continue;
       let value = this[name];
       if (Array.isArray(value)) {
         fixed[name] = value.map((i2) => {
@@ -6147,7 +6347,8 @@ let Node$5 = class Node22 {
     return this.proxyCache;
   }
   toString(stringifier2 = stringify$3) {
-    if (stringifier2.stringify) stringifier2 = stringifier2.stringify;
+    if (stringifier2.stringify)
+      stringifier2 = stringifier2.stringify;
     let result2 = "";
     stringifier2(this, (i2) => {
       result2 += i2;
@@ -6156,7 +6357,8 @@ let Node$5 = class Node22 {
   }
   warn(result2, text, opts) {
     let data = { node: this };
-    for (let i2 in opts) data[i2] = opts[i2];
+    for (let i2 in opts)
+      data[i2] = opts[i2];
     return result2.warn(text, data);
   }
   get proxyOf() {
@@ -6212,7 +6414,8 @@ function fromBase64(str) {
 }
 let PreviousMap$2 = class PreviousMap2 {
   constructor(css, opts) {
-    if (opts.map === false) return;
+    if (opts.map === false)
+      return;
     this.loadAnnotation(css);
     this.inline = this.startWith(this.annotation, "data:");
     let prev = opts.map ? opts.map.prev : void 0;
@@ -6220,8 +6423,10 @@ let PreviousMap$2 = class PreviousMap2 {
     if (!this.mapFile && opts.from) {
       this.mapFile = opts.from;
     }
-    if (this.mapFile) this.root = dirname$1(this.mapFile);
-    if (text) this.text = text;
+    if (this.mapFile)
+      this.root = dirname$1(this.mapFile);
+    if (text)
+      this.text = text;
   }
   consumer() {
     if (!this.consumerCache) {
@@ -6247,12 +6452,14 @@ let PreviousMap$2 = class PreviousMap2 {
     return sourceMapString.replace(/^\/\*\s*# sourceMappingURL=/, "").trim();
   }
   isMap(map) {
-    if (typeof map !== "object") return false;
+    if (typeof map !== "object")
+      return false;
     return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
   }
   loadAnnotation(css) {
     let comments = css.match(/\/\*\s*# sourceMappingURL=/gm);
-    if (!comments) return;
+    if (!comments)
+      return;
     let start = css.lastIndexOf(comments.pop());
     let end = css.indexOf("*/", start);
     if (start > -1 && end > -1) {
@@ -6267,7 +6474,8 @@ let PreviousMap$2 = class PreviousMap2 {
     }
   }
   loadMap(file, prev) {
-    if (prev === false) return false;
+    if (prev === false)
+      return false;
     if (prev) {
       if (typeof prev === "string") {
         return prev;
@@ -6297,12 +6505,14 @@ let PreviousMap$2 = class PreviousMap2 {
       return this.decodeInline(this.annotation);
     } else if (this.annotation) {
       let map = this.annotation;
-      if (file) map = join(dirname$1(file), map);
+      if (file)
+        map = join(dirname$1(file), map);
       return this.loadFile(map);
     }
   }
   startWith(string, start) {
-    if (!string) return false;
+    if (!string)
+      return false;
     return string.substr(0, start.length) === start;
   }
   withContent() {
@@ -6345,13 +6555,15 @@ let Input$4 = class Input2 {
       if (map.text) {
         this.map = map;
         let file = map.consumer().file;
-        if (!this.file && file) this.file = this.mapResolve(file);
+        if (!this.file && file)
+          this.file = this.mapResolve(file);
       }
     }
     if (!this.file) {
       this.id = "<input css " + nanoid(6) + ">";
     }
-    if (this.map) this.map.file = this.from;
+    if (this.map)
+      this.map.file = this.from;
   }
   error(message, line, column, opts = {}) {
     let result2, endLine, endColumn;
@@ -6453,10 +6665,12 @@ let Input$4 = class Input2 {
     return resolve$1(this.map.consumer().sourceRoot || this.map.root || ".", file);
   }
   origin(line, column, endLine, endColumn) {
-    if (!this.map) return false;
+    if (!this.map)
+      return false;
     let consumer = this.map.consumer();
     let from = consumer.originalPositionFor({ column, line });
-    if (!from.source) return false;
+    if (!from.source)
+      return false;
     let to;
     if (typeof endLine === "number") {
       to = consumer.originalPositionFor({ column: endColumn, line: endLine });
@@ -6485,7 +6699,8 @@ let Input$4 = class Input2 {
       }
     }
     let source = consumer.sourceContentFor(from.source);
-    if (source) result2.source = source;
+    if (source)
+      result2.source = source;
     return result2;
   }
   toJSON() {
@@ -6543,7 +6758,8 @@ let MapGenerator$2 = class MapGenerator2 {
       content = this.outputFile() + ".map";
     }
     let eol = "\n";
-    if (this.css.includes("\r\n")) eol = "\r\n";
+    if (this.css.includes("\r\n"))
+      eol = "\r\n";
     this.css += eol + "/*# sourceMappingURL=" + content + " */";
   }
   applyPrevMaps() {
@@ -6563,12 +6779,14 @@ let MapGenerator$2 = class MapGenerator2 {
     }
   }
   clearAnnotation() {
-    if (this.mapOpts.annotation === false) return;
+    if (this.mapOpts.annotation === false)
+      return;
     if (this.root) {
       let node2;
       for (let i2 = this.root.nodes.length - 1; i2 >= 0; i2--) {
         node2 = this.root.nodes[i2];
-        if (node2.type !== "comment") continue;
+        if (node2.type !== "comment")
+          continue;
         if (node2.text.indexOf("# sourceMappingURL=") === 0) {
           this.root.removeChild(i2);
         }
@@ -6609,9 +6827,12 @@ let MapGenerator$2 = class MapGenerator2 {
         source: this.opts.from ? this.toUrl(this.path(this.opts.from)) : "<no source>"
       });
     }
-    if (this.isSourcesContent()) this.setSourcesContent();
-    if (this.root && this.previous().length > 0) this.applyPrevMaps();
-    if (this.isAnnotation()) this.addAnnotation();
+    if (this.isSourcesContent())
+      this.setSourcesContent();
+    if (this.root && this.previous().length > 0)
+      this.applyPrevMaps();
+    if (this.isAnnotation())
+      this.addAnnotation();
     if (this.isInline()) {
       return [this.css];
     } else {
@@ -6731,11 +6952,15 @@ let MapGenerator$2 = class MapGenerator2 {
     }
   }
   path(file) {
-    if (this.mapOpts.absolute) return file;
-    if (file.charCodeAt(0) === 60) return file;
-    if (/^\w+:\/\//.test(file)) return file;
+    if (this.mapOpts.absolute)
+      return file;
+    if (file.charCodeAt(0) === 60)
+      return file;
+    if (/^\w+:\/\//.test(file))
+      return file;
     let cached = this.memoizedPaths.get(file);
-    if (cached) return cached;
+    if (cached)
+      return cached;
     let from = this.opts.to ? dirname(this.opts.to) : ".";
     if (typeof this.mapOpts.annotation === "string") {
       from = dirname(resolve(from, this.mapOpts.annotation));
@@ -6758,7 +6983,8 @@ let MapGenerator$2 = class MapGenerator2 {
         });
       } else {
         let input2 = new Input$3(this.originalCSS, this.opts);
-        if (input2.map) this.previousMaps.push(input2.map);
+        if (input2.map)
+          this.previousMaps.push(input2.map);
       }
     }
     return this.previousMaps;
@@ -6799,7 +7025,8 @@ let MapGenerator$2 = class MapGenerator2 {
   }
   toFileUrl(path) {
     let cached = this.memoizedFileURLs.get(path);
-    if (cached) return cached;
+    if (cached)
+      return cached;
     if (pathToFileURL) {
       let fileURL = pathToFileURL(path).toString();
       this.memoizedFileURLs.set(path, fileURL);
@@ -6812,7 +7039,8 @@ let MapGenerator$2 = class MapGenerator2 {
   }
   toUrl(path) {
     let cached = this.memoizedURLs.get(path);
-    if (cached) return cached;
+    if (cached)
+      return cached;
     if (sep === "\\") {
       path = path.replace(/\\/g, "/");
     }
@@ -6841,7 +7069,8 @@ let AtRule$4;
 let Root$6;
 function cleanSource(nodes) {
   return nodes.map((i2) => {
-    if (i2.nodes) i2.nodes = cleanSource(i2.nodes);
+    if (i2.nodes)
+      i2.nodes = cleanSource(i2.nodes);
     delete i2.source;
     return i2;
   });
@@ -6858,7 +7087,8 @@ let Container$7 = class Container2 extends Node$2 {
   append(...children) {
     for (let child of children) {
       let nodes = this.normalize(child, this.last);
-      for (let node2 of nodes) this.proxyOf.nodes.push(node2);
+      for (let node2 of nodes)
+        this.proxyOf.nodes.push(node2);
     }
     this.markDirty();
     return this;
@@ -6866,17 +7096,20 @@ let Container$7 = class Container2 extends Node$2 {
   cleanRaws(keepBetween) {
     super.cleanRaws(keepBetween);
     if (this.nodes) {
-      for (let node2 of this.nodes) node2.cleanRaws(keepBetween);
+      for (let node2 of this.nodes)
+        node2.cleanRaws(keepBetween);
     }
   }
   each(callback) {
-    if (!this.proxyOf.nodes) return void 0;
+    if (!this.proxyOf.nodes)
+      return void 0;
     let iterator = this.getIterator();
     let index2, result2;
     while (this.indexes[iterator] < this.proxyOf.nodes.length) {
       index2 = this.indexes[iterator];
       result2 = callback(this.proxyOf.nodes[index2], index2);
-      if (result2 === false) break;
+      if (result2 === false)
+        break;
       this.indexes[iterator] += 1;
     }
     delete this.indexes[iterator];
@@ -6886,8 +7119,10 @@ let Container$7 = class Container2 extends Node$2 {
     return this.nodes.every(condition);
   }
   getIterator() {
-    if (!this.lastEach) this.lastEach = 0;
-    if (!this.indexes) this.indexes = {};
+    if (!this.lastEach)
+      this.lastEach = 0;
+    if (!this.indexes)
+      this.indexes = {};
     this.lastEach += 1;
     let iterator = this.lastEach;
     this.indexes[iterator] = 0;
@@ -6929,7 +7164,8 @@ let Container$7 = class Container2 extends Node$2 {
         }
       },
       set(node2, prop, value) {
-        if (node2[prop] === value) return true;
+        if (node2[prop] === value)
+          return true;
         node2[prop] = value;
         if (prop === "name" || prop === "params" || prop === "selector") {
           node2.markDirty();
@@ -6939,15 +7175,18 @@ let Container$7 = class Container2 extends Node$2 {
     };
   }
   index(child) {
-    if (typeof child === "number") return child;
-    if (child.proxyOf) child = child.proxyOf;
+    if (typeof child === "number")
+      return child;
+    if (child.proxyOf)
+      child = child.proxyOf;
     return this.proxyOf.nodes.indexOf(child);
   }
   insertAfter(exist, add) {
     let existIndex = this.index(exist);
     let nodes = this.normalize(add, this.proxyOf.nodes[existIndex]).reverse();
     existIndex = this.index(exist);
-    for (let node2 of nodes) this.proxyOf.nodes.splice(existIndex + 1, 0, node2);
+    for (let node2 of nodes)
+      this.proxyOf.nodes.splice(existIndex + 1, 0, node2);
     let index2;
     for (let id in this.indexes) {
       index2 = this.indexes[id];
@@ -6963,7 +7202,8 @@ let Container$7 = class Container2 extends Node$2 {
     let type = existIndex === 0 ? "prepend" : false;
     let nodes = this.normalize(add, this.proxyOf.nodes[existIndex], type).reverse();
     existIndex = this.index(exist);
-    for (let node2 of nodes) this.proxyOf.nodes.splice(existIndex, 0, node2);
+    for (let node2 of nodes)
+      this.proxyOf.nodes.splice(existIndex, 0, node2);
     let index2;
     for (let id in this.indexes) {
       index2 = this.indexes[id];
@@ -6982,12 +7222,14 @@ let Container$7 = class Container2 extends Node$2 {
     } else if (Array.isArray(nodes)) {
       nodes = nodes.slice(0);
       for (let i2 of nodes) {
-        if (i2.parent) i2.parent.removeChild(i2, "ignore");
+        if (i2.parent)
+          i2.parent.removeChild(i2, "ignore");
       }
     } else if (nodes.type === "root" && this.type !== "document") {
       nodes = nodes.nodes.slice(0);
       for (let i2 of nodes) {
-        if (i2.parent) i2.parent.removeChild(i2, "ignore");
+        if (i2.parent)
+          i2.parent.removeChild(i2, "ignore");
       }
     } else if (nodes.type) {
       nodes = [nodes];
@@ -7008,10 +7250,13 @@ let Container$7 = class Container2 extends Node$2 {
       throw new Error("Unknown node type in node creation");
     }
     let processed = nodes.map((i2) => {
-      if (!i2[my$1]) Container2.rebuild(i2);
+      if (!i2[my$1])
+        Container2.rebuild(i2);
       i2 = i2.proxyOf;
-      if (i2.parent) i2.parent.removeChild(i2);
-      if (i2[isClean$1]) markDirtyUp(i2);
+      if (i2.parent)
+        i2.parent.removeChild(i2);
+      if (i2[isClean$1])
+        markDirtyUp(i2);
       if (typeof i2.raws.before === "undefined") {
         if (sample && typeof sample.raws.before !== "undefined") {
           i2.raws.before = sample.raws.before.replace(/\S/g, "");
@@ -7026,7 +7271,8 @@ let Container$7 = class Container2 extends Node$2 {
     children = children.reverse();
     for (let child of children) {
       let nodes = this.normalize(child, this.first, "prepend").reverse();
-      for (let node2 of nodes) this.proxyOf.nodes.unshift(node2);
+      for (let node2 of nodes)
+        this.proxyOf.nodes.unshift(node2);
       for (let id in this.indexes) {
         this.indexes[id] = this.indexes[id] + nodes.length;
       }
@@ -7040,7 +7286,8 @@ let Container$7 = class Container2 extends Node$2 {
     return this;
   }
   removeAll() {
-    for (let node2 of this.proxyOf.nodes) node2.parent = void 0;
+    for (let node2 of this.proxyOf.nodes)
+      node2.parent = void 0;
     this.proxyOf.nodes = [];
     this.markDirty();
     return this;
@@ -7065,8 +7312,10 @@ let Container$7 = class Container2 extends Node$2 {
       opts = {};
     }
     this.walkDecls((decl) => {
-      if (opts.props && !opts.props.includes(decl.prop)) return;
-      if (opts.fast && !decl.value.includes(opts.fast)) return;
+      if (opts.props && !opts.props.includes(decl.prop))
+        return;
+      if (opts.fast && !decl.value.includes(opts.fast))
+        return;
       decl.value = decl.value.replace(pattern, callback);
     });
     this.markDirty();
@@ -7163,11 +7412,13 @@ let Container$7 = class Container2 extends Node$2 {
     });
   }
   get first() {
-    if (!this.proxyOf.nodes) return void 0;
+    if (!this.proxyOf.nodes)
+      return void 0;
     return this.proxyOf.nodes[0];
   }
   get last() {
-    if (!this.proxyOf.nodes) return void 0;
+    if (!this.proxyOf.nodes)
+      return void 0;
     return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
   }
 };
@@ -7229,7 +7480,8 @@ var document$1 = Document$3;
 Document$3.default = Document$3;
 let printed = {};
 var warnOnce$2 = function warnOnce2(message) {
-  if (printed[message]) return;
+  if (printed[message])
+    return;
   printed[message] = true;
   if (typeof console !== "undefined" && console.warn) {
     console.warn(message);
@@ -7246,7 +7498,8 @@ let Warning$2 = class Warning2 {
       this.endLine = range.end.line;
       this.endColumn = range.end.column;
     }
-    for (let opt in opts) this[opt] = opts[opt];
+    for (let opt in opts)
+      this[opt] = opts[opt];
   }
   toString() {
     if (this.node) {
@@ -7338,8 +7591,10 @@ var tokenize = function tokenizer2(input2, options = {}) {
     return returned.length === 0 && pos >= length;
   }
   function nextToken(opts) {
-    if (returned.length) return returned.pop();
-    if (pos >= length) return;
+    if (returned.length)
+      return returned.pop();
+    if (pos >= length)
+      return;
     let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
     code = css.charCodeAt(pos);
     switch (code) {
@@ -7511,11 +7766,13 @@ let AtRule$3 = class AtRule2 extends Container$5 {
     this.type = "atrule";
   }
   append(...children) {
-    if (!this.proxyOf.nodes) this.nodes = [];
+    if (!this.proxyOf.nodes)
+      this.nodes = [];
     return super.append(...children);
   }
   prepend(...children) {
-    if (!this.proxyOf.nodes) this.nodes = [];
+    if (!this.proxyOf.nodes)
+      this.nodes = [];
     return super.prepend(...children);
   }
 };
@@ -7529,7 +7786,8 @@ let Root$5 = class Root2 extends Container$4 {
   constructor(defaults) {
     super(defaults);
     this.type = "root";
-    if (!this.nodes) this.nodes = [];
+    if (!this.nodes)
+      this.nodes = [];
   }
   normalize(child, sample, type) {
     let nodes = super.normalize(child);
@@ -7600,19 +7858,23 @@ let list$2 = {
       } else if (letter === "(") {
         func += 1;
       } else if (letter === ")") {
-        if (func > 0) func -= 1;
+        if (func > 0)
+          func -= 1;
       } else if (func === 0) {
-        if (separators.includes(letter)) split = true;
+        if (separators.includes(letter))
+          split = true;
       }
       if (split) {
-        if (current !== "") array.push(current.trim());
+        if (current !== "")
+          array.push(current.trim());
         current = "";
         split = false;
       } else {
         current += letter;
       }
     }
-    if (last || current !== "") array.push(current.trim());
+    if (last || current !== "")
+      array.push(current.trim());
     return array;
   }
 };
@@ -7624,7 +7886,8 @@ let Rule$3 = class Rule2 extends Container$3 {
   constructor(defaults) {
     super(defaults);
     this.type = "rule";
-    if (!this.nodes) this.nodes = [];
+    if (!this.nodes)
+      this.nodes = [];
   }
   get selectors() {
     return list$1.comma(this.selector);
@@ -7652,7 +7915,8 @@ function findLastWithPosition(tokens) {
   for (let i2 = tokens.length - 1; i2 >= 0; i2--) {
     let token = tokens[i2];
     let pos = token[3] || token[2];
-    if (pos) return pos;
+    if (pos)
+      return pos;
   }
 }
 let Parser$1 = class Parser2 {
@@ -7745,14 +8009,16 @@ let Parser$1 = class Parser2 {
   }
   checkMissedSemicolon(tokens) {
     let colon = this.colon(tokens);
-    if (colon === false) return;
+    if (colon === false)
+      return;
     let founded = 0;
     let token;
     for (let j = colon - 1; j >= 0; j--) {
       token = tokens[j];
       if (token[0] !== "space") {
         founded += 1;
-        if (founded === 2) break;
+        if (founded === 2)
+          break;
       }
     }
     throw this.input.error(
@@ -7818,7 +8084,8 @@ let Parser$1 = class Parser2 {
     );
     node2.source.end.offset++;
     while (tokens[0][0] !== "word") {
-      if (tokens.length === 1) this.unknownWord(tokens);
+      if (tokens.length === 1)
+        this.unknownWord(tokens);
       node2.raws.before += tokens.shift()[1];
     }
     node2.source.start = this.getPosition(tokens[0][2]);
@@ -7852,7 +8119,8 @@ let Parser$1 = class Parser2 {
     let next;
     while (tokens.length) {
       next = tokens[0][0];
-      if (next !== "space" && next !== "comment") break;
+      if (next !== "space" && next !== "comment")
+        break;
       firstSpaces.push(tokens.shift());
     }
     this.precheckMissedSemicolon(tokens);
@@ -7862,7 +8130,8 @@ let Parser$1 = class Parser2 {
         node2.important = true;
         let string = this.stringFrom(tokens, i2);
         string = this.spacesFromEnd(tokens) + string;
-        if (string !== " !important") node2.raws.important = string;
+        if (string !== " !important")
+          node2.raws.important = string;
         break;
       } else if (token[1].toLowerCase() === "important") {
         let cache = tokens.slice(0);
@@ -7924,7 +8193,8 @@ let Parser$1 = class Parser2 {
     }
   }
   endFile() {
-    if (this.current.parent) this.unclosedBlock();
+    if (this.current.parent)
+      this.unclosedBlock();
     if (this.current.nodes && this.current.nodes.length) {
       this.current.raws.semicolon = this.semicolon;
     }
@@ -7958,7 +8228,8 @@ let Parser$1 = class Parser2 {
     };
     node2.raws.before = this.spaces;
     this.spaces = "";
-    if (node2.type !== "comment") this.semicolon = false;
+    if (node2.type !== "comment")
+      this.semicolon = false;
   }
   other(start) {
     let end = false;
@@ -7973,10 +8244,12 @@ let Parser$1 = class Parser2 {
       type = token[0];
       tokens.push(token);
       if (type === "(" || type === "[") {
-        if (!bracket) bracket = token;
+        if (!bracket)
+          bracket = token;
         brackets.push(type === "(" ? ")" : "]");
       } else if (customProperty && colon && type === "{") {
-        if (!bracket) bracket = token;
+        if (!bracket)
+          bracket = token;
         brackets.push("}");
       } else if (brackets.length === 0) {
         if (type === ";") {
@@ -7998,17 +8271,21 @@ let Parser$1 = class Parser2 {
         }
       } else if (type === brackets[brackets.length - 1]) {
         brackets.pop();
-        if (brackets.length === 0) bracket = null;
+        if (brackets.length === 0)
+          bracket = null;
       }
       token = this.tokenizer.nextToken();
     }
-    if (this.tokenizer.endOfFile()) end = true;
-    if (brackets.length > 0) this.unclosedBracket(bracket);
+    if (this.tokenizer.endOfFile())
+      end = true;
+    if (brackets.length > 0)
+      this.unclosedBracket(bracket);
     if (end && colon) {
       if (!customProperty) {
         while (tokens.length) {
           token = tokens[tokens.length - 1][0];
-          if (token !== "space" && token !== "comment") break;
+          if (token !== "space" && token !== "comment")
+            break;
           this.tokenizer.back(tokens.pop());
         }
       }
@@ -8095,7 +8372,8 @@ let Parser$1 = class Parser2 {
     let spaces = "";
     while (tokens.length) {
       lastTokenType = tokens[tokens.length - 1][0];
-      if (lastTokenType !== "space" && lastTokenType !== "comment") break;
+      if (lastTokenType !== "space" && lastTokenType !== "comment")
+        break;
       spaces = tokens.pop()[1] + spaces;
     }
     return spaces;
@@ -8106,7 +8384,8 @@ let Parser$1 = class Parser2 {
     let spaces = "";
     while (tokens.length) {
       next = tokens[0][0];
-      if (next !== "space" && next !== "comment") break;
+      if (next !== "space" && next !== "comment")
+        break;
       spaces += tokens.shift()[1];
     }
     return spaces;
@@ -8116,7 +8395,8 @@ let Parser$1 = class Parser2 {
     let spaces = "";
     while (tokens.length) {
       lastTokenType = tokens[tokens.length - 1][0];
-      if (lastTokenType !== "space") break;
+      if (lastTokenType !== "space")
+        break;
       spaces = tokens.pop()[1] + spaces;
     }
     return spaces;
@@ -8278,7 +8558,8 @@ function toStack(node2) {
 }
 function cleanMarks(node2) {
   node2[isClean] = false;
-  if (node2.nodes) node2.nodes.forEach((i2) => cleanMarks(i2));
+  if (node2.nodes)
+    node2.nodes.forEach((i2) => cleanMarks(i2));
   return node2;
 }
 let postcss$2 = {};
@@ -8292,15 +8573,20 @@ let LazyResult$2 = class LazyResult2 {
     } else if (css instanceof LazyResult2 || css instanceof Result$2) {
       root2 = cleanMarks(css.root);
       if (css.map) {
-        if (typeof opts.map === "undefined") opts.map = {};
-        if (!opts.map.inline) opts.map.inline = false;
+        if (typeof opts.map === "undefined")
+          opts.map = {};
+        if (!opts.map.inline)
+          opts.map.inline = false;
         opts.map.prev = css.map;
       }
     } else {
       let parser2 = parse$2;
-      if (opts.syntax) parser2 = opts.syntax.parse;
-      if (opts.parser) parser2 = opts.parser;
-      if (parser2.parse) parser2 = parser2.parse;
+      if (opts.syntax)
+        parser2 = opts.syntax.parse;
+      if (opts.parser)
+        parser2 = opts.parser;
+      if (parser2.parse)
+        parser2 = parser2.parse;
       try {
         root2 = parser2(css, opts);
       } catch (error) {
@@ -8322,8 +8608,10 @@ let LazyResult$2 = class LazyResult2 {
     });
   }
   async() {
-    if (this.error) return Promise.reject(this.error);
-    if (this.processed) return Promise.resolve(this.result);
+    if (this.error)
+      return Promise.reject(this.error);
+    if (this.processed)
+      return Promise.resolve(this.result);
     if (!this.processing) {
       this.processing = this.runAsync();
     }
@@ -8341,7 +8629,8 @@ let LazyResult$2 = class LazyResult2 {
   handleError(error, node2) {
     let plugin22 = this.result.lastPlugin;
     try {
-      if (node2) node2.addToError(error);
+      if (node2)
+        node2.addToError(error);
       this.error = error;
       if (error.name === "CssSyntaxError" && !error.plugin) {
         error.plugin = plugin22.postcssPlugin;
@@ -8361,14 +8650,16 @@ let LazyResult$2 = class LazyResult2 {
         }
       }
     } catch (err) {
-      if (console && console.error) console.error(err);
+      if (console && console.error)
+        console.error(err);
     }
     return error;
   }
   prepareVisitors() {
     this.listeners = {};
     let add = (plugin22, type, cb) => {
-      if (!this.listeners[type]) this.listeners[type] = [];
+      if (!this.listeners[type])
+        this.listeners[type] = [];
       this.listeners[type].push([plugin22, cb]);
     };
     for (let plugin22 of this.plugins) {
@@ -8475,15 +8766,20 @@ let LazyResult$2 = class LazyResult2 {
     }
   }
   stringify() {
-    if (this.error) throw this.error;
-    if (this.stringified) return this.result;
+    if (this.error)
+      throw this.error;
+    if (this.stringified)
+      return this.result;
     this.stringified = true;
     this.sync();
     let opts = this.result.opts;
     let str = stringify$2;
-    if (opts.syntax) str = opts.syntax.stringify;
-    if (opts.stringifier) str = opts.stringifier;
-    if (str.stringify) str = str.stringify;
+    if (opts.syntax)
+      str = opts.syntax.stringify;
+    if (opts.stringifier)
+      str = opts.stringifier;
+    if (str.stringify)
+      str = str.stringify;
     let map = new MapGenerator$1(str, this.result.root, this.result.opts);
     let data = map.generate();
     this.result.css = data[0];
@@ -8491,8 +8787,10 @@ let LazyResult$2 = class LazyResult2 {
     return this.result;
   }
   sync() {
-    if (this.error) throw this.error;
-    if (this.processed) return this.result;
+    if (this.error)
+      throw this.error;
+    if (this.processed)
+      return this.result;
     this.processed = true;
     if (this.processing) {
       throw this.getAsyncError();
@@ -8611,13 +8909,15 @@ let LazyResult$2 = class LazyResult2 {
       if (event === CHILDREN) {
         if (node2.nodes) {
           node2.each((child) => {
-            if (!child[isClean]) this.walkSync(child);
+            if (!child[isClean])
+              this.walkSync(child);
           });
         }
       } else {
         let visitors = this.listeners[event];
         if (visitors) {
-          if (this.visitSync(visitors, node2.toProxy())) return;
+          if (this.visitSync(visitors, node2.toProxy()))
+            return;
         }
       }
     }
@@ -8695,7 +8995,8 @@ let NoWorkResult$1 = class NoWorkResult2 {
     }
   }
   async() {
-    if (this.error) return Promise.reject(this.error);
+    if (this.error)
+      return Promise.reject(this.error);
     return Promise.resolve(this.result);
   }
   catch(onRejected) {
@@ -8705,7 +9006,8 @@ let NoWorkResult$1 = class NoWorkResult2 {
     return this.async().then(onFinally, onFinally);
   }
   sync() {
-    if (this.error) throw this.error;
+    if (this.error)
+      throw this.error;
     return this.result;
   }
   then(onFulfilled, onRejected) {
@@ -8825,7 +9127,8 @@ let Input$1 = input;
 let Root$1 = root;
 let Rule$1 = rule;
 function fromJSON$1(json, inputs) {
-  if (Array.isArray(json)) return json.map((n2) => fromJSON$1(n2));
+  if (Array.isArray(json))
+    return json.map((n2) => fromJSON$1(n2));
   let _a2 = json, { inputs: ownInputs } = _a2, defaults = __objRest(_a2, ["inputs"]);
   if (ownInputs) {
     inputs = [];
@@ -8911,7 +9214,8 @@ postcss.plugin = function plugin2(name, initializer) {
   let cache;
   Object.defineProperty(creator, "postcss", {
     get() {
-      if (!cache) cache = creator();
+      if (!cache)
+        cache = creator();
       return cache;
     }
   });
@@ -8997,11 +9301,15 @@ class BaseRRNode {
     return childNodes2;
   }
   contains(node2) {
-    if (!(node2 instanceof BaseRRNode)) return false;
-    else if (node2.ownerDocument !== this.ownerDocument) return false;
-    else if (node2 === this) return true;
+    if (!(node2 instanceof BaseRRNode))
+      return false;
+    else if (node2.ownerDocument !== this.ownerDocument)
+      return false;
+    else if (node2 === this)
+      return true;
     while (node2.parentNode) {
-      if (node2.parentNode === this) return true;
+      if (node2.parentNode === this)
+        return true;
       node2 = node2.parentNode;
     }
     return false;
@@ -9079,10 +9387,12 @@ function getUntaintedPrototype(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win) return defaultObj.prototype;
+    if (!win)
+      return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject) return defaultPrototype;
+    if (!untaintedObject)
+      return defaultPrototype;
     return untaintedBasePrototype[key] = untaintedObject;
   } catch (e) {
     return defaultPrototype;
@@ -9101,7 +9411,8 @@ function getUntaintedAccessor(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor) return instance[accessor];
+  if (!untaintedAccessor)
+    return instance[accessor];
   untaintedAccessorCache[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -9114,7 +9425,8 @@ function getUntaintedMethod(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function") return instance[method];
+  if (typeof untaintedMethod !== "function")
+    return instance[method];
   untaintedMethodCache[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -9137,14 +9449,16 @@ function getRootNode(n2) {
   return getUntaintedMethod("Node", n2, "getRootNode")();
 }
 function host(n2) {
-  if (!n2 || !("host" in n2)) return null;
+  if (!n2 || !("host" in n2))
+    return null;
   return getUntaintedAccessor("ShadowRoot", n2, "host");
 }
 function styleSheets(n2) {
   return n2.styleSheets;
 }
 function shadowRoot(n2) {
-  if (!n2 || !("shadowRoot" in n2)) return null;
+  if (!n2 || !("shadowRoot" in n2))
+    return null;
   return getUntaintedAccessor("Element", n2, "shadowRoot");
 }
 function querySelector(n2, selectors) {
@@ -9352,16 +9666,21 @@ function isBlocked(node2, blockClass, blockSelector, checkAncestors) {
   }
   try {
     if (typeof blockClass === "string") {
-      if (el.classList.contains(blockClass)) return true;
-      if (checkAncestors && el.closest("." + blockClass) !== null) return true;
+      if (el.classList.contains(blockClass))
+        return true;
+      if (checkAncestors && el.closest("." + blockClass) !== null)
+        return true;
     } else {
-      if (classMatchesRegex(el, blockClass, checkAncestors)) return true;
+      if (classMatchesRegex(el, blockClass, checkAncestors))
+        return true;
     }
   } catch (e2) {
   }
   if (blockSelector) {
-    if (el.matches(blockSelector)) return true;
-    if (checkAncestors && el.closest(blockSelector) !== null) return true;
+    if (el.matches(blockSelector))
+      return true;
+    if (checkAncestors && el.closest(blockSelector) !== null)
+      return true;
   }
   return false;
 }
@@ -9411,7 +9730,8 @@ function isSerializedStylesheet(n2, mirror2) {
   );
 }
 function hasShadowRoot(n2) {
-  if (!n2) return false;
+  if (!n2)
+    return false;
   if (n2 instanceof BaseRRNode && "shadowRoot" in n2) {
     return Boolean(n2.shadowRoot);
   }
@@ -9434,11 +9754,13 @@ class StyleSheetMirror {
    * @returns If the stylesheet is in the mirror, returns the id of the stylesheet. If not, return the new assigned id.
    */
   add(stylesheet, id) {
-    if (this.has(stylesheet)) return this.getId(stylesheet);
+    if (this.has(stylesheet))
+      return this.getId(stylesheet);
     let newId;
     if (id === void 0) {
       newId = this.id++;
-    } else newId = id;
+    } else
+      newId = id;
     this.styleIDMap.set(stylesheet, newId);
     this.idStyleMap.set(newId, stylesheet);
     return newId;
@@ -9471,13 +9793,15 @@ function getRootShadowHost(n2) {
 }
 function shadowHostInDom(n2) {
   const doc = n2.ownerDocument;
-  if (!doc) return false;
+  if (!doc)
+    return false;
   const shadowHost = getRootShadowHost(n2);
   return index.contains(doc, shadowHost);
 }
 function inDom(n2) {
   const doc = n2.ownerDocument;
-  if (!doc) return false;
+  if (!doc)
+    return false;
   return index.contains(doc, n2) || shadowHostInDom(n2);
 }
 var EventType = /* @__PURE__ */ ((EventType2) => {
@@ -9798,7 +10122,8 @@ class MutationBuffer {
             if (_node) {
               const parentId = this.mirror.getId(index.parentNode(_node.value));
               const nextId = getNextId(_node.value);
-              if (nextId === -1) continue;
+              if (nextId === -1)
+                continue;
               else if (parentId !== -1) {
                 node2 = _node;
                 break;
@@ -10107,8 +10432,10 @@ class MutationBuffer {
             if (this.addedSet.has(n2)) {
               deepDelete(this.addedSet, n2);
               this.droppedSet.add(n2);
-            } else if (this.addedSet.has(m.target) && nodeId === -1) ;
-            else if (isAncestorRemoved(m.target, this.mirror)) ;
+            } else if (this.addedSet.has(m.target) && nodeId === -1)
+              ;
+            else if (isAncestorRemoved(m.target, this.mirror))
+              ;
             else if (this.movedSet.has(n2) && this.movedMap[moveKey(nodeId, parentId)]) {
               deepDelete(this.movedSet, n2);
             } else {
@@ -10126,8 +10453,10 @@ class MutationBuffer {
       }
     });
     __publicField(this, "genAdds", (n2, target) => {
-      if (this.processedNodeManager.inOtherBuffer(n2, this)) return;
-      if (this.addedSet.has(n2) || this.movedSet.has(n2)) return;
+      if (this.processedNodeManager.inOtherBuffer(n2, this))
+        return;
+      if (this.addedSet.has(n2) || this.movedSet.has(n2))
+        return;
       if (this.mirror.hasNode(n2)) {
         if (isIgnored(n2, this.mirror, this.slimDOMOptions)) {
           return;
@@ -10223,23 +10552,27 @@ function processRemoves(n2, cache) {
   const queue = [n2];
   while (queue.length) {
     const next = queue.pop();
-    if (cache.has(next)) continue;
+    if (cache.has(next))
+      continue;
     cache.add(next);
     index.childNodes(next).forEach((n22) => queue.push(n22));
   }
   return;
 }
 function isParentRemoved(removes, n2, mirror2) {
-  if (removes.size === 0) return false;
+  if (removes.size === 0)
+    return false;
   return _isParentRemoved(removes, n2);
 }
 function _isParentRemoved(removes, n2, _mirror2) {
   const node2 = index.parentNode(n2);
-  if (!node2) return false;
+  if (!node2)
+    return false;
   return removes.has(node2);
 }
 function isAncestorInSet(set, n2) {
-  if (set.size === 0) return false;
+  if (set.size === 0)
+    return false;
   return _isAncestorInSet(set, n2);
 }
 function _isAncestorInSet(set, n2) {
@@ -10413,7 +10746,8 @@ function initMouseInteractionObserver({
           } else if (MouseInteractions[eventKey] === MouseInteractions.MouseUp) {
             thisEventKey = "TouchEnd";
           }
-        } else if (pointerType === PointerTypes.Pen) ;
+        } else if (pointerType === PointerTypes.Pen)
+          ;
       } else if (legacy_isTouchEvent(event)) {
         pointerType = PointerTypes.Touch;
       }
@@ -10675,9 +11009,12 @@ function getNestedCSSRulePositions(rule2) {
 }
 function getIdAndStyleId(sheet, mirror2, styleMirror) {
   let id, styleId;
-  if (!sheet) return {};
-  if (sheet.ownerNode) id = mirror2.getId(sheet.ownerNode);
-  else styleId = styleMirror.getId(sheet);
+  if (!sheet)
+    return {};
+  if (sheet.ownerNode)
+    id = mirror2.getId(sheet.ownerNode);
+  else
+    styleId = styleMirror.getId(sheet);
   return {
     styleId,
     id
@@ -10882,8 +11219,10 @@ function initAdoptedStyleSheetObserver({
 }, host2) {
   var _a2, _b, _c;
   let hostId = null;
-  if (host2.nodeName === "#document") hostId = mirror2.getId(host2);
-  else hostId = mirror2.getId(index.host(host2));
+  if (host2.nodeName === "#document")
+    hostId = mirror2.getId(host2);
+  else
+    hostId = mirror2.getId(index.host(host2));
   const patchTarget = host2.nodeName === "#document" ? (_a2 = host2.defaultView) == null ? void 0 : _a2.Document : (_c = (_b = host2.ownerDocument) == null ? void 0 : _b.defaultView) == null ? void 0 : _c.ShadowRoot;
   const originalPropertyDescriptor = (patchTarget == null ? void 0 : patchTarget.prototype) ? Object.getOwnPropertyDescriptor(
     patchTarget == null ? void 0 : patchTarget.prototype,
@@ -11084,7 +11423,8 @@ function initSelectionObserver(param) {
   let collapsed = true;
   const updateSelection = callbackWrapper(() => {
     const selection = doc.getSelection();
-    if (!selection || collapsed && (selection == null ? void 0 : selection.isCollapsed)) return;
+    if (!selection || collapsed && (selection == null ? void 0 : selection.isCollapsed))
+      return;
     collapsed = selection.isCollapsed || false;
     const ranges = [];
     const count = selection.rangeCount || 0;
@@ -11092,7 +11432,8 @@ function initSelectionObserver(param) {
       const range = selection.getRangeAt(i2);
       const { startContainer, startOffset, endContainer, endOffset } = range;
       const blocked = isBlocked(startContainer, blockClass, blockSelector, true) || isBlocked(endContainer, blockClass, blockSelector, true);
-      if (blocked) continue;
+      if (blocked)
+        continue;
       ranges.push({
         start: mirror2.getId(startContainer),
         startOffset,
@@ -11110,8 +11451,9 @@ function initCustomElementObserver({
   customElementCb
 }) {
   const win = doc.defaultView;
-  if (!win || !win.customElements) return () => {
-  };
+  if (!win || !win.customElements)
+    return () => {
+    };
   const restoreHandler = patch(
     win.customElements,
     "define",
@@ -11333,9 +11675,11 @@ class CrossOriginIframeMirror {
   }
   getRemoteId(iframe, id, map) {
     const remoteIdToIdMap = map || this.getRemoteIdToIdMap(iframe);
-    if (typeof id !== "number") return id;
+    if (typeof id !== "number")
+      return id;
     const remoteId = remoteIdToIdMap.get(id);
-    if (!remoteId) return -1;
+    if (!remoteId)
+      return -1;
     return remoteId;
   }
   getRemoteIds(iframe, ids) {
@@ -11436,9 +11780,11 @@ class IframeManager {
     crossOriginMessageEvent.origin !== crossOriginMessageEvent.data.origin)
       return;
     const iframeSourceWindow = message.source;
-    if (!iframeSourceWindow) return;
+    if (!iframeSourceWindow)
+      return;
     const iframeEl = this.crossOriginIframeMap.get(message.source);
-    if (!iframeEl) return;
+    if (!iframeEl)
+      return;
     const transformedEvent = this.transformCrossOriginEvent(
       iframeEl,
       crossOriginMessageEvent.data.event
@@ -11567,7 +11913,8 @@ class IframeManager {
   }
   replace(iframeMirror, obj, iframeEl, keys) {
     for (const key of keys) {
-      if (!Array.isArray(obj[key]) && typeof obj[key] !== "number") continue;
+      if (!Array.isArray(obj[key]) && typeof obj[key] !== "number")
+        continue;
       if (Array.isArray(obj[key])) {
         obj[key] = iframeMirror.getIds(
           iframeEl,
@@ -11594,7 +11941,8 @@ class IframeManager {
     }
   }
   patchRootIdOnNode(node2, rootId) {
-    if (node2.type !== NodeType.Document && !node2.rootId) node2.rootId = rootId;
+    if (node2.type !== NodeType.Document && !node2.rootId)
+      node2.rootId = rootId;
     if ("childNodes" in node2) {
       node2.childNodes.forEach((child) => {
         this.patchRootIdOnNode(child, rootId);
@@ -11621,8 +11969,10 @@ class ShadowDomManager {
     this.patchAttachShadow(Element, document);
   }
   addShadowRoot(shadowRoot2, doc) {
-    if (!isNativeShadowDom(shadowRoot2)) return;
-    if (this.shadowDoms.has(shadowRoot2)) return;
+    if (!isNativeShadowDom(shadowRoot2))
+      return;
+    if (this.shadowDoms.has(shadowRoot2))
+      return;
     this.shadowDoms.add(shadowRoot2);
     const observer = initMutationObserver(
       __spreadProps(__spreadValues({}, this.bypassOptions), {
@@ -11664,7 +12014,8 @@ class ShadowDomManager {
    * Monkey patch 'attachShadow' of an IFrameElement to observe newly added shadow doms.
    */
   observeAttachShadow(iframeElement) {
-    if (!iframeElement.contentWindow || !iframeElement.contentDocument) return;
+    if (!iframeElement.contentWindow || !iframeElement.contentDocument)
+      return;
     this.patchAttachShadow(
       iframeElement.contentWindow.Element,
       iframeElement.contentDocument
@@ -11901,7 +12252,8 @@ function initCanvasContextObserver(win, blockClass, blockSelector, setPreserveDr
         return function(contextType, ...args) {
           if (!isBlocked(this, blockClass, blockSelector, true)) {
             const ctxName = getNormalizedContextName(contextType);
-            if (!("__context" in this)) this.__context = ctxName;
+            if (!("__context" in this))
+              this.__context = ctxName;
             if (setPreserveDrawingBufferToTrue && ["webgl", "webgl2"].includes(ctxName)) {
               if (args[0] && typeof args[0] === "object") {
                 const contextAttributes = args[0];
@@ -12018,7 +12370,8 @@ function WorkerWrapper(options) {
   let objURL;
   try {
     objURL = blob && (window.URL || window.webkitURL).createObjectURL(blob);
-    if (!objURL) throw "";
+    if (!objURL)
+      throw "";
     const worker = new Worker(objURL, {
       name: options == null ? void 0 : options.name
     });
@@ -12100,7 +12453,8 @@ class CanvasManager {
     worker.onmessage = (e2) => {
       const { id } = e2.data;
       snapshotInProgressMap.set(id, false);
-      if (!("base64" in e2.data)) return;
+      if (!("base64" in e2.data))
+        return;
       const { base64, type, width, height } = e2.data;
       this.mutationCb({
         id,
@@ -12153,8 +12507,10 @@ class CanvasManager {
       getCanvas().forEach(async (canvas) => {
         var _a2;
         const id = this.mirror.getId(canvas);
-        if (snapshotInProgressMap.get(id)) return;
-        if (canvas.width === 0 || canvas.height === 0) return;
+        if (snapshotInProgressMap.get(id))
+          return;
+        if (canvas.width === 0 || canvas.height === 0)
+          return;
         snapshotInProgressMap.set(id, true);
         if (["webgl", "webgl2"].includes(canvas.__context)) {
           const context = canvas.getContext(canvas.__context);
@@ -12233,7 +12589,8 @@ class CanvasManager {
       return;
     }
     const valuesWithType = this.pendingCanvasMutations.get(canvas);
-    if (!valuesWithType || id === -1) return;
+    if (!valuesWithType || id === -1)
+      return;
     const values = valuesWithType.map((value) => {
       const _a2 = value, { type: type2 } = _a2, rest = __objRest(_a2, ["type"]);
       return rest;
@@ -12268,12 +12625,14 @@ class StylesheetManager {
     this.trackLinkElement(linkEl);
   }
   trackLinkElement(linkEl) {
-    if (this.trackedLinkElements.has(linkEl)) return;
+    if (this.trackedLinkElements.has(linkEl))
+      return;
     this.trackedLinkElements.add(linkEl);
     this.trackStylesheetInLinkElement(linkEl);
   }
   adoptStyleSheets(sheets, hostId) {
-    if (sheets.length === 0) return;
+    if (sheets.length === 0)
+      return;
     const adoptedStyleSheetData = {
       id: hostId,
       styleIds: []
@@ -12290,10 +12649,12 @@ class StylesheetManager {
             index: index2
           }))
         });
-      } else styleId = this.styleMirror.getId(sheet);
+      } else
+        styleId = this.styleMirror.getId(sheet);
       adoptedStyleSheetData.styleIds.push(styleId);
     }
-    if (styles.length > 0) adoptedStyleSheetData.styles = styles;
+    if (styles.length > 0)
+      adoptedStyleSheetData.styles = styles;
     this.adoptedStyleSheetCb(adoptedStyleSheetData);
   }
   reset() {
@@ -12472,7 +12833,8 @@ class VisibilityManager {
     this.startPendingFlushLoop();
   }
   startPendingFlushLoop() {
-    if (this.disabled) return;
+    if (this.disabled)
+      return;
     const loop = (timestamp) => {
       if (timestamp - this.lastFlushTime >= this.rafThrottle) {
         this.lastFlushTime = timestamp;
@@ -12483,8 +12845,10 @@ class VisibilityManager {
     this.rafId = requestAnimationFrame(loop);
   }
   flushPendingVisibilityMutations() {
-    if (this.disabled) return;
-    if (this.frozen || this.locked || this.elements.size === 0) return;
+    if (this.disabled)
+      return;
+    if (this.frozen || this.locked || this.elements.size === 0)
+      return;
     const state = computeVisibility(this.elements, this.previousState, {
       root: this.root,
       threshold: this.threshold,
@@ -12530,17 +12894,20 @@ class VisibilityManager {
   }
   flushBuffer() {
     var _a2;
-    if (this.buffer.size === 0) return;
+    if (this.buffer.size === 0)
+      return;
     (_a2 = this.notifyActivity) == null ? void 0 : _a2.call(this, this.buffer.size);
     this.mutationCb({ mutations: Array.from(this.buffer.values()) });
     this.buffer.clear();
   }
   observe(el) {
-    if (this.disabled) return;
+    if (this.disabled)
+      return;
     this.elements.add(el);
   }
   unobserve(el) {
-    if (this.disabled) return;
+    if (this.disabled)
+      return;
     this.elements.delete(el);
     this.previousState.delete(el);
     this.pending.delete(el);
@@ -12561,7 +12928,8 @@ class VisibilityManager {
     this.elements.clear();
     this.previousState.clear();
     this.pending.clear();
-    if (this.rafId) cancelAnimationFrame(this.rafId);
+    if (this.rafId)
+      cancelAnimationFrame(this.rafId);
   }
 }
 let wrappedEmit;
@@ -12571,6 +12939,36 @@ let visibilityManager;
 let recording = false;
 const customEventQueue = [];
 let flushCustomEventQueue;
+function waitForDOMStabilization(win) {
+  const maxWaitMs = 5e3;
+  return new Promise((resolve2) => {
+    const captureAfterPaint = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          resolve2();
+        });
+      });
+    };
+    const safeResolve = /* @__PURE__ */ (() => {
+      let called = false;
+      return () => {
+        if (!called) {
+          called = true;
+          captureAfterPaint();
+        }
+      };
+    })();
+    if (["interactive", "complete"].includes(win.document.readyState)) {
+      safeResolve();
+    } else {
+      win.addEventListener("DOMContentLoaded", safeResolve, { once: true });
+      win.addEventListener("load", safeResolve, { once: true });
+      setTimeout(() => {
+        safeResolve();
+      }, maxWaitMs);
+    }
+  });
+}
 try {
   if (Array.from([1], (x2) => x2 * 2)[0] !== 2) {
     const cleanFrame = document.createElement("iframe");
@@ -13048,8 +13446,28 @@ function record(options = {}) {
         flushCustomEventQueue();
       }
     };
+    const runInit = async () => {
+      if (flushCustomEvent === "before") {
+        flushCustomEventQueue();
+      }
+      if (recordAfter === "DOMContentStabilized") {
+        console.log(`[rrweb] \u{1F7E2} Waiting for DOM stabilization...`);
+        await waitForDOMStabilization(window);
+        console.log(`[rrweb] \u2705 DOM stabilized, starting recording`);
+      }
+      takeFullSnapshot$1();
+      handlers.push(observe(document));
+      recording = true;
+      if (flushCustomEvent === "after") {
+        flushCustomEventQueue();
+      }
+    };
     if (document.readyState === "interactive" || document.readyState === "complete") {
-      init();
+      if (recordAfter === "DOMContentStabilized") {
+        void runInit();
+      } else {
+        init();
+      }
     } else {
       handlers.push(
         on("DOMContentLoaded", () => {
@@ -13057,7 +13475,9 @@ function record(options = {}) {
             type: EventType.DomContentLoaded,
             data: {}
           });
-          if (recordAfter === "DOMContentLoaded") init();
+          if (recordAfter === "DOMContentLoaded" || recordAfter === "DOMContentStabilized") {
+            void runInit();
+          }
         })
       );
       handlers.push(
@@ -13068,7 +13488,8 @@ function record(options = {}) {
               type: EventType.Load,
               data: {}
             });
-            if (recordAfter === "load") init();
+            if (recordAfter === "load")
+              void runInit();
           },
           window
         )
@@ -13085,6 +13506,7 @@ function record(options = {}) {
     console.warn(error);
   }
 }
+record.isRecording = () => recording;
 record.flushCustomEventQueue = () => {
   console.warn(`[rrweb] CustomEvent flushing: ${customEventQueue.length} events`);
   flushCustomEventQueue();

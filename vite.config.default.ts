@@ -139,9 +139,7 @@ export default function (
       minify: false,
 
       sourcemap: true,
-      // rollupOptions: {
-      //   external: ['fs', 'path', 'os'],
-      // },
+
       // rollupOptions: {
       //   output: {
       //     manualChunks: {},

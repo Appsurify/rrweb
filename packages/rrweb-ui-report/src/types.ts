@@ -5,6 +5,8 @@ import type {
     incrementalData,
     metaEvent,
     fullSnapshotEvent,
+    visibilityMutationData,
+    mutationData,
 } from '@appsurify-testmap/rrweb-types';
 
 import {
@@ -151,6 +153,8 @@ export type {
     serializedNodeWithId,
     elementNode,
     incrementalData,
+    visibilityMutationData,
+    mutationData,
     metaEvent,
     fullSnapshotEvent
 }

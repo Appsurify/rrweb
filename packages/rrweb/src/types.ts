@@ -73,7 +73,7 @@ export type recordOptions<T> = {
   recordDOM?: boolean;
   recordCanvas?: boolean;
   recordCrossOriginIframes?: boolean;
-  recordAfter?: 'DOMContentLoaded' | 'load';
+  recordAfter?: 'DOMContentLoaded' | 'load' | 'DOMContentStabilized';
   flushCustomEvent?: 'before' | 'after';
   userTriggeredOnInput?: boolean;
   collectFonts?: boolean;

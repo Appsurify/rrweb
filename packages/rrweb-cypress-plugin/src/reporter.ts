@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 import * as path from 'path';
 import * as fs from 'fs';
-import type { TestRunResult } from "./types";
+import type { TestRunResult } from './types';
 import generateReport from '@appsurify-testmap/rrweb-ui-report';
 
 
@@ -46,6 +46,21 @@ export default function registerRRWebReportTasks(on: Cypress.PluginEvents, confi
       fs.mkdirSync(path.dirname(jsonFilePath), { recursive: true });
       fs.writeFileSync(jsonFilePath, JSON.stringify(report, null, 2), 'utf-8');
       console.log(`[ui-coverage] Saved report to ${jsonFilePath}`);
+
+      const jsonFileNameRaw = `${suiteTitle ? suiteTitle + '-' : ''}${testTitle}.raw.json`;
+      const jsonFilePathRaw = path.join(pluginConfig.outputUIReportDir, specName, jsonFileNameRaw);
+      const reportRaw = {
+        events: testRunResult.recorderEvents,
+        metadata: {
+          spec: testRunResult.spec,
+          test: testRunResult.test,
+          browser: testRunResult.browser,
+        }
+      };
+      fs.mkdirSync(pluginConfig.outputUIReportDir, { recursive: true });
+      fs.mkdirSync(path.dirname(jsonFilePathRaw), { recursive: true });
+      fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw, null, 2), 'utf-8');
+      console.log(`[ui-coverage] Saved raw report to ${jsonFilePathRaw}`);
       return null;
     }
   });

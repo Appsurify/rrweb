@@ -1,23 +1,17 @@
 import type {
-  UICoverageAction,
-  UICoveragePageSnapshot,
-  UICoveragePage,
   eventWithTime,
   fullSnapshotEvent,
+  GenerateReportOptions,
   metaEvent,
   serializedNodeWithId,
+  UICoverageAction,
+  UICoveragePage,
+  UICoveragePageSnapshot,
   UICoverageReport,
-  GenerateReportOptions,
-} from './types';
+} from "./types";
 
-import {
-  EventType,
-} from './types';
-
-import {
-  extractElementNodes,
-  extractActionFromSnapshot,
-} from './utils'
+import { extractActionFromSnapshot, extractElementNodes } from "./utils";
+import { EventType } from "@appsurify-testmap/rrweb-types";
 
 function generateReport(
   {
@@ -115,7 +109,36 @@ function createSnapshot(events: eventWithTime[], snapshotIndex: number): UICover
   const fullSnapshot = events.find(e => e.type === EventType.FullSnapshot);
   const fullDom = (fullSnapshot as fullSnapshotEvent)?.data.node;
 
+  // const visibilityMap = new Map<number, boolean>();
+  // for (const event of events) {
+  //   if (
+  //     event.type === EventType.IncrementalSnapshot &&
+  //     event.data.source === IncrementalSource.VisibilityMutation
+  //   ) {
+  //     const mutations = (event.data as unknown as visibilityMutationData).mutations;
+  //     for (const { id, isVisible } of mutations) {
+  //       visibilityMap.set(id, isVisible);
+  //     }
+  //   }
+  // }
+
   const elements = fullDom ? extractElementNodes(fullDom) : [];
+  // for (const event of events) {
+  //   if (
+  //     event.type === EventType.IncrementalSnapshot &&
+  //     event.data.source === IncrementalSource.Mutation
+  //   ) {
+  //     for (const addMutation of event.data.adds) {
+  //       elements.push(addMutation.node);
+  //     }
+  //   }
+  // }
+  // for (const node of elements) {
+  //   const overrideVisibility = visibilityMap.get(node.id);
+  //   if (overrideVisibility !== undefined) {
+  //     node.isVisible = overrideVisibility;
+  //   }
+  // }
   // console.log('snapshot elements#', id, elements.length);
 
   const visibleElements = elements.filter(n => n?.isVisible);

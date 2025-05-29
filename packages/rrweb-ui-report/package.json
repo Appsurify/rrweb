@@ -14,7 +14,8 @@
     "check-types": "tsc -noEmit",
     "prepublish": "npm run build",
     "lint": "yarn eslint src/**/*.ts",
-    "demo": "node ./scripts/convert.js ./tmp/demo.json ./tmp/coverage.json"
+    "demo": "node ./scripts/convert.js ./tmp/demo.json ./tmp/coverage.json",
+    "debug": "node ./scripts/convert.js ./tmp/debug.json ./tmp/coverage-debug.json"
   },
   "bin": {
     "ui-report": "./scripts/convert.js"

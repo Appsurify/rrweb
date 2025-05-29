@@ -160,32 +160,37 @@ export const registerCypressEventListeners = () => {
         // console.debug(`🟡 [${Date.now()}] [cypress] afterEach:testResult:size:`, formatBytes(testRunResultSize));
         // const debugReport = new UICoverageReport(testRunResult);
         // console.debug(`🟡 [${Date.now()}] [cypress] afterEach:testResult:debugReport:`, debugReport.toJSON());
-        cy.task('saveRRWebReport', testRunResult, { log: false });
+
+        try {
+          cy.task('saveRRWebReport', testRunResult, { log: false });
+        } catch (e) {
+          console.error(`🟡 [${Date.now()}] [cypress] afterEach:saveRRWebReport`, e);
+        }
+
 
     });
 
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    Cypress.Commands.overwrite('type', (originalFn, subject, text, options) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        return originalFn(subject, text, options).then(() => {
-            if (Cypress.dom.isElement(subject[0])) {
-                const el = subject[0];
-                if (el) {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            }
-        });
-    });
+    // Cypress.Commands.overwrite('type', (originalFn, subject, text, options) => {
+    //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //     // @ts-expect-error
+    //     return originalFn(subject, text, options).then(() => {
+    //         if (Cypress.dom.isElement(subject[0])) {
+    //             const el = subject[0];
+    //             if (el) {
+    //                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //                 // @ts-expect-error
+    //                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    //                 el.dispatchEvent(new Event('input', { bubbles: true }));
+    //                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //                 // @ts-expect-error
+    //                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    //                 el.dispatchEvent(new Event('change', { bubbles: true }));
+    //             }
+    //         }
+    //     });
+    // });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
@@ -291,7 +296,7 @@ const onWindowBeforeLoad = (win: Cypress.AUTWindow) => {
 const onWindowLoad = (win: Cypress.AUTWindow) => {
     // console.debug(`🟡 [${Date.now()}] [cypress] onWindowLoad`, win);
     recorder.inject(win);
-    // recorder.start();
+    recorder.start();
 
     const currentTest = Cypress.currentTest;
     if (!currentTest) return;
@@ -340,10 +345,11 @@ const onWindowLoad = (win: Cypress.AUTWindow) => {
     });
     };
 
-  // eslint-disable-next-line @typescript-eslint/require-await
+    // eslint-disable-next-line @typescript-eslint/require-await
     void ctx.waitForPaint().then(async () => {
         ctx.paintComplete = true;
-        recorder.start();
+        // recorder.inject(win);
+        // recorder.start();
     });
 };
 
