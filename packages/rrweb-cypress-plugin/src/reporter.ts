@@ -1,26 +1,15 @@
-/// <reference types="cypress" />
 import * as path from 'path';
 import * as fs from 'fs';
 import type { TestRunResult } from './types';
 import generateReport from '@appsurify-testmap/rrweb-ui-report';
-
+import type { TestmapConfigSchema } from './testmap-config';
 
 let pluginConfig: {
   outputUIReportDir: string;
-  includeHtml: boolean;
-  compress: boolean;
-  upload: boolean;
-  uploadUrl: string;
-  projectId: string;
-  apiKey: string;
+  includeRawReport: boolean;
 } = {
-  outputUIReportDir: 'results/ui',
-  includeHtml: false,
-  compress: false,
-  upload: false,
-  uploadUrl: '',
-  projectId: '',
-  apiKey: ''
+  outputUIReportDir: 'test-results/cypress/ui',
+  includeRawReport: false,
 };
 
 function sanitizeFileNamePart(name: string | undefined): string {
@@ -35,7 +24,16 @@ export default function registerRRWebReportTasks(on: Cypress.PluginEvents, confi
   pluginConfig = { ...pluginConfig, ...config };
 
   on('task', {
-    saveRRWebReport(testRunResult: TestRunResult) {
+    saveRRWebReport(reportData: {testRunResult: TestRunResult, config?: TestmapConfigSchema}) {
+      const { testRunResult, config } = reportData;
+      if (config) {
+        pluginConfig.outputUIReportDir = config.outputReportDirectory !== undefined
+          ? config.outputReportDirectory : pluginConfig.outputUIReportDir;
+        pluginConfig.includeRawReport = config.includeRawReport !== undefined
+        ? config.includeRawReport : pluginConfig.includeRawReport;
+      }
+      console.log('REPORTER', pluginConfig);
+      console.log('REPORTER', config);
       const specName = sanitizeFileNamePart(testRunResult.spec.name);
       const suiteTitle = sanitizeFileNamePart(testRunResult.test.suite?.title);
       const testTitle = sanitizeFileNamePart(testRunResult.test.title);
@@ -47,20 +45,23 @@ export default function registerRRWebReportTasks(on: Cypress.PluginEvents, confi
       fs.writeFileSync(jsonFilePath, JSON.stringify(report, null, 2), 'utf-8');
       console.log(`[ui-coverage] Saved report to ${jsonFilePath}`);
 
-      const jsonFileNameRaw = `${suiteTitle ? suiteTitle + '-' : ''}${testTitle}.raw.json`;
-      const jsonFilePathRaw = path.join(pluginConfig.outputUIReportDir, specName, jsonFileNameRaw);
-      const reportRaw = {
-        events: testRunResult.recorderEvents,
-        metadata: {
-          spec: testRunResult.spec,
-          test: testRunResult.test,
-          browser: testRunResult.browser,
-        }
-      };
-      fs.mkdirSync(pluginConfig.outputUIReportDir, { recursive: true });
-      fs.mkdirSync(path.dirname(jsonFilePathRaw), { recursive: true });
-      fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw, null, 2), 'utf-8');
-      console.log(`[ui-coverage] Saved raw report to ${jsonFilePathRaw}`);
+      if (pluginConfig.includeRawReport) {
+        const jsonFileNameRaw = `${suiteTitle ? suiteTitle + '-' : ''}${testTitle}.raw.json`;
+        const jsonFilePathRaw = path.join(pluginConfig.outputUIReportDir, specName, jsonFileNameRaw);
+        const reportRaw = {
+          events: testRunResult.recorderEvents,
+          metadata: {
+            spec: testRunResult.spec,
+            test: testRunResult.test,
+            browser: testRunResult.browser,
+          }
+        };
+        fs.mkdirSync(pluginConfig.outputUIReportDir, { recursive: true });
+        fs.mkdirSync(path.dirname(jsonFilePathRaw), { recursive: true });
+        fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw, null, 2), 'utf-8');
+        console.log(`[ui-coverage] Saved raw report to ${jsonFilePathRaw}`);
+      }
+
       return null;
     }
   });

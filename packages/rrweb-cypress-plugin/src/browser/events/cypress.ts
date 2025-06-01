@@ -5,8 +5,10 @@ import {safeSerializeArray, buildSelector, getTestKey, mapTestRunContextToResult
 import RRWebRecorder from '../../recorder';
 import type {RecorderEvent} from '../../recorder/types';
 import type {TestRunContext} from '../../types';
+import { TestmapConfig } from '../../testmap-config';
 
-const recorder = new RRWebRecorder();
+const testmapConfig = new TestmapConfig()
+const recorder = new RRWebRecorder(testmapConfig.recording);
 
 export const registerCypressEventListeners = () => {
 
@@ -162,7 +164,12 @@ export const registerCypressEventListeners = () => {
         // console.debug(`🟡 [${Date.now()}] [cypress] afterEach:testResult:debugReport:`, debugReport.toJSON());
 
         try {
-          cy.task('saveRRWebReport', testRunResult, { log: false });
+          cy.task('saveRRWebReport', {
+            testRunResult, config: {
+              outputReportDirectory: testmapConfig.outputReportDirectory,
+              includeRawReport: testmapConfig.includeRawReport,
+            }
+          }, { log: false });
         } catch (e) {
           console.error(`🟡 [${Date.now()}] [cypress] afterEach:saveRRWebReport`, e);
         }

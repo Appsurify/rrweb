@@ -6,12 +6,47 @@ import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-seq
 // @ts-ignore
 import rrSrc from './releases/rrweb-record.umd.cjs.src';
 
-import type { RecorderContext, Recorder, RecorderEvent } from './types';
+import type { RecorderContext, Recorder, RecorderEvent, RecordingConfig } from './types';
 
 interface WindowWithRRWeb extends Window {
   rrweb?: {
     record: typeof record | null;
   };
+}
+
+
+const defaultRecordingConfig: RecordingConfig = {
+    checkoutEveryNvm: 10,
+    // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
+    maskInputOptions: { password: true },
+    sampling: {
+      mousemove: false,
+      mouseInteraction: {
+        MouseUp: false,
+        MouseDown: false,
+        Click: true,
+        ContextMenu: true,
+        DblClick: true,
+        Focus: true,
+        Blur: true,
+        TouchStart: false,
+        TouchEnd: false,
+      },
+      scroll: 100,
+      media: 100,
+      input: 'last',
+      canvas: 'all',
+      visibility: {
+        mode: 'debounce',
+        debounce: 50,
+        threshold: 0.5,
+        sensitivity: 0.05,
+        rafThrottle: 50
+      }
+    },
+    flushCustomEvent: 'after',
+    // recordAfter: 'DOMContentStabilized',
+    recordAfter: 'DOMContentLoaded',
 }
 
 export class RRWebRecorder implements Recorder {
@@ -21,13 +56,14 @@ export class RRWebRecorder implements Recorder {
   private context: RecorderContext;
   private eventCounter = 0;
   private events: RecorderEvent[] = [];
-
+  private config?: RecordingConfig;
   private pendingEvents: {
     tag: string;
     payload: Record<string, unknown>;
   }[] = [];
 
-  constructor() {
+  constructor(config?: RecordingConfig) {
+    this.config = { ...defaultRecordingConfig, ...config};
     this.context = {
       pushEvent: (event) => this.events.push(event),
     };
@@ -81,49 +117,19 @@ export class RRWebRecorder implements Recorder {
 
     this.stopFn = this.recordFn({
       emit: (event: RecorderEvent) => this.handleEmit(event),
-      checkoutEveryNvm: 10,
       plugins: [
         getRecordSequentialIdPlugin({
           key: 'id',
           getId: () => ++this.eventCounter,
         }),
       ],
-      // includeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
-      maskInputOptions: { password: true },
       slimDOMOptions: 'all',
       inlineStylesheet: true,
-      sampling: {
-        mousemove: false,
-        mouseInteraction: {
-          MouseUp: false,
-          MouseDown: false,
-          Click: true,
-          ContextMenu: true,
-          DblClick: true,
-          Focus: true,
-          Blur: true,
-          TouchStart: false,
-          TouchEnd: false,
-        },
-        scroll: 100,
-        media: 100,
-        input: 'last',
-        canvas: 'all',
-        visibility: {
-          mode: 'debounce',
-          debounce: 50,
-          threshold: 0.5,
-          sensitivity: 0.05,
-          rafThrottle: 50
-        }
-      },
       recordDOM: true,
       recordCanvas: true,
       collectFonts: true,
       inlineImages: true,
-      flushCustomEvent: 'after',
-      // recordAfter: 'DOMContentStabilized',
-      recordAfter: 'DOMContentLoaded',
+      ...this.config,
     });
 
     this.flush();
