@@ -52,9 +52,6 @@
     },
     {
       "path": "../types"
-    },
-    {
-      "path": "../rrweb-ui-report"
     }
   ]
 }

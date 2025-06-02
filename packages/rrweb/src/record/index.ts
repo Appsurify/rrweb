@@ -54,6 +54,25 @@ let recording = false;
 const customEventQueue: eventWithoutTime[] = [];
 let flushCustomEventQueue!: () => void;
 
+// function waitForDOMStabilization(win: Window, idleMs = 150) {
+//   const root = win.document;
+//   return new Promise<void>((resolve) => {
+//     let last = nowTimestamp();
+//     const ob = new MutationObserver(() => (last = nowTimestamp()));
+//     ob.observe(root, { childList: true, subtree: true, attributes: true });
+//
+//     (function check() {
+//       if (nowTimestamp() - last > idleMs) {
+//         ob.disconnect();
+//         resolve();
+//       } else {
+//         requestAnimationFrame(check);
+//       }
+//     })();
+//   });
+// }
+
+
 function waitForDOMStabilization(win: Window): Promise<void> {
   const maxWaitMs = 5000;
 
@@ -87,6 +106,7 @@ function waitForDOMStabilization(win: Window): Promise<void> {
     }
   });
 }
+
 
 // function waitForDOMStabilization(win: Window): Promise<void> {
 //   const maxWaitMs = 5000;
@@ -743,17 +763,20 @@ function record<T = eventWithTime>(
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const runInit = async () => {
       if (flushCustomEvent === 'before') {
         flushCustomEventQueue();
       }
 
       if (recordAfter === 'DOMContentStabilized') {
-        console.log(`[rrweb] 🟢 Waiting for DOM stabilization...`);
+        console.debug(`[${nowTimestamp()}] [rrweb:record] 🟢 Waiting for DOM stabilization...`);
         await waitForDOMStabilization(window);
-        console.log(`[rrweb] ✅ DOM stabilized, starting recording`);
+        console.debug(`[${nowTimestamp()}] [rrweb:record] ✅ DOM stabilized, starting recording`);
       }
 
+      console.debug(`[${nowTimestamp()}] [rrweb:record] ✅ Init dom and takeFullSnapshot `);
       takeFullSnapshot();
       handlers.push(observe(document));
       recording = true;
@@ -767,13 +790,13 @@ function record<T = eventWithTime>(
       document.readyState === 'interactive' ||
       document.readyState === 'complete'
     ) {
-      // init();
+      init();
       // void runInit();
-      if (recordAfter === 'DOMContentStabilized') {
-        void runInit(); // ждет paint
-      } else {
-        init(); // немедленно
-      }
+      // if (recordAfter === 'DOMContentStabilized') {
+      //   void runInit(); // ждет paint
+      // } else {
+      //   init(); // немедленно
+      // }
     } else {
       handlers.push(
         on('DOMContentLoaded', () => {
@@ -781,10 +804,10 @@ function record<T = eventWithTime>(
             type: EventType.DomContentLoaded,
             data: {},
           });
-          // if (recordAfter === 'DOMContentLoaded') init();
-          if (recordAfter === 'DOMContentLoaded' || recordAfter === 'DOMContentStabilized') {
-            void runInit();
-          }
+          if (recordAfter === 'DOMContentLoaded') init();
+          // if (recordAfter === 'DOMContentLoaded' || recordAfter === 'DOMContentStabilized') {
+          //   void runInit();
+          // }
         }),
       );
       handlers.push(
@@ -795,8 +818,8 @@ function record<T = eventWithTime>(
               type: EventType.Load,
               data: {},
             });
-            // if (recordAfter === 'load') init();
-            if (recordAfter === 'load') void runInit();
+            if (recordAfter === 'load') init();
+            // if (recordAfter === 'load') void runInit();
           },
           window,
         ),

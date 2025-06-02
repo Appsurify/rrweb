@@ -13451,10 +13451,11 @@ function record(options = {}) {
         flushCustomEventQueue();
       }
       if (recordAfter === "DOMContentStabilized") {
-        console.log(`[rrweb] \u{1F7E2} Waiting for DOM stabilization...`);
+        console.debug(`[${nowTimestamp()}] [rrweb:record] \u{1F7E2} Waiting for DOM stabilization...`);
         await waitForDOMStabilization(window);
-        console.log(`[rrweb] \u2705 DOM stabilized, starting recording`);
+        console.debug(`[${nowTimestamp()}] [rrweb:record] \u2705 DOM stabilized, starting recording`);
       }
+      console.debug(`[${nowTimestamp()}] [rrweb:record] \u2705 Init dom and takeFullSnapshot `);
       takeFullSnapshot$1();
       handlers.push(observe(document));
       recording = true;
@@ -13463,11 +13464,7 @@ function record(options = {}) {
       }
     };
     if (document.readyState === "interactive" || document.readyState === "complete") {
-      if (recordAfter === "DOMContentStabilized") {
-        void runInit();
-      } else {
-        init();
-      }
+      init();
     } else {
       handlers.push(
         on("DOMContentLoaded", () => {
@@ -13475,9 +13472,8 @@ function record(options = {}) {
             type: EventType.DomContentLoaded,
             data: {}
           });
-          if (recordAfter === "DOMContentLoaded" || recordAfter === "DOMContentStabilized") {
-            void runInit();
-          }
+          if (recordAfter === "DOMContentLoaded")
+            init();
         })
       );
       handlers.push(
@@ -13489,7 +13485,7 @@ function record(options = {}) {
               data: {}
             });
             if (recordAfter === "load")
-              void runInit();
+              init();
           },
           window
         )

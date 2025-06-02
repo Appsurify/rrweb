@@ -1,4 +1,4 @@
-import type { record } from '@appsurify-testmap/rrweb';
+import type { record, recordOptions } from '@appsurify-testmap/rrweb';
 import type { Mirror } from '@appsurify-testmap/rrweb-snapshot';
 import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-sequential-id-record';
 
@@ -6,7 +6,8 @@ import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-seq
 // @ts-ignore
 import rrSrc from './releases/rrweb-record.umd.cjs.src';
 
-import type { RecorderContext, Recorder, RecorderEvent, RecordingConfig } from './types';
+import type { RecorderContext, Recorder, RecorderEvent } from './types';
+import { eventWithTime } from '@appsurify-testmap/rrweb-types';
 
 interface WindowWithRRWeb extends Window {
   rrweb?: {
@@ -14,8 +15,13 @@ interface WindowWithRRWeb extends Window {
   };
 }
 
-
-const defaultRecordingConfig: RecordingConfig = {
+export const defaultRecordOptions: recordOptions<eventWithTime> = {
+    slimDOMOptions: 'all',
+    inlineStylesheet: true,
+    recordDOM: true,
+    recordCanvas: true,
+    collectFonts: true,
+    inlineImages: true,
     checkoutEveryNvm: 10,
     // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
     maskInputOptions: { password: true },
@@ -49,6 +55,32 @@ const defaultRecordingConfig: RecordingConfig = {
     recordAfter: 'DOMContentLoaded',
 }
 
+function deepMerge<T>(target: T, source: Partial<T>): T {
+  const result = { ...target };
+
+  for (const key in source) {
+    const sourceValue = source[key];
+    const targetValue = target[key];
+
+    if (
+      sourceValue &&
+      typeof sourceValue === 'object' &&
+      !Array.isArray(sourceValue) &&
+      targetValue &&
+      typeof targetValue === 'object' &&
+      !Array.isArray(targetValue)
+    ) {
+      result[key] = deepMerge(targetValue, sourceValue);
+    } else if (sourceValue !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      result[key] = sourceValue as any;
+    }
+  }
+
+  return result;
+}
+
+
 export class RRWebRecorder implements Recorder {
   private recordFn: typeof record | null = null;
   private stopFn: (() => void) | undefined | null = null;
@@ -56,14 +88,14 @@ export class RRWebRecorder implements Recorder {
   private context: RecorderContext;
   private eventCounter = 0;
   private events: RecorderEvent[] = [];
-  private config?: RecordingConfig;
+  private recordOptions?: recordOptions<eventWithTime>;
   private pendingEvents: {
     tag: string;
     payload: Record<string, unknown>;
   }[] = [];
 
-  constructor(config?: RecordingConfig) {
-    this.config = { ...defaultRecordingConfig, ...config};
+  constructor(options?: recordOptions<eventWithTime>) {
+    this.recordOptions = deepMerge(defaultRecordOptions, options ?? {});
     this.context = {
       pushEvent: (event) => this.events.push(event),
     };
@@ -97,7 +129,7 @@ export class RRWebRecorder implements Recorder {
 
     const recheck = (win as WindowWithRRWeb).rrweb;
     if (!recheck || !recheck.record) {
-      console.error(`🟡 [rrweb] Failed to load rrweb.record`);
+      console.error(`[${Date.now()}] [recorder] Failed to load rrweb.record`);
       return;
     }
 
@@ -106,12 +138,12 @@ export class RRWebRecorder implements Recorder {
 
   public start() {
     if (!this.targetWindow || !this.recordFn) {
-      console.warn(`🟡 [rrweb] Not ready to start`);
+      console.debug(`[${Date.now()}] [recorder] Not ready to start`);
       return;
     }
 
     if (this.stopFn) {
-      console.warn(`🟡 [rrweb] Already recording`);
+      console.debug(`[${Date.now()}] [recorder] Already recording`);
       return;
     }
 
@@ -123,13 +155,7 @@ export class RRWebRecorder implements Recorder {
           getId: () => ++this.eventCounter,
         }),
       ],
-      slimDOMOptions: 'all',
-      inlineStylesheet: true,
-      recordDOM: true,
-      recordCanvas: true,
-      collectFonts: true,
-      inlineImages: true,
-      ...this.config,
+      ...this.recordOptions
     });
 
     this.flush();
@@ -159,7 +185,7 @@ export class RRWebRecorder implements Recorder {
       try {
         this.recordFn.addCustomEvent(evt.tag, evt.payload);
       } catch (err) {
-        console.warn(`[rrweb] flush failed for custom event: ${evt.tag}`);
+        console.debug(`[${Date.now()}] [recorder] flush failed for custom event: ${evt.tag}`);
         stillPending.push(evt);
       }
     }
@@ -171,7 +197,7 @@ export class RRWebRecorder implements Recorder {
     const event = { tag, payload };
 
     if (!this.recordFn || !this.stopFn) {
-      console.warn(`[rrweb] queued custom event (recorder not ready): ${tag}`);
+      console.debug(`[${Date.now()}] [recorder] queued custom event (recorder not ready): ${tag}`);
       this.pendingEvents.push(event);
       return;
     }
@@ -179,13 +205,17 @@ export class RRWebRecorder implements Recorder {
     try {
       this.recordFn.addCustomEvent(tag, payload);
     } catch (error) {
-      console.warn(`[rrweb] error adding custom event: ${tag}`, error);
+      console.debug(`[${Date.now()}] [recorder] error adding custom event: ${tag}`, error);
       this.pendingEvents.push(event);
     }
   }
 
   public isRecordingReady(): boolean {
     return !!this.recordFn && !!this.stopFn;
+  }
+
+  public isRecording(): boolean {
+    return this.recordFn?.isRecording() || false;
   }
 
   public getEvents(): readonly RecorderEvent[] {
@@ -203,4 +233,5 @@ export class RRWebRecorder implements Recorder {
   public setEventCounter(value: number) {
     this.eventCounter = value;
   }
+
 }

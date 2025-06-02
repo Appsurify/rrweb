@@ -10,7 +10,7 @@ export interface TestRunContext {
   autWindow: Cypress.AUTWindow | null;
   waitForPaint: () => Promise<unknown>;
   paintComplete: boolean;
-  commandLiveRefs: Map<string, Cypress.CommandQueue>;
+  commandLiveRefs: Map<string, Cypress.CommandQueue | Cypress.EnqueuedCommandAttributes>;
   recorderEvents: RecorderEvent[],
 }
 

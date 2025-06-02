@@ -3,12 +3,19 @@
 import {getCurrentTestContext, setCurrentTestContext} from '../runtime';
 import {safeSerializeArray, buildSelector, getTestKey, mapTestRunContextToResult} from '../utils';
 import RRWebRecorder from '../../recorder';
+import defaultRecordOptions from '../../recorder';
 import type {RecorderEvent} from '../../recorder/types';
 import type {TestRunContext} from '../../types';
-import { TestmapConfig } from '../../testmap-config';
 
-const testmapConfig = new TestmapConfig()
-const recorder = new RRWebRecorder(testmapConfig.recording);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const testmapEnv = Cypress.env('testmap') ?? {};
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const recordingOpts = typeof testmapEnv === 'object' && 'recordingOpts' in testmapEnv
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    ? testmapEnv.recordingOpts
+    : defaultRecordOptions;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+const recorder = new RRWebRecorder(recordingOpts);
 
 export const registerCypressEventListeners = () => {
 
@@ -36,7 +43,8 @@ export const registerCypressEventListeners = () => {
 
 
     afterEach(() => {
-        // console.debug(`🟡 [${Date.now()}] [cypress] afterEach:`);
+        // console.debug(`[${Date.now()}] [cypress] afterEach:`);
+
         const currentTest = Cypress.currentTest;
         if (!currentTest) return;
 
@@ -44,13 +52,14 @@ export const registerCypressEventListeners = () => {
         const ctx = getCurrentTestContext(testKey);
         if (!ctx) return;
 
+        // console.debug(`[${Date.now()}] [cypress] afterEach:`, ctx);
         ctx.recorderEvents.map((event) => {
             if (event.type !== 5 ) return event;
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            const liveCommand = ctx.commandLiveRefs.get(event.data.payload.id);
+            const liveCommand = ctx.commandLiveRefs.get(event.data.payload.id) as Cypress.CommandQueue;
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
@@ -62,33 +71,34 @@ export const registerCypressEventListeners = () => {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             // event.data.payload.args = liveCommand?.get('args');
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call
             event.data.payload.args = safeSerializeArray(liveCommand?.get('args'));
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
             event.data.payload.query = liveCommand?.get('query');
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
             event.data.payload.timeout = liveCommand?.get('timeout');
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
             event.data.payload.name = liveCommand?.get('name');
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
             event.data.payload.type = liveCommand?.get('type');
 
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             if (liveCommand?.get('prev')) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 event.data.payload.prev = {
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
                     state: liveCommand?.get('prev').state,
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
@@ -113,6 +123,7 @@ export const registerCypressEventListeners = () => {
                 };
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             if (liveCommand?.get('next')) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
@@ -145,7 +156,7 @@ export const registerCypressEventListeners = () => {
             }
             return event;
         })
-        console.debug(`🟡 [${Date.now()}] [cypress] afterEach:`, ctx.recorderEvents);
+        console.debug(`[${Date.now()}] [cypress] afterEach:`, ctx.recorderEvents);
 
         // const testRunResult: TestRunResult = {
         //     spec: ctx.spec as unknown as SpecInfo,
@@ -158,22 +169,18 @@ export const registerCypressEventListeners = () => {
 
 
         // const testRunResultSize = getSizeInBytes(testRunResult);
-        // console.debug(`🟡 [${Date.now()}] [cypress] afterEach:testResult:`, testRunResult);
-        // console.debug(`🟡 [${Date.now()}] [cypress] afterEach:testResult:size:`, formatBytes(testRunResultSize));
+        // console.debug(`[${Date.now()}] [cypress] afterEach:testResult:`, testRunResult);
+        // console.debug(`[${Date.now()}] [cypress] afterEach:testResult:size:`, formatBytes(testRunResultSize));
         // const debugReport = new UICoverageReport(testRunResult);
-        // console.debug(`🟡 [${Date.now()}] [cypress] afterEach:testResult:debugReport:`, debugReport.toJSON());
+        // console.debug(`[${Date.now()}] [cypress] afterEach:testResult:debugReport:`, debugReport.toJSON());
 
         try {
           cy.task('saveRRWebReport', {
-            testRunResult, config: {
-              outputReportDirectory: testmapConfig.outputReportDirectory,
-              includeRawReport: testmapConfig.includeRawReport,
-            }
+            testRunResult
           }, { log: false });
         } catch (e) {
-          console.error(`🟡 [${Date.now()}] [cypress] afterEach:saveRRWebReport`, e);
+          console.error(`[${Date.now()}] [cypress] afterEach:saveRRWebReport`, e);
         }
-
 
     });
 
@@ -203,7 +210,7 @@ export const registerCypressEventListeners = () => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onTestBeforeRun = (attributes: Cypress.ObjectLike, test: Mocha.Test) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onTestBeforeRun`, attributes, test);
+    // console.debug(`[${Date.now()}] [cypress] onTestBeforeRun`, attributes, test);
     const testKey = getTestKey(test);
     const testRunContext: TestRunContext = {
         spec: Cypress.spec,
@@ -220,14 +227,14 @@ const onTestBeforeRun = (attributes: Cypress.ObjectLike, test: Mocha.Test) => {
 
     recorder.bind({
         pushEvent: (event) => {
-            console.debug(`🟡 [${Date.now()}] [cypress] pushEvent`, event);
+            console.debug(`[${Date.now()}] [cypress] pushEvent`, event);
             testRunContext.recorderEvents.push(event)
             if (event.type === 5) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                const liveCommand = testRunContext.commandLiveRefs.get(event.data.payload.id);
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                const liveCommand = testRunContext.commandLiveRefs.get(event.data.payload.id) as Cypress.CommandQueue;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
                 const subject = liveCommand?.get('subject')
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
                 const selector = subject?.selector ?? buildSelector(subject);
@@ -253,19 +260,19 @@ const onTestBeforeRun = (attributes: Cypress.ObjectLike, test: Mocha.Test) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onLogAdded = (attributes: Cypress.ObjectLike, log: Cypress.Log) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onLogAdded`, attributes, log);
+    // console.debug(`[${Date.now()}] [cypress] onLogAdded`, attributes, log);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onLogChanged = (attributes: Cypress.ObjectLike, log: Cypress.Log) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onLogChanged`, attributes, log);
+    // console.debug(`[${Date.now()}] [cypress] onLogChanged`, attributes, log);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onWindowBeforeUnload = (event: BeforeUnloadEvent) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onWindowBeforeUnload`, event);
+    // console.debug(`[${Date.now()}] [cypress] onWindowBeforeUnload`, event);
     // try {
     //     recorder.stop();
     // // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -275,7 +282,7 @@ const onWindowBeforeUnload = (event: BeforeUnloadEvent) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onWindowUnload = (event: BeforeUnloadEvent) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onWindowUnload`, event);
+    // console.debug(`[${Date.now()}] [cypress] onWindowUnload`, event);
     try {
         recorder.stop();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -284,7 +291,7 @@ const onWindowUnload = (event: BeforeUnloadEvent) => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onWindowBeforeLoad = (win: Cypress.AUTWindow) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onWindowBeforeLoad`, win);
+    // console.debug(`[${Date.now()}] [cypress] onWindowBeforeLoad`, win);
     recorder.inject(win);
     // recorder.start();
 
@@ -301,9 +308,10 @@ const onWindowBeforeLoad = (win: Cypress.AUTWindow) => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onWindowLoad = (win: Cypress.AUTWindow) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onWindowLoad`, win);
-    recorder.inject(win);
-    recorder.start();
+    console.debug(`[${Date.now()}] [cypress] onWindowLoad`, win);
+    // recorder.inject(win);
+    // recorder.start();
+    // console.debug(`[${Date.now()}] [cypress] onWindowLoad after start`, recorder.isRecording());
 
     const currentTest = Cypress.currentTest;
     if (!currentTest) return;
@@ -318,63 +326,76 @@ const onWindowLoad = (win: Cypress.AUTWindow) => {
     }
 
     ctx.waitForPaint = (value?: unknown): Promise<unknown> => {
-    return new Promise<unknown>((resolve) => {
-    const maxWaitMs = 5000;
+      return new Promise<unknown>((resolve) => {
+      const maxWaitMs = 5000;
 
-    const captureAfterPaint = () => {
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                resolve(value);
-            });
-        });
-    };
+      const captureAfterPaint = () => {
+          requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                  resolve(value);
+              });
+          });
+      };
 
-    const safeResolve = (() => {
-        let called = false;
-        return () => {
-            if (!called) {
-                called = true;
-                captureAfterPaint();
-            }
-        };
-    })();
+      const safeResolve = (() => {
+          let called = false;
+          return () => {
+              if (!called) {
+                  called = true;
+                  captureAfterPaint();
+              }
+          };
+      })();
 
-    if (['interactive', 'complete'].includes(win.document.readyState)) {
-        safeResolve();
-    } else {
-        win.addEventListener('DOMContentLoaded', safeResolve, { once: true });
-        win.addEventListener('load', safeResolve, { once: true });
-        setTimeout(() => {
-            console.warn('⏳ Timeout: forcing resolution');
-            safeResolve();
-        }, maxWaitMs);
-    }
-    });
+      if (['interactive', 'complete'].includes(win.document.readyState)) {
+          safeResolve();
+      } else {
+          win.addEventListener('DOMContentLoaded', safeResolve, { once: true });
+          win.addEventListener('load', safeResolve, { once: true });
+          setTimeout(() => {
+              console.warn('⏳ Timeout: forcing resolution');
+              safeResolve();
+          }, maxWaitMs);
+      }
+      });
     };
 
     // eslint-disable-next-line @typescript-eslint/require-await
     void ctx.waitForPaint().then(async () => {
         ctx.paintComplete = true;
-        // recorder.inject(win);
-        // recorder.start();
+        recorder.inject(win);
+        recorder.start();
     });
+    // console.debug(`[${Date.now()}] [cypress] onWindowLoad after waitForPaint`);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onCommandEnqueued = (command: Cypress.EnqueuedCommandAttributes) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onCommandEnqueued`, command);
+    // console.debug(`[${Date.now()}] [cypress] onCommandEnqueued`, command);
+
+    const currentTest = Cypress.currentTest;
+    if (!currentTest) return;
+
+    const testKey = getTestKey({ titlePath: () => currentTest.titlePath });
+    const ctx = getCurrentTestContext(testKey);
+    if (!ctx) return;
+
+    // Control and store live object
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
+    ctx.commandLiveRefs.set(command.id, command);
+
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onCommandRetry = (command: Cypress.CommandQueue) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onCommandRetry`, command);
+    // console.debug(`[${Date.now()}] [cypress] onCommandRetry`, command);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onCommandStart = (command: Cypress.CommandQueue) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onCommandStart`, command);
+    // console.debug(`[${Date.now()}] [cypress] onCommandStart`, command);
     const currentTest = Cypress.currentTest;
     if (!currentTest) return;
 
@@ -394,39 +415,35 @@ const onCommandStart = (command: Cypress.CommandQueue) => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onCommandEnd = (command: Cypress.CommandQueue) => {
-    console.debug(`🟡 [${Date.now()}] [cypress] onCommandEnd`, command);
+    console.debug(`[${Date.now()}] [cypress] onCommandEnd`, command);
+
+    const currentTest = Cypress.currentTest;
+    if (!currentTest) return;
+
+    const testKey = getTestKey({ titlePath: () => currentTest.titlePath });
+    const ctx = getCurrentTestContext(testKey);
+    if (!ctx) return;
+
+    const waitWindowLoaded = async () => {
+      if (!ctx.paintComplete && typeof ctx.waitForPaint === 'function') {
+        await ctx.waitForPaint();
+        ctx.paintComplete = true;
+      }
+    }
+    void waitWindowLoaded();
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
     recorder.addCustomEvent(`${command.attributes.name}`, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         id: command.attributes.id,
     });
 
-
-    // const currentTest = Cypress.currentTest;
-    // if (!currentTest) return;
-    //
-    // const testKey = getTestKey({ titlePath: () => currentTest.titlePath });
-    // const ctx = getCurrentTestContext(testKey);
-    // if (!ctx) return;
-    //
-    // const waitAndSnapshot = async () => {
-    //     if (typeof ctx.waitForPaint === 'function' && !ctx.paintComplete) {
-    //         console.log(`${Date.now()} [cypress] command:end:waiting for paint...`);
-    //         await ctx.waitForPaint();
-    //         ctx.paintComplete = true;
-    //         // recorder.addCustomEvent(`${command.attributes.name}`, {
-    //         //     id: command.attributes.id,
-    //         // });
-    //         console.log(`${Date.now()} [cypress] command:end:paint complete`);
-    //     }
-    // }
-    // void waitAndSnapshot();
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onCommandFailed = (command: Cypress.CommandQueue, err: unknown) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onCommandFailed`, command);
+    console.debug(`[${Date.now()}] [cypress] onCommandFailed`, command);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
     recorder.addCustomEvent(`${command.attributes.name}`, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -437,18 +454,35 @@ const onCommandFailed = (command: Cypress.CommandQueue, err: unknown) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onSkippedCommandEnd = (command: Cypress.CommandQueue) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onSkippedCommandEnd`, command);
+    console.debug(`[${Date.now()}] [cypress] onSkippedCommandEnd`, command);
+
+    const currentTest = Cypress.currentTest;
+    if (!currentTest) return;
+
+    const testKey = getTestKey({ titlePath: () => currentTest.titlePath });
+    const ctx = getCurrentTestContext(testKey);
+    if (!ctx) return;
+
+    // Control and store live object
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
+    ctx.commandLiveRefs.set(command.attributes.id, command);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
+    recorder.addCustomEvent(`${command.attributes.name}`, {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        id: command.attributes.id,
+    });
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onCommandQueueEnd = () => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onCommandQueueEnd`);
+    // console.debug(`[${Date.now()}] [cypress] onCommandQueueEnd`);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onFail = (error: Cypress.CypressError, mocha: Mocha.Runnable) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onFail`, {error, mocha});
+    // console.debug(`[${Date.now()}] [cypress] onFail`, {error, mocha});
     throw error;
 }
 
@@ -456,14 +490,14 @@ const onFail = (error: Cypress.CypressError, mocha: Mocha.Runnable) => {
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/require-await
 const onTestAfterRun = async (attributes: Cypress.ObjectLike, test: Mocha.Test) => {
-    // console.debug(`🟡 [${Date.now()}] [cypress] onTestAfterRun`, attributes, test);
+    console.debug(`[${Date.now()}] [cypress] onTestAfterRun`, attributes, test);
     recorder.stop();
 
     // const testKey = getTestKey(test);
     // const ctx = getCurrentTestContext(testKey);
     // if (!ctx) return;
     //
-    // console.debug(`🟡 [${Date.now()}] [cypress] onTestAfterRun`, ctx.recorderEvents);
+    // console.debug(`[${Date.now()}] [cypress] onTestAfterRun`, ctx.recorderEvents);
 };
 
 

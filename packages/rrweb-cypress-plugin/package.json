@@ -52,7 +52,6 @@
     "@appsurify-testmap/rrweb": "^2.1.1-alpha.7",
     "@appsurify-testmap/rrweb-plugin-sequential-id-record": "^2.1.1-alpha.7",
     "@appsurify-testmap/rrweb-snapshot": "^2.1.1-alpha.7",
-    "@appsurify-testmap/rrweb-types": "^2.1.1-alpha.7",
-    "@appsurify-testmap/rrweb-ui-report": "^2.1.1-alpha.7"
+    "@appsurify-testmap/rrweb-types": "^2.1.1-alpha.7"
   }
 }
