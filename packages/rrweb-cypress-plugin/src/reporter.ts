@@ -34,6 +34,7 @@ export default function registerRRWebReportTasks(on: Cypress.PluginEvents, confi
         metadata: {
           provider: "cypress",
           spec: testRunResult.spec,
+          suite: testRunResult.test.suite,
           test: testRunResult.test,
           browser: testRunResult.browser,
         }
