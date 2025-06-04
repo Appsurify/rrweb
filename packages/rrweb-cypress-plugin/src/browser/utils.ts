@@ -137,6 +137,7 @@ export function safeInvocationDetails(details?: Partial<TestInfoInvocationDetail
 export function mapTestRunContextToResult(ctx: TestRunContext): TestRunResult {
 
   return {
+    runner: ctx.runner,
     spec: mapSpec(ctx.spec),
     browser: mapBrowser(ctx.browser),
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

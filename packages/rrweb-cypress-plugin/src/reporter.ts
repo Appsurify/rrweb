@@ -5,7 +5,7 @@ import type { TestRunResult } from './types';
 let pluginConfig: {
   outputReportDir: string;
 } = {
-  outputReportDir: 'test-results/cypress/ui',
+  outputReportDir: 'test-results/cypress/ui'
 };
 
 function sanitizeFileNamePart(name: string | undefined): string {
@@ -32,7 +32,7 @@ export default function registerRRWebReportTasks(on: Cypress.PluginEvents, confi
       const reportRaw = {
         events: testRunResult.recorderEvents,
         metadata: {
-          provider: "cypress",
+          runner: testRunResult.runner,
           spec: testRunResult.spec,
           suite: testRunResult.test.suite,
           test: testRunResult.test,

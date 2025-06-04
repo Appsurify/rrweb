@@ -10859,6 +10859,8 @@ function initViewportResizeObserver({ viewportResizeCb }, { win }) {
 }
 const INPUT_TAGS = ["INPUT", "TEXTAREA", "SELECT"];
 const lastInputValueMap = /* @__PURE__ */ new WeakMap();
+const FINALIZING_KEYS = ["Enter", "Tab", "Escape", "ArrowDown", "ArrowUp", "Delete"];
+const lastKeyInputValueMap = /* @__PURE__ */ new WeakMap();
 function initInputObserver({
   inputCb,
   doc,
@@ -10931,6 +10933,22 @@ function initInputObserver({
     const isPhantomCheckbox = el.type === "checkbox" && !v2.userTriggered && !v2.isChecked && !lastInputValue;
     const isPhantomRadio = el.type === "radio" && !v2.userTriggered && !v2.isChecked && !lastInputValue;
     if (isLikelyPhantom || isRenderDrivenTextInput || isValueFromDefault || isPhantomCheckbox || isPhantomRadio) {
+      console.debug(
+        `[${nowTimestamp()}] [rrweb:record/observer] \u26D4 phantom input ignored`,
+        {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+          node: index.describeNode(el),
+          tag: el.tagName,
+          nodeType: el.nodeType,
+          attribute: el.attributes,
+          value: el.value,
+          isLikelyPhantom,
+          isRenderDrivenTextInput,
+          isValueFromDefault,
+          isPhantomCheckbox,
+          isPhantomRadio
+        }
+      );
       return;
     }
     if (!lastInputValue || lastInputValue.text !== v2.text || lastInputValue.isChecked !== v2.isChecked) {
@@ -10944,6 +10962,62 @@ function initInputObserver({
   const events = sampling.input === "last" ? ["change"] : ["input", "change"];
   const handlers = events.map(
     (eventName) => on(eventName, callbackWrapper(eventHandler), doc)
+  );
+  const keyboardHandler = (event) => {
+    const target = getEventTarget(event);
+    if (!target || !target.tagName)
+      return;
+    if (sampling.input === "all") {
+      eventHandler(event);
+      return;
+    }
+    const tag = target.tagName;
+    const key = event.key;
+    const isFinalizingKey = FINALIZING_KEYS.includes(key);
+    const isTextarea = tag === "TEXTAREA";
+    const isFocused = doc.activeElement === target;
+    const valueNow = target.value;
+    const valueBefore = lastKeyInputValueMap.get(target);
+    lastKeyInputValueMap.set(target, valueNow);
+    if (!isFocused) {
+      eventHandler(event);
+      return;
+    }
+    if (isFinalizingKey) {
+      if (!isTextarea) {
+        eventHandler(event);
+        return;
+      }
+      let lastValue = valueBefore != null ? valueBefore : "";
+      let unchangedCount = 0;
+      const REQUIRED_STABLE_FRAMES = 2;
+      const checkFinal = () => {
+        const currentValue = target.value;
+        const stillFocused = doc.activeElement === target;
+        const changed = currentValue !== lastValue;
+        if (!stillFocused) {
+          eventHandler(event);
+          return;
+        }
+        if (!changed) {
+          unchangedCount++;
+          if (unchangedCount >= REQUIRED_STABLE_FRAMES) {
+            eventHandler(event);
+            return;
+          }
+        } else {
+          unchangedCount = 0;
+          lastValue = currentValue;
+        }
+        requestAnimationFrame(checkFinal);
+      };
+      requestAnimationFrame(checkFinal);
+      return;
+    }
+  };
+  handlers.push(
+    on("keydown", callbackWrapper(keyboardHandler), doc)
+    // on('keypress', callbackWrapper(keyboardHandler), doc),
   );
   const currentWindow = doc.defaultView;
   if (!currentWindow) {
@@ -12932,13 +13006,14 @@ class VisibilityManager {
       cancelAnimationFrame(this.rafId);
   }
 }
+const version$1 = "2.1.1-alpha.7";
 let wrappedEmit;
 let takeFullSnapshot$1;
 let canvasManager;
 let visibilityManager;
 let recording = false;
 const customEventQueue = [];
-let flushCustomEventQueue;
+let flushCustomEventQueue$1;
 function waitForDOMStabilization(win) {
   const maxWaitMs = 5e3;
   return new Promise((resolve2) => {
@@ -13303,7 +13378,7 @@ function record(options = {}) {
         mirror.getId(document)
       );
   };
-  flushCustomEventQueue = () => {
+  flushCustomEventQueue$1 = () => {
     for (const e2 of customEventQueue) {
       wrappedEmit(e2);
     }
@@ -13437,18 +13512,18 @@ function record(options = {}) {
     });
     const init = () => {
       if (flushCustomEvent === "before") {
-        flushCustomEventQueue();
+        flushCustomEventQueue$1();
       }
       takeFullSnapshot$1();
       handlers.push(observe(document));
       recording = true;
       if (flushCustomEvent === "after") {
-        flushCustomEventQueue();
+        flushCustomEventQueue$1();
       }
     };
     const runInit = async () => {
       if (flushCustomEvent === "before") {
-        flushCustomEventQueue();
+        flushCustomEventQueue$1();
       }
       if (recordAfter === "DOMContentStabilized") {
         console.debug(`[${nowTimestamp()}] [rrweb:record] \u{1F7E2} Waiting for DOM stabilization...`);
@@ -13460,7 +13535,7 @@ function record(options = {}) {
       handlers.push(observe(document));
       recording = true;
       if (flushCustomEvent === "after") {
-        flushCustomEventQueue();
+        flushCustomEventQueue$1();
       }
     };
     if (document.readyState === "interactive" || document.readyState === "complete") {
@@ -13492,7 +13567,7 @@ function record(options = {}) {
       );
     }
     return () => {
-      flushCustomEventQueue();
+      flushCustomEventQueue$1();
       handlers.forEach((h) => h());
       processedNodeManager.destroy();
       recording = false;
@@ -13502,10 +13577,11 @@ function record(options = {}) {
     console.warn(error);
   }
 }
+record.getVersion = () => version$1;
 record.isRecording = () => recording;
 record.flushCustomEventQueue = () => {
   console.warn(`[rrweb] CustomEvent flushing: ${customEventQueue.length} events`);
-  flushCustomEventQueue();
+  flushCustomEventQueue$1();
 };
 record.addCustomEvent = (tag, payload) => {
   const customEvent = {

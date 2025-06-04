@@ -8,7 +8,7 @@
     "rrweb"
   ],
   "scripts": {
-    "predev": "cp /Users/whenessel/Development/WebstormProjects/appsurify-rrweb/packages/record/dist/rrweb-record.umd.cjs /Users/whenessel/Development/WebstormProjects/appsurify-rrweb/packages/rrweb-cypress-plugin/src/recorder/releases/rrweb-record.umd.cjs.src",
+    "predev": "cp ../record/dist/rrweb-record.umd.cjs ./src/recorder/releases/rrweb-record.umd.cjs.src",
     "dev": "tsup --watch",
     "build": "yarn predev && tsup-node",
     "prepublish": "yarn run build"

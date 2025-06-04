@@ -1,4 +1,5 @@
 import type { record, recordOptions } from '@appsurify-testmap/rrweb';
+import { version as libVersion, utils } from '@appsurify-testmap/rrweb';
 import type { Mirror } from '@appsurify-testmap/rrweb-snapshot';
 import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-sequential-id-record';
 
@@ -8,6 +9,7 @@ import rrSrc from './releases/rrweb-record.umd.cjs.src';
 
 import type { RecorderContext, Recorder, RecorderEvent } from './types';
 import { eventWithTime } from '@appsurify-testmap/rrweb-types';
+
 
 interface WindowWithRRWeb extends Window {
   rrweb?: {
@@ -22,7 +24,7 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
     recordCanvas: true,
     collectFonts: true,
     inlineImages: true,
-    checkoutEveryNvm: 10,
+    // checkoutEveryNvm: 10,
     // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
     maskInputOptions: { password: true },
     sampling: {
@@ -53,6 +55,7 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
     flushCustomEvent: 'after',
     // recordAfter: 'DOMContentStabilized',
     recordAfter: 'DOMContentLoaded',
+    userTriggeredOnInput: true,
 }
 
 function deepMerge<T>(target: T, source: Partial<T>): T {
@@ -80,7 +83,6 @@ function deepMerge<T>(target: T, source: Partial<T>): T {
   return result;
 }
 
-
 export class RRWebRecorder implements Recorder {
   private recordFn: typeof record | null = null;
   private stopFn: (() => void) | undefined | null = null;
@@ -93,6 +95,8 @@ export class RRWebRecorder implements Recorder {
     tag: string;
     payload: Record<string, unknown>;
   }[] = [];
+  private recorderScriptVersion = 'unknown';
+  private recorderLibVersion = libVersion;
 
   constructor(options?: recordOptions<eventWithTime>) {
     this.recordOptions = deepMerge(defaultRecordOptions, options ?? {});
@@ -116,6 +120,42 @@ export class RRWebRecorder implements Recorder {
 
     this.targetWindow = win;
 
+    // const setterHooks = [
+    //   ['value', HTMLInputElement.prototype, 'input'],
+    //   ['checked', HTMLInputElement.prototype, 'change'],
+    //   ['value', HTMLTextAreaElement.prototype, 'input'],
+    //   ['value', HTMLSelectElement.prototype, 'change'],
+    //   ['selectedIndex', HTMLSelectElement.prototype, 'change'],
+    //   ['selected', HTMLOptionElement.prototype, 'change'],
+    // ];
+    //
+    // for (const [prop, proto, eventName] of setterHooks) {
+    //   utils.hookSetter(proto, prop, {
+    //     set(this: HTMLElement, val) {
+    //       setTimeout(() => {
+    //         if (document.contains(this)) {
+    //           this.dispatchEvent(new Event(eventName, { bubbles: true }));
+    //         }
+    //       }, 0);
+    //     },
+    //   });
+    //
+    //   // 🔧 Патч существующих элементов — сразу применим значение, чтобы вызвать setter
+    //   const tagName =
+    //     proto === HTMLInputElement.prototype ? 'input' :
+    //     proto === HTMLTextAreaElement.prototype ? 'textarea' :
+    //     proto === HTMLSelectElement.prototype ? 'select' :
+    //     proto === HTMLOptionElement.prototype ? 'option' : '';
+    //
+    //   if (tagName) {
+    //     const elements = win.document.querySelectorAll(tagName);
+    //     elements.forEach((el) => {
+    //       const currentValue = (el as any)[prop];
+    //       (el as any)[prop] = currentValue; // 🌀 триггер setter
+    //     });
+    //   }
+    // }
+
     if (w.rrweb) {
       this.recordFn = w.rrweb.record ?? null;
       return;
@@ -134,6 +174,8 @@ export class RRWebRecorder implements Recorder {
     }
 
     this.recordFn = recheck.record;
+    // console.debug(`[${Date.now()}] [recorder] Recorder loaded: `, this.recordFn.getVersion());
+    this.recorderScriptVersion = this.recordFn.getVersion();
   }
 
   public start() {
@@ -146,6 +188,7 @@ export class RRWebRecorder implements Recorder {
       console.debug(`[${Date.now()}] [recorder] Already recording`);
       return;
     }
+
 
     this.stopFn = this.recordFn({
       emit: (event: RecorderEvent) => this.handleEmit(event),
@@ -216,6 +259,14 @@ export class RRWebRecorder implements Recorder {
 
   public isRecording(): boolean {
     return this.recordFn?.isRecording() || false;
+  }
+
+  public getScriptVersion(): string {
+    return `@appsurify-testmap/rrweb-record:${this.recorderScriptVersion}`;
+  }
+
+  public getLibVersion(): string {
+    return `@appsurify-testmap/rrweb:${this.recorderLibVersion}`;
   }
 
   public getEvents(): readonly RecorderEvent[] {

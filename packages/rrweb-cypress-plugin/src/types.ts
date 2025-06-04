@@ -2,8 +2,20 @@
 import type { RecorderEvent } from './recorder/types';
 
 
+export type RunnerInfo = Partial<{
+  source: string,
+  type: string,
+  version: string,
+  platform?: string,
+  arch?: string,
+  recorder?: {
+    scriptVersion?: string,
+    libVersion?: string,
+  }
+}>
 
 export interface TestRunContext {
+  runner: RunnerInfo;
   spec: Cypress.Spec;
   test: Mocha.Test;
   browser: Cypress.Browser;
@@ -78,6 +90,7 @@ export type BrowserInfo = {
 }
 
 export type TestRunResult = {
+    runner: RunnerInfo;
     spec: SpecInfo;
     test: TestInfo;
     browser: BrowserInfo;

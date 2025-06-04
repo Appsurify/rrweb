@@ -213,6 +213,18 @@ const onTestBeforeRun = (attributes: Cypress.ObjectLike, test: Mocha.Test) => {
     // console.debug(`[${Date.now()}] [cypress] onTestBeforeRun`, attributes, test);
     const testKey = getTestKey(test);
     const testRunContext: TestRunContext = {
+        runner: {
+          source: 'cypress',
+          type: Cypress.testingType,
+          version: Cypress.version,
+          platform: Cypress.platform,
+          arch: Cypress.arch,
+          recorder: {
+            scriptVersion: recorder.getLibVersion() || 'unknown',
+            libVersion: recorder.getLibVersion() || 'unknown'
+          }
+
+        },
         spec: Cypress.spec,
         test: test,
         browser: Cypress.browser,
@@ -302,6 +314,7 @@ const onWindowBeforeLoad = (win: Cypress.AUTWindow) => {
     const ctx = getCurrentTestContext(testKey);
     if (!ctx) return;
 
+    ctx.runner.recorder!.scriptVersion = recorder.getScriptVersion();
     ctx.autWindow = win;
     ctx.paintComplete = false;
 };
@@ -437,6 +450,7 @@ const onCommandEnd = (command: Cypress.CommandQueue) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         id: command.attributes.id,
     });
+    // void waitWindowLoaded();
 
 };
 
