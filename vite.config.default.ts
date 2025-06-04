@@ -111,7 +111,7 @@ async function buildFile({
 export default function (
   entry: LibraryOptions['entry'],
   name: LibraryOptions['name'],
-  options?: { outputDir?: string; fileName?: string; plugins?: Plugin[] },
+  options?: { outputDir?: string; fileName?: string; plugins?: Plugin[]; define?: Record<string, string>; },
 ) {
   const { fileName, outputDir: outDir = 'dist', plugins = [] } = options || {};
 
@@ -182,5 +182,6 @@ export default function (
       },
       ...plugins,
     ],
+    define: options?.define,
   }));
 }
