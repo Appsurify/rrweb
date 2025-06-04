@@ -134,10 +134,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '~': path.resolve(__dirname, './src'),
-      '@appsurify-testmap/rrweb': path.resolve(__dirname, '../rrweb/src'),
-      '@appsurify-testmap/rrweb-snapshot': path.resolve(__dirname, '../rrweb-snapshot/src'),
-      '@appsurify-testmap/rrweb-types': path.resolve(__dirname, '../types/src'),
-      '@appsurify-testmap/rrweb-utils': path.resolve(__dirname, '../utils/src'),
     },
   },
 });

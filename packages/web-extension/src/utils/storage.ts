@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 import type { Session } from '~/types';
-
+import { version as libVersion } from '@appsurify-testmap/rrweb';
 /**
  * Storage related functions with indexedDB.
  */
@@ -105,7 +105,35 @@ export async function downloadSessions(ids: string[]) {
   for (const sessionId of ids) {
     const events = await getEvents(sessionId);
     const session = await getSession(sessionId);
-    const blob = new Blob([JSON.stringify({ session, events }, null, 2)], {
+    const report = {
+      events: events,
+      session: session,
+      metadata: {
+        runner: {
+          source: 'extension',
+          type: 'manual',
+          version: session.recorderVersion,
+          recorder: {
+            scriptVersion: libVersion,
+            libVersion: libVersion
+          }
+        },
+        spec: {},
+        test: {
+          suite: {
+            title: session.metadata.testSuiteName || 'empty',
+          },
+          title: session.metadata.testCaseName || 'empty',
+          fullTitle: session.metadata.testCaseName || 'empty',
+          duration: events[events.length-1].timestamp - events[0].timestamp,
+        },
+        suite: {
+          title: session.metadata.testSuiteName || 'empty',
+        },
+        browser: session.browser,
+      }
+    }
+    const blob = new Blob([JSON.stringify(report, null, 2)], {
       type: 'application/json',
     });
 
