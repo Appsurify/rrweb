@@ -44,7 +44,7 @@ import type {
 import type ProcessedNodeManager from './record/processed-node-manager';
 import type {
   VisibilityManager
-} from "./record/observers/visibility/visibility-manager";
+} from './record/observers/visibility/visibility-manager';
 
 
 export type recordOptions<T> = {

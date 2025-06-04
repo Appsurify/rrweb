@@ -41,8 +41,10 @@ import {
   registerErrorHandler,
   unregisterErrorHandler,
 } from './error-handler';
-import dom from "@appsurify-testmap/rrweb-utils";
+import dom from '@appsurify-testmap/rrweb-utils';
 
+
+const version = __APP_VERSION__;
 
 let wrappedEmit!: (e: eventWithoutTime, isCheckout?: boolean) => void;
 
@@ -837,6 +839,8 @@ function record<T = eventWithTime>(
     console.warn(error);
   }
 }
+
+record.getVersion = () => version;
 
 record.isRecording = () => recording;
 

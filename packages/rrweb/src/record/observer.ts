@@ -383,6 +383,10 @@ function initViewportResizeObserver(
 
 export const INPUT_TAGS = ['INPUT', 'TEXTAREA', 'SELECT'];
 const lastInputValueMap: WeakMap<EventTarget, inputValue> = new WeakMap();
+
+const FINALIZING_KEYS = ['Enter', 'Tab', 'Escape', 'ArrowDown', 'ArrowUp', 'Delete'];
+const lastKeyInputValueMap: WeakMap<EventTarget, string> = new WeakMap();
+
 function initInputObserver({
   inputCb,
   doc,
@@ -396,10 +400,21 @@ function initInputObserver({
   sampling,
   userTriggeredOnInput,
 }: observerParam): listenerHandler {
+
   function eventHandler(event: Event) {
     let target = getEventTarget(event) as HTMLElement | null;
     const userTriggered = event.isTrusted;
     const tagName = target && target.tagName;
+    // console.debug(
+    //   `[${nowTimestamp()}] [rrweb:record/observer] ⛔ input events`,
+    //   {
+    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+    //     target,
+    //     tagName,
+    //     userTriggered,
+    //
+    //   }
+    // );
 
     /**
      * If a site changes the value 'selected' of an option element, the value of its parent element, usually a select element, will be changed as well.
@@ -467,6 +482,7 @@ function initInputObserver({
         });
     }
   }
+
   function cbWithDedup(target: EventTarget, v: inputValue) {
     const lastInputValue = lastInputValueMap.get(target);
 
@@ -526,6 +542,22 @@ function initInputObserver({
       isPhantomCheckbox ||
       isPhantomRadio
     ) {
+      console.debug(
+        `[${nowTimestamp()}] [rrweb:record/observer] ⛔ phantom input ignored`,
+        {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+          node: dom.describeNode(el),
+          tag: el.tagName,
+          nodeType: el.nodeType,
+          attribute: el.attributes,
+          value: el.value,
+          isLikelyPhantom,
+          isRenderDrivenTextInput,
+          isValueFromDefault,
+          isPhantomCheckbox,
+          isPhantomRadio
+        }
+      );
       return;
     }
 
@@ -542,16 +574,90 @@ function initInputObserver({
       });
     }
   }
+
   const events = sampling.input === 'last' ? ['change'] : ['input', 'change'];
+
   const handlers: Array<listenerHandler | hookResetter> = events.map(
     (eventName) => on(eventName, callbackWrapper(eventHandler), doc),
   );
+
+  const keyboardHandler = (event: KeyboardEvent) => {
+    const target = getEventTarget(event) as HTMLInputElement | HTMLTextAreaElement | null;
+    if (!target || !target.tagName) return;
+
+    if (sampling.input === 'all') {
+      eventHandler(event);
+      return;
+    }
+
+    const tag = target.tagName;
+    const key = event.key;
+    const isFinalizingKey = FINALIZING_KEYS.includes(key);
+    const isTextarea = tag === 'TEXTAREA';
+    const isFocused = doc.activeElement === target;
+
+    const valueNow = target.value;
+    const valueBefore = lastKeyInputValueMap.get(target);
+
+    lastKeyInputValueMap.set(target, valueNow);
+
+    if (!isFocused) {
+      eventHandler(event);
+      return;
+    }
+
+    if (isFinalizingKey) {
+
+      if (!isTextarea) {
+        eventHandler(event);
+        return;
+      }
+
+      let lastValue = valueBefore ?? '';
+      let unchangedCount = 0;
+      const REQUIRED_STABLE_FRAMES = 2;
+
+      const checkFinal = () => {
+
+        const currentValue = target.value;
+        const stillFocused = doc.activeElement === target;
+        const changed = currentValue !== lastValue;
+
+        if (!stillFocused) {
+          eventHandler(event);
+          return;
+        }
+
+        if (!changed) {
+          unchangedCount++;
+          if (unchangedCount >= REQUIRED_STABLE_FRAMES) {
+            eventHandler(event);
+            return;
+          }
+        } else {
+          unchangedCount = 0; // reset because value changed again
+          lastValue = currentValue;
+        }
+        requestAnimationFrame(checkFinal);
+      };
+      requestAnimationFrame(checkFinal);
+      return;
+    }
+
+  };
+
+  handlers.push(
+    on('keydown', callbackWrapper(keyboardHandler), doc),
+    // on('keypress', callbackWrapper(keyboardHandler), doc),
+  );
+
   const currentWindow = doc.defaultView;
   if (!currentWindow) {
     return () => {
       handlers.forEach((h) => h());
     };
   }
+
   const propertyDescriptor = currentWindow.Object.getOwnPropertyDescriptor(
     currentWindow.HTMLInputElement.prototype,
     'value',
@@ -586,6 +692,7 @@ function initInputObserver({
       ),
     );
   }
+
   return callbackWrapper(() => {
     handlers.forEach((h) => h());
   });

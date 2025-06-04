@@ -1,6 +1,7 @@
 import typescript from 'rollup-plugin-typescript2';
 import esbuild from 'rollup-plugin-esbuild';
 import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 import postcss from 'rollup-plugin-postcss';
 import renameNodeModules from 'rollup-plugin-rename-node-modules';
 import webWorkerLoader from 'rollup-plugin-web-worker-loader';
@@ -121,6 +122,10 @@ let configs = [];
 function getPlugins(options = {}) {
   const { minify = false, sourceMap = false } = options;
   return [
+    replace({
+      preventAssignment: true,
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    }),
     resolve({ browser: true }),
     webWorkerLoader({
       targetPlatform: 'browser',
@@ -142,15 +147,17 @@ function getPlugins(options = {}) {
 
 for (const c of baseConfigs) {
   const basePlugins = [
+    replace({
+      preventAssignment: true,
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    }),
     resolve({ browser: true }),
-
     // supports bundling `web-worker:..filename`
     webWorkerLoader({
       targetPlatform: 'browser',
       inline: true,
       preserveSource: true,
     }),
-
     typescript(),
   ];
   const plugins = basePlugins.concat(
@@ -212,6 +219,7 @@ for (const c of baseConfigs) {
   }
 }
 
+console.log('process.env.BROWSER_ONLY', process.env.BROWSER_ONLY);
 if (process.env.BROWSER_ONLY) {
   const browserOnlyBaseConfigs = [
     {
