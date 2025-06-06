@@ -120,42 +120,6 @@ export class RRWebRecorder implements Recorder {
 
     this.targetWindow = win;
 
-    // const setterHooks = [
-    //   ['value', HTMLInputElement.prototype, 'input'],
-    //   ['checked', HTMLInputElement.prototype, 'change'],
-    //   ['value', HTMLTextAreaElement.prototype, 'input'],
-    //   ['value', HTMLSelectElement.prototype, 'change'],
-    //   ['selectedIndex', HTMLSelectElement.prototype, 'change'],
-    //   ['selected', HTMLOptionElement.prototype, 'change'],
-    // ];
-    //
-    // for (const [prop, proto, eventName] of setterHooks) {
-    //   utils.hookSetter(proto, prop, {
-    //     set(this: HTMLElement, val) {
-    //       setTimeout(() => {
-    //         if (document.contains(this)) {
-    //           this.dispatchEvent(new Event(eventName, { bubbles: true }));
-    //         }
-    //       }, 0);
-    //     },
-    //   });
-    //
-    //   // 🔧 Патч существующих элементов — сразу применим значение, чтобы вызвать setter
-    //   const tagName =
-    //     proto === HTMLInputElement.prototype ? 'input' :
-    //     proto === HTMLTextAreaElement.prototype ? 'textarea' :
-    //     proto === HTMLSelectElement.prototype ? 'select' :
-    //     proto === HTMLOptionElement.prototype ? 'option' : '';
-    //
-    //   if (tagName) {
-    //     const elements = win.document.querySelectorAll(tagName);
-    //     elements.forEach((el) => {
-    //       const currentValue = (el as any)[prop];
-    //       (el as any)[prop] = currentValue; // 🌀 триггер setter
-    //     });
-    //   }
-    // }
-
     if (w.rrweb) {
       this.recordFn = w.rrweb.record ?? null;
       return;

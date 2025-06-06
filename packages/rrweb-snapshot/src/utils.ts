@@ -984,15 +984,15 @@ function inspectInlineEventHandlers() {
   });
 }
 
-// Если DOM уже загружен – выполняем инспекцию сразу,
-// иначе – ждем события DOMContentLoaded
-if (
-  document.readyState === 'complete' ||
-  document.readyState === 'interactive'
-) {
-  inspectInlineEventHandlers();
-  // console.info('DOMContentLoaded and inspect called');
-} else {
-  document.addEventListener('DOMContentLoaded', inspectInlineEventHandlers);
-  // console.info('DOMContentLoaded and added handler');
-}
+try {
+  if (
+    document.readyState === 'complete' ||
+    document.readyState === 'interactive'
+  ) {
+    inspectInlineEventHandlers();
+    // console.info('DOMContentLoaded and inspect called');
+  } else {
+    document.addEventListener('DOMContentLoaded', inspectInlineEventHandlers);
+    // console.info('DOMContentLoaded and added handler');
+  }
+} catch (error) { /* empty */ }

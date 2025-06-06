@@ -871,10 +871,13 @@ function inspectInlineEventHandlers$1() {
     });
   });
 }
-if (document.readyState === "complete" || document.readyState === "interactive") {
-  inspectInlineEventHandlers$1();
-} else {
-  document.addEventListener("DOMContentLoaded", inspectInlineEventHandlers$1);
+try {
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    inspectInlineEventHandlers$1();
+  } else {
+    document.addEventListener("DOMContentLoaded", inspectInlineEventHandlers$1);
+  }
+} catch (error) {
 }
 let _id = 1;
 const tagNameRegex = new RegExp("[^a-z0-9-_:]");
@@ -5581,10 +5584,13 @@ function inspectInlineEventHandlers() {
     });
   });
 }
-if (document.readyState === "complete" || document.readyState === "interactive") {
-  inspectInlineEventHandlers();
-} else {
-  document.addEventListener("DOMContentLoaded", inspectInlineEventHandlers);
+try {
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    inspectInlineEventHandlers();
+  } else {
+    document.addEventListener("DOMContentLoaded", inspectInlineEventHandlers);
+  }
+} catch (error) {
 }
 function getDefaultExportFromCjs(x2) {
   return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
@@ -13006,7 +13012,7 @@ class VisibilityManager {
       cancelAnimationFrame(this.rafId);
   }
 }
-const version$1 = "2.1.1-alpha.7";
+const version$1 = "2.1.2-alpha.1";
 let wrappedEmit;
 let takeFullSnapshot$1;
 let canvasManager;
