@@ -13,6 +13,7 @@ export class VisibilityManager {
   private mirror: Mirror;
   private mutationCb: visibilityMutationCallback;
   private rafId: number | null = null;
+  private intervalId: number | null = null;
   private rafThrottle: number;
   private lastFlushTime = 0;
 
@@ -59,7 +60,7 @@ export class VisibilityManager {
     this.throttle = Number(visibilitySampling?.throttle ?? 100);
     this.threshold = Number(visibilitySampling?.threshold ?? 0.5);
     this.sensitivity = Number(visibilitySampling?.sensitivity ?? 0.05);
-    this.rafThrottle =  Number(visibilitySampling?.rafThrottle ?? 100);
+    this.rafThrottle =  Number(visibilitySampling?.rafThrottle ?? 50);
 
     doc.querySelectorAll('*').forEach((el) => this.observe(el));
 
@@ -85,14 +86,25 @@ export class VisibilityManager {
 
   private startPendingFlushLoop() {
     if (this.disabled) return;
-    const loop = (timestamp: number) => {
-      if (timestamp - this.lastFlushTime >= this.rafThrottle) {
-        this.lastFlushTime = timestamp;
-        this.flushPendingVisibilityMutations();
-      }
+    if (typeof requestAnimationFrame === 'function') {
+      const loop = (timestamp: number) => {
+        if (timestamp - this.lastFlushTime >= this.rafThrottle) {
+          this.lastFlushTime = timestamp;
+          this.flushPendingVisibilityMutations();
+        }
+        this.rafId = requestAnimationFrame(loop);
+      };
       this.rafId = requestAnimationFrame(loop);
-    };
-    this.rafId = requestAnimationFrame(loop);
+    } else {
+      const loop = () => {
+        const now = performance.now();
+        if (now - this.lastFlushTime >= this.rafThrottle) {
+          this.lastFlushTime = now;
+          this.flushPendingVisibilityMutations();
+        }
+      };
+      this.intervalId = setInterval(loop, this.rafThrottle) as unknown as number;
+    }
   }
 
   public flushPendingVisibilityMutations() {
@@ -178,6 +190,7 @@ export class VisibilityManager {
 
   public unfreeze() {
     this.frozen = false;
+    this.flushPendingVisibilityMutations();
   }
 
   public lock() {
@@ -192,6 +205,13 @@ export class VisibilityManager {
     this.elements.clear();
     this.previousState.clear();
     this.pending.clear();
-    if (this.rafId) cancelAnimationFrame(this.rafId);
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 }
