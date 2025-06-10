@@ -8,9 +8,9 @@
     "rrweb"
   ],
   "scripts": {
-    "predev": "cp ../record/dist/rrweb-record.umd.cjs ./src/recorder/releases/rrweb-record.umd.cjs.src",
+    "prebuild": "yarn workspace @appsurify-testmap/rrweb-record run build",
     "dev": "tsup --watch",
-    "build": "yarn predev && tsup-node",
+    "build": "yarn prebuild && tsup-node",
     "prepublish": "yarn run build"
   },
   "homepage": "https://github.com/rrweb-io/rrweb/tree/main/packages/@rrweb/utils#readme",
