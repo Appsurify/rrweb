@@ -1,0 +1,49 @@
+{
+  "name": "@appsurify-testmap/rrweb-playwright-plugin",
+  "version": "2.1.2-alpha.5",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "rrweb"
+  ],
+  "scripts": {
+    "prebuild": "yarn workspace @appsurify-testmap/rrweb-record run build && yarn workspace @appsurify-testmap/rrweb-plugin-sequential-id-record run build",
+    "dev": "tsup --watch",
+    "build": "yarn prebuild && tsup-node",
+    "prepublish": "yarn run build"
+  },
+  "homepage": "https://github.com/rrweb-io/rrweb#readme",
+  "bugs": {
+    "url": "https://github.com/rrweb-io/rrweb/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rrweb-io/rrweb.git"
+  },
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@playwright/test": "^1.52.0",
+    "tsup": "^6.6.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@appsurify-testmap/rrweb": "^2.1.2-alpha.5",
+    "@appsurify-testmap/rrweb-plugin-sequential-id-record": "^2.1.2-alpha.5",
+    "@appsurify-testmap/rrweb-snapshot": "^2.1.2-alpha.5",
+    "@appsurify-testmap/rrweb-types": "^2.1.2-alpha.5"
+  }
+}

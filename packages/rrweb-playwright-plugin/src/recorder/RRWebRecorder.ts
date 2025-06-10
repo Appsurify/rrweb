@@ -5,28 +5,21 @@ import type { Page, Frame } from '@playwright/test';
 import type { RecorderContext, RecorderEvent } from './types';
 import { eventWithTime } from '@appsurify-testmap/rrweb-types';
 
-// import rrSrc from './releases/rrweb-record.umd.cjs.src';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { join, dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const rrSrc = readFileSync(join(__dirname, './releases/rrweb-record.umd.cjs.src'), 'utf-8');
-const rrPluginSrc = readFileSync(join(__dirname, './releases/rrweb-plugin-sequential-id-record.umd.cjs.src'), 'utf-8');
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import rrSrc from './releases/rrweb-record.umd.cjs.src';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import rrPluginSrc from './releases/rrweb-plugin-sequential-id-record.umd.cjs.src';
 
 
 export const defaultRecordOptions: recordOptions<eventWithTime> = {
-// export const defaultRecordOptions = {
     slimDOMOptions: 'all',
     inlineStylesheet: true,
     recordDOM: true,
     recordCanvas: true,
     collectFonts: true,
     inlineImages: true,
-    // checkoutEveryNvm: 10,
-    // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
     maskInputOptions: { password: true },
     sampling: {
       mousemove: false,
@@ -54,7 +47,6 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
       }
     },
     flushCustomEvent: 'after',
-    // recordAfter: 'DOMContentStabilized',
     recordAfter: 'DOMContentLoaded',
     userTriggeredOnInput: true,
 }
@@ -101,7 +93,6 @@ export class RRWebRecorder {
   public isRecording: boolean = false;
 
   constructor(options?: recordOptions<eventWithTime>) {
-  // constructor(options?: any) {
     this.recordOptions = deepMerge(defaultRecordOptions, options ?? {});
     this.context = {
       pushEvent: (event) => this.events.push(event),
@@ -203,7 +194,6 @@ export class RRWebRecorder {
         record.addCustomEvent(evt.tag, evt.payload)
       }, event);
     } catch (error) {
-      // console.debug(`[${Date.now()}] [recorder] error adding custom event: ${tag}`, error);
       this.pendingEvents.push(event);
     }
 
