@@ -918,10 +918,8 @@ EventTarget.prototype.addEventListener = function (
 ) {
 
   originalAddEventListener.call(this, type, listener, options);
-  // Если this является элементом, проверяем тип события
   if (this instanceof Element) {
     const eventType = type.toLowerCase();
-    // console.info("Event type: ", eventType);
     if (interactiveEvents.includes(eventType)) {
       interactiveElementsRegistry.add(this);
     }
