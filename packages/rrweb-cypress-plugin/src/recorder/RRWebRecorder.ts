@@ -7,7 +7,7 @@ import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-seq
 // @ts-ignore
 import rrSrc from './releases/rrweb-record.umd.cjs.src';
 
-import type { RecorderContext, Recorder, RecorderEvent } from './types';
+import type { RecorderContext, RecorderEvent } from './types';
 import { eventWithTime } from '@appsurify-testmap/rrweb-types';
 
 
@@ -45,7 +45,7 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
       input: 'last',
       canvas: 'all',
       visibility: {
-        mode: 'debounce',
+        mode: 'none',
         debounce: 50,
         threshold: 0.5,
         sensitivity: 0.05,
@@ -83,7 +83,7 @@ function deepMerge<T>(target: T, source: Partial<T>): T {
   return result;
 }
 
-export class RRWebRecorder implements Recorder {
+export class RRWebRecorder {
   private recordFn: typeof record | null = null;
   private stopFn: (() => void) | undefined | null = null;
   private targetWindow: Window | null = null;
