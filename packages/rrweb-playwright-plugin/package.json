@@ -11,7 +11,8 @@
     "prebuild": "yarn workspace @appsurify-testmap/rrweb-record run build && yarn workspace @appsurify-testmap/rrweb-plugin-sequential-id-record run build",
     "dev": "tsup --watch",
     "build": "yarn prebuild && tsup-node",
-    "prepublish": "yarn run build"
+    "prepublish": "yarn run build",
+    "pack": "npm pack"
   },
   "homepage": "https://github.com/rrweb-io/rrweb#readme",
   "bugs": {
