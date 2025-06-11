@@ -1,5 +1,12 @@
 import type { RecorderEvent } from './recorder/types';
 import RRWebRecorder from './recorder';
+import type { recordOptions } from '@appsurify-testmap/rrweb';
+import type { eventWithTime, RecordPlugin } from '@appsurify-testmap/rrweb-types';
+
+export type TestmapConfig = Partial<{
+  recordingOpts: recordOptions<RecorderEvent>,
+  outputReportDir: string,
+}>
 
 export type RunnerInfo = Partial<{
   source: string,

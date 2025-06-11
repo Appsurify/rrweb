@@ -39,4 +39,9 @@ export default defineConfig({
       },
     },
   ],
+  external: [
+    '@playwright/test',
+    'playwright-core',
+    'chromium-bidi',
+  ],
 });

@@ -1,13 +1,14 @@
-import os from "os";
-import {Browser, TestInfo} from '@playwright/test';
+import os from 'os';
+import path from 'path';
+import fs from 'fs';
+import { Browser, Page, Frame, TestInfo } from '@playwright/test';
 import type { RecorderEvent } from './recorder/types';
 import type { TestRunContext, TestRunResult, SerializedValue } from './types';
-import path from "path";
-import fs from "fs";
+import RRWebRecorder from "./recorder";
 
 const defaultOutputReportDir = 'test-results/playwright/ui';
 
-export async function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: string) {
+export function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: string) {
   const reportDir = outputReportDir !== undefined ? outputReportDir : defaultOutputReportDir;
   const specName = sanitizeFileNamePart(testRunResult.spec.name);
   const suiteTitle = sanitizeFileNamePart(testRunResult.test.suite?.title);
@@ -43,10 +44,10 @@ export function createTestrunContext(browser: Browser, testInfo: TestInfo): Test
   const version = browser.version();
   const family = browserType.name();
 
-  const absolute = testInfo.file!;
+  const absolute = testInfo.file;
   const relative = absolute.replace(process.cwd(), '').replace(/^[/\\]/, '');
   const baseName = relative.split(/[\\/]/).pop() ?? '';
-  const [fileName, fileExtension] = baseName.split(/\.(?=[^\.]+$)/);
+  const [fileName, fileExtension] = baseName.split(/\.(?=[^\\.]+$)/);
 
   const suiteTitlePath = testInfo.titlePath.slice(1, -1); // всё кроме последнего (сам тест)
   const suiteTitle = suiteTitlePath.join(' > ') || 'Root Suite';
@@ -123,6 +124,63 @@ export function createTestrunContext(browser: Browser, testInfo: TestInfo): Test
   return testRunContext
 }
 
+export function deepMerge<T>(target: T, source: Partial<T>): T {
+  const result = { ...target };
+
+  for (const key in source) {
+    const sourceValue = source[key];
+    const targetValue = target[key];
+
+    if (
+      sourceValue &&
+      typeof sourceValue === 'object' &&
+      !Array.isArray(sourceValue) &&
+      targetValue &&
+      typeof targetValue === 'object' &&
+      !Array.isArray(targetValue)
+    ) {
+      result[key] = deepMerge(targetValue, sourceValue);
+    } else if (sourceValue !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      result[key] = sourceValue as unknown;
+    }
+  }
+
+  return result;
+}
+
+export async function waitForRecorderStabilization(recorder: RRWebRecorder, timeout = 500) {
+  const start = Date.now();
+  let lastCount = recorder.getEvents().length;
+
+  return new Promise<void>((resolve) => {
+    const interval = setInterval(() => {
+      const currentCount = recorder.getEvents().length;
+      if (currentCount === lastCount || Date.now() - start > timeout) {
+        clearInterval(interval);
+        resolve();
+      }
+      lastCount = currentCount;
+    }, 50);
+  });
+}
+
+export async function waitForNextRAF(page: Page) {
+  await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => r())));
+}
+
+export async function waitForRAF(
+  pageOrFrame: Page | Frame,
+) {
+  return await pageOrFrame.evaluate(() => {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(resolve);
+      });
+    });
+  });
+}
 
 export function parseSerializedValue(value: SerializedValue, handles: any[] | undefined): any {
   return innerParseSerializedValue(value, handles, new Map(), []);

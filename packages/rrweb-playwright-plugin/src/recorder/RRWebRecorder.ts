@@ -1,9 +1,10 @@
 import type { recordOptions } from '@appsurify-testmap/rrweb';
-import { version as libVersion } from '@appsurify-testmap/rrweb';
+import { record } from '@appsurify-testmap/rrweb';
 import type { Mirror } from '@appsurify-testmap/rrweb-snapshot';
-import type { Page, Frame } from '@playwright/test';
+import type { Page, JSHandle } from '@playwright/test';
 import type { RecorderContext, RecorderEvent } from './types';
-import { eventWithTime } from '@appsurify-testmap/rrweb-types';
+import type { eventWithTime, RecordPlugin } from '@appsurify-testmap/rrweb-types';
+import { deepMerge } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -13,7 +14,7 @@ import rrSrc from './releases/rrweb-record.umd.cjs.src';
 import rrPluginSrc from './releases/rrweb-plugin-sequential-id-record.umd.cjs.src';
 
 
-export const defaultRecordOptions: recordOptions<eventWithTime> = {
+export const defaultRecordOptions: recordOptions<RecorderEvent> = {
     slimDOMOptions: 'all',
     inlineStylesheet: true,
     recordDOM: true,
@@ -51,48 +52,35 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
     userTriggeredOnInput: true,
 }
 
-function deepMerge<T>(target: T, source: Partial<T>): T {
-  const result = { ...target };
-
-  for (const key in source) {
-    const sourceValue = source[key];
-    const targetValue = target[key];
-
-    if (
-      sourceValue &&
-      typeof sourceValue === 'object' &&
-      !Array.isArray(sourceValue) &&
-      targetValue &&
-      typeof targetValue === 'object' &&
-      !Array.isArray(targetValue)
-    ) {
-      result[key] = deepMerge(targetValue, sourceValue);
-    } else if (sourceValue !== undefined) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      result[key] = sourceValue as unknown;
+declare global {
+  interface Window {
+    rrweb?: {
+      record?: typeof record;
+    },
+    stopFn: (() => void) | undefined | null,
+    handleEmit: (event: RecorderEvent) => void,
+    rrwebPluginSequentialIdRecord?: {
+      getRecordSequentialIdPlugin: (options?: Partial<{key: string, getId?: () => number}>) => RecordPlugin;
     }
   }
-
-  return result;
 }
 
 export class RRWebRecorder {
-  private recordFn: any = null;
+  private recordFn: JSHandle | null | undefined = null;
   private page: Page | null = null;
   private context: RecorderContext;
   private eventCounter = 0;
   private events: RecorderEvent[] = [];
-  private recordOptions?: any;
+  private recordOptions?: recordOptions<RecorderEvent>;
   private pendingEvents: {
     tag: string;
     payload: Record<string, unknown>;
   }[] = [];
   private recorderScriptVersion = 'unknown';
   private recorderLibVersion = 'unknown';
-  public isRecording: boolean = false;
+  public isRecording = false;
 
-  constructor(options?: recordOptions<eventWithTime>) {
+  constructor(options?: recordOptions<RecorderEvent>) {
     this.recordOptions = deepMerge(defaultRecordOptions, options ?? {});
     this.context = {
       pushEvent: (event) => this.events.push(event),
@@ -112,8 +100,8 @@ export class RRWebRecorder {
   public async inject(page: Page) {
     this.page = page
 
-    this.page?.addInitScript({content: rrSrc});
-    this.page?.addInitScript({content: rrPluginSrc});
+    await this.page?.addInitScript({content: rrSrc as string});
+    await this.page?.addInitScript({content: rrPluginSrc as string});
 
     await this.page?.exposeFunction('handleEmit', (event: RecorderEvent) => {
       this.handleEmit(event);
@@ -122,27 +110,34 @@ export class RRWebRecorder {
   }
 
   public async start() {
-    this.recordFn = await this.page?.evaluateHandle(() => window.rrweb?.record);
-    await this.recordFn?.evaluate((record, optsJson) => {
-      const opts = JSON.parse(optsJson);
-      window.stopFn = record({
-        emit: (event) => {
-          console.info(`[${event.timestamp}] [rrweb-recorder] ${event.type} ${event.data?.source} ${event.data?.href}`)
-          window.handleEmit?.(event);
-        },
-        plugins: [
+    this.recordFn = await this.page?.evaluateHandle(() => {
+      return window.rrweb?.record;
+    });
+    await this.recordFn?.evaluate((r: typeof record, optsJson) => {
+      const opts = JSON.parse(optsJson) as recordOptions<RecorderEvent>;
+      const plugins = [];
+      if (window.rrwebPluginSequentialIdRecord) {
+        plugins.push(
           window.rrwebPluginSequentialIdRecord.getRecordSequentialIdPlugin({
             key: 'id',
           })
-        ],
+        )
+      }
+
+      window.stopFn = r({
+        emit: (event: RecorderEvent) => {
+          // console.info(`[${event.timestamp}] [rrweb-recorder] ${event.type} ${event.data?.source} ${event.data?.href}`)
+          window.handleEmit?.(event);
+        },
+        plugins: plugins,
         ...opts,
       })
     }, JSON.stringify(this.recordOptions));
 
-    this.isRecording = await this.recordFn?.evaluate(r => r.isRecording());
-    this.recorderScriptVersion = await this.recordFn?.evaluate(r => r.getVersion());
+    this.isRecording = await this.recordFn?.evaluate((r: typeof record) => r.isRecording()) as boolean;
+    this.recorderScriptVersion = await this.recordFn?.evaluate((r: typeof record) => r.getVersion()) as string;
 
-    this.flush();
+    await this.flush();
   }
 
   public async stop() {
@@ -155,10 +150,10 @@ export class RRWebRecorder {
     }
   }
 
-  public reset() {
+  public async reset() {
     this.eventCounter = 0;
     this.events = [];
-    this.stop();
+    await this.stop();
     this.context = {
       pushEvent: (event) => this.events.push(event),
     };
@@ -169,8 +164,8 @@ export class RRWebRecorder {
     const stillPending: typeof this.pendingEvents = [];
     for (const evt of this.pendingEvents) {
       try {
-        await this.recordFn.evaluate((record, evt) => {
-          record.addCustomEvent(evt.tag, evt.payload)
+        await this.recordFn.evaluate((r: typeof record, evt) => {
+          r.addCustomEvent(evt.tag, evt.payload)
         }, evt);
       } catch (error) {
         console.debug(`[${Date.now()}] [recorder] flush failed for custom event: ${evt.tag}`);
@@ -190,8 +185,8 @@ export class RRWebRecorder {
     }
 
     try {
-      await this.recordFn.evaluate((record, evt) => {
-        record.addCustomEvent(evt.tag, evt.payload)
+      await this.recordFn.evaluate((r: typeof record, evt) => {
+        r.addCustomEvent(evt.tag, evt.payload)
       }, event);
     } catch (error) {
       this.pendingEvents.push(event);

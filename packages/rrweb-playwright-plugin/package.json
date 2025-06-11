@@ -11,6 +11,7 @@
     "prebuild": "yarn workspace @appsurify-testmap/rrweb-record run build && yarn workspace @appsurify-testmap/rrweb-plugin-sequential-id-record run build",
     "dev": "tsup --watch",
     "build": "yarn prebuild && tsup-node",
+    "buildDev": "tsup-node",
     "prepublish": "yarn run build",
     "pack": "npm pack"
   },
@@ -33,18 +34,23 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "Readme.md"
   ],
+  "peerDependencies": {
+    "@playwright/test": ">=1.50.0"
+  },
   "devDependencies": {
     "@types/node": "^22.15.21",
     "@playwright/test": "^1.52.0",
+    "puppeteer": "^24.9.0",
     "tsup": "^6.6.3",
-    "typescript": "^5.8.3"
-  },
-  "dependencies": {
+    "typescript": "^5.8.3",
     "@appsurify-testmap/rrweb": "^2.1.2-alpha.5",
-    "@appsurify-testmap/rrweb-plugin-sequential-id-record": "^2.1.2-alpha.5",
     "@appsurify-testmap/rrweb-snapshot": "^2.1.2-alpha.5",
     "@appsurify-testmap/rrweb-types": "^2.1.2-alpha.5"
+  },
+  "dependencies": {
+
   }
 }

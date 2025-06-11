@@ -13,6 +13,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "preserveWatchOutput": true,
+    "noImplicitAny": true,
+    "strictFunctionTypes": false,
     "skipLibCheck": true,
     "strict": true,
     "typeRoots": [
@@ -20,7 +22,7 @@
     ],
     "types": [
       "node",
-      "@playwright/test"
+
     ],
     "lib": [
       "ES2018",
@@ -38,12 +40,18 @@
   "exclude": [
     "node_modules",
     "dist",
+    "../../node_modules",
     "./src/**/__tests__/*"
   ],
   "references": [
-    { "path": "../rrweb" },
-    { "path": "../plugins/rrweb-plugin-sequential-id-record" },
-    { "path": "../rrweb-snapshot" },
-    { "path": "../types" }
+    {
+      "path": "../rrweb"
+    },
+    {
+      "path": "../rrweb-snapshot"
+    },
+    {
+      "path": "../types"
+    }
   ]
 }
