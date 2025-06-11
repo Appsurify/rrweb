@@ -13,8 +13,10 @@ export function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: 
   const specName = sanitizeFileNamePart(testRunResult.spec.name);
   const suiteTitle = sanitizeFileNamePart(testRunResult.test.suite?.title);
   const testTitle = sanitizeFileNamePart(testRunResult.test.title);
+  const browserName = testRunResult.browser.name;
+
   const jsonFileNameRaw = `${suiteTitle ? suiteTitle + '-' : ''}${testTitle}.json`;
-  const jsonFilePathRaw = path.join(reportDir, specName, jsonFileNameRaw);
+  const jsonFilePathRaw = path.join(reportDir, specName, browserName, jsonFileNameRaw);
   const reportRaw = {
     events: testRunResult.recorderEvents,
     metadata: {

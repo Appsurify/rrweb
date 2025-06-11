@@ -26,9 +26,10 @@ export default function registerRRWebReportTasks(on: Cypress.PluginEvents, confi
       const specName = sanitizeFileNamePart(testRunResult.spec.name);
       const suiteTitle = sanitizeFileNamePart(testRunResult.test.suite?.title);
       const testTitle = sanitizeFileNamePart(testRunResult.test.title);
+      const browserName = testRunResult.browser.name;
 
       const jsonFileNameRaw = `${suiteTitle ? suiteTitle + '-' : ''}${testTitle}.json`;
-      const jsonFilePathRaw = path.join(pluginConfig.outputReportDir, specName, jsonFileNameRaw);
+      const jsonFilePathRaw = path.join(pluginConfig.outputReportDir, specName, browserName, jsonFileNameRaw);
       const reportRaw = {
         events: testRunResult.recorderEvents,
         metadata: {

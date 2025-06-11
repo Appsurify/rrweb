@@ -9,9 +9,8 @@
   ],
   "scripts": {
     "prebuild": "yarn workspace @appsurify-testmap/rrweb-record run build",
-    "dev": "tsup --watch",
-    "build": "yarn prebuild && tsup-node",
-    "prepublish": "yarn run build"
+    "build": "yarn turbo run prepublish",
+    "prepublish": "yarn prebuild && tsup-node"
   },
   "homepage": "https://github.com/rrweb-io/rrweb/tree/main/packages/@rrweb/utils#readme",
   "bugs": {
