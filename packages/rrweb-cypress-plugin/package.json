@@ -10,7 +10,7 @@
   "scripts": {
     "prebuild": "yarn workspace @appsurify-testmap/rrweb-record run build",
     "build": "yarn turbo run prepublish",
-    "prepublish": "yarn prebuild && tsup-node"
+    "prepublish": "yarn prebuild && tsup-node --tsconfig ./tsconfig.json"
   },
   "homepage": "https://github.com/rrweb-io/rrweb/tree/main/packages/@rrweb/utils#readme",
   "bugs": {
@@ -42,7 +42,7 @@
   "devDependencies": {
     "@types/debug": "^4.1.7",
     "@types/lodash": "^4.17.16",
-    "@types/node": "^22.15.21",
+    "@types/node": "^24.10.0",
     "cypress": "^14.3.2",
     "tsup": "^6.6.3",
     "typescript": "^5.8.3"

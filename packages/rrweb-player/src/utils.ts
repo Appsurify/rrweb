@@ -186,3 +186,228 @@ export function getInactivePeriods(
   }
   return inactivePeriods;
 }
+
+type TimelineNormalizationParams = {
+  earliestProblem: number;
+  span: number;
+  blockSpan: number;
+  blockStart: number;
+  tailShift: number;
+  firstFullTimestamp: number;
+};
+
+const NORMALIZATION_GAP = 0.001;
+const NORMALIZATION_MIN_BLOCK_SPAN = 1;
+
+export type TimelineMapper = {
+  normalizationApplied: boolean;
+  toReplayerTime(offset: number): number;
+  toPlayerTime(offset: number): number;
+  toReplayerAbsolute(value: number): number;
+  toPlayerAbsolute(value: number): number;
+  normalizeEvent<T extends eventWithTime>(event: T): T;
+};
+
+export function createIdentityTimelineMapper(): TimelineMapper {
+  return {
+    normalizationApplied: false,
+    toReplayerTime: (offset) => offset,
+    toPlayerTime: (offset) => offset,
+    toReplayerAbsolute: (value) => value,
+    toPlayerAbsolute: (value) => value,
+    normalizeEvent: (event) => event,
+  };
+}
+
+export function normalizeEventsForReplay(
+  events: eventWithTime[],
+  allowNormalization = true,
+): { events: eventWithTime[]; mapper: TimelineMapper } {
+  if (!events.length) {
+    const mapper = createIdentityTimelineMapper();
+    return { events, mapper };
+  }
+
+  const params = allowNormalization
+    ? getNormalizationParams(events)
+    : null;
+
+  const normalizedEvents = events.map((event) =>
+    normalizeEventWithParams(event, params),
+  );
+
+  const originalStart = getTimelineStart(events);
+  const normalizedStart = getTimelineStart(normalizedEvents);
+
+  const mapper = createTimelineMapper(params, originalStart, normalizedStart);
+
+  return { events: normalizedEvents, mapper };
+}
+
+function getTimelineStart(events: eventWithTime[]): number {
+  return events.reduce((min, event) => Math.min(min, event.timestamp), Infinity);
+}
+
+function getNormalizationParams(
+  events: eventWithTime[],
+): TimelineNormalizationParams | null {
+  const firstFull = events.find((event) => event.type === EventType.FullSnapshot);
+  if (!firstFull) {
+    return null;
+  }
+
+  const problemEvents = events.filter(
+    (event) =>
+      event.type === EventType.IncrementalSnapshot &&
+      event.timestamp < firstFull.timestamp,
+  );
+
+  if (!problemEvents.length) {
+    return null;
+  }
+
+  const earliestProblem = problemEvents.reduce(
+    (min, event) => Math.min(min, event.timestamp),
+    Infinity,
+  );
+  const latestProblem = problemEvents.reduce(
+    (max, event) => Math.max(max, event.timestamp),
+    -Infinity,
+  );
+
+  const span = Math.max(0, latestProblem - earliestProblem);
+  const blockSpan = Math.max(span, NORMALIZATION_MIN_BLOCK_SPAN);
+
+  return {
+    earliestProblem,
+    span,
+    blockSpan,
+    blockStart: firstFull.timestamp + NORMALIZATION_GAP,
+    tailShift: NORMALIZATION_GAP + blockSpan,
+    firstFullTimestamp: firstFull.timestamp,
+  };
+}
+
+function normalizeEventWithParams<T extends eventWithTime>(
+  event: T,
+  params: TimelineNormalizationParams | null,
+): T {
+  if (!params) {
+    return event;
+  }
+  const domDependent =
+    event.type === EventType.IncrementalSnapshot &&
+    event.timestamp < params.firstFullTimestamp;
+  const normalizedTimestamp = normalizeTimestamp(
+    event.timestamp,
+    domDependent,
+    params,
+  );
+  if (normalizedTimestamp === event.timestamp) {
+    return event;
+  }
+  return {
+    ...event,
+    timestamp: normalizedTimestamp,
+  };
+}
+
+function normalizeTimestamp(
+  timestamp: number,
+  domDependent: boolean,
+  params: TimelineNormalizationParams | null,
+): number {
+  if (!params) {
+    return timestamp;
+  }
+  if (timestamp > params.firstFullTimestamp) {
+    return timestamp + params.tailShift;
+  }
+  if (domDependent && timestamp < params.firstFullTimestamp) {
+    if (params.span === 0) {
+      return params.blockStart;
+    }
+    const scale = params.blockSpan / params.span;
+    return params.blockStart + (timestamp - params.earliestProblem) * scale;
+  }
+  return timestamp;
+}
+
+function convertAbsoluteToNormalized(
+  value: number,
+  params: TimelineNormalizationParams | null,
+): number {
+  if (!params) {
+    return value;
+  }
+  if (value > params.firstFullTimestamp) {
+    return value + params.tailShift;
+  }
+  if (value >= params.earliestProblem && value < params.firstFullTimestamp) {
+    if (params.span === 0) {
+      return params.blockStart;
+    }
+    const scale = params.blockSpan / params.span;
+    return params.blockStart + (value - params.earliestProblem) * scale;
+  }
+  return value;
+}
+
+function convertAbsoluteToOriginal(
+  value: number,
+  params: TimelineNormalizationParams | null,
+): number {
+  if (!params) {
+    return value;
+  }
+
+  const blockEnd = params.blockStart + params.blockSpan;
+  const tailStart = params.firstFullTimestamp + params.tailShift;
+
+  if (value >= tailStart) {
+    return value - params.tailShift;
+  }
+
+  if (value >= params.blockStart && value <= blockEnd) {
+    if (params.span === 0) {
+      return params.earliestProblem;
+    }
+    const scale = params.blockSpan / params.span;
+    return params.earliestProblem + (value - params.blockStart) / scale;
+  }
+
+  return value;
+}
+
+function createTimelineMapper(
+  params: TimelineNormalizationParams | null,
+  originalStart: number,
+  normalizedStart: number,
+): TimelineMapper {
+  const safeOriginalStart = Number.isFinite(originalStart) ? originalStart : 0;
+  const safeNormalizedStart = Number.isFinite(normalizedStart)
+    ? normalizedStart
+    : 0;
+
+  const toReplayerAbsolute = (value: number) =>
+    convertAbsoluteToNormalized(value, params);
+  const toPlayerAbsolute = (value: number) =>
+    convertAbsoluteToOriginal(value, params);
+
+  return {
+    normalizationApplied: Boolean(params),
+    normalizeEvent: (event) => normalizeEventWithParams(event, params),
+    toReplayerAbsolute,
+    toPlayerAbsolute,
+    toReplayerTime: (offset) => {
+      const absoluteOriginal = safeOriginalStart + offset;
+      const normalizedAbsolute = toReplayerAbsolute(absoluteOriginal);
+      return normalizedAbsolute - safeNormalizedStart;
+    },
+    toPlayerTime: (offset) => {
+      const normalizedAbsolute = safeNormalizedStart + offset;
+      const originalAbsolute = toPlayerAbsolute(normalizedAbsolute);
+      return originalAbsolute - safeOriginalStart;
+    },
+  };
+}

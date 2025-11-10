@@ -55,6 +55,11 @@ export type RRwebPlayerOptions = {
      * @defaultValue `#D4D4D4`
      */
     inactiveColor?: string;
+    /**
+     * Allow the player to normalize event timelines when incremental events appear before the first FullSnapshot.
+     * @defaultValue `true`
+     */
+    allowTimelineNormalization?: boolean;
   } & Partial<playerConfig>;
 };
 

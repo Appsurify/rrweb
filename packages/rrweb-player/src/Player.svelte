@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { Replayer } from '@appsurify-testmap/rrweb-replay';
     import { unpack } from '@appsurify-testmap/rrweb-packer/unpack';
-  import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
+  import type { eventWithTime, playerMetaData } from '@appsurify-testmap/rrweb-types';
   import {
     inlineCss,
     openFullscreen,
@@ -10,6 +10,9 @@
     isFullscreen,
     onFullscreenChange,
     typeOf,
+    normalizeEventsForReplay,
+    type TimelineMapper,
+    createIdentityTimelineMapper,
   } from './utils';
   import Controller from './Controller.svelte';
   import type { RRwebPlayerOptions, RRwebPlayerExpose } from './types';
@@ -26,6 +29,16 @@
   export let tags: NonNullable<RRwebPlayerOptions['props']['tags']> = {};
   // color of inactive periods indicator
   export let inactiveColor: NonNullable<RRwebPlayerOptions['props']['inactiveColor']> = '#D4D4D4';
+  export let allowTimelineNormalization = true;
+
+  let normalizedEvents: RRwebPlayerOptions['props']['events'] = events;
+  let timeMapper: TimelineMapper = createIdentityTimelineMapper();
+
+  $: {
+    const result = normalizeEventsForReplay(events, allowTimelineNormalization);
+    normalizedEvents = result.events;
+    timeMapper = result.mapper;
+  }
 
   let replayer: Replayer;
 
@@ -95,10 +108,17 @@
   };
 
   export const addEvent: RRwebPlayerExpose['addEvent'] = (event: eventWithTime) => {
-    replayer.addEvent(event);
+    const normalizedEvent = timeMapper.normalizeEvent(event);
+    replayer.addEvent(normalizedEvent);
     controller.triggerUpdateMeta();
   };
-  export const getMetaData: RRwebPlayerExpose['getMetaData'] = () => replayer.getMetaData();
+  const mapMetaData = (meta: playerMetaData): playerMetaData => ({
+    startTime: timeMapper.toPlayerAbsolute(meta.startTime),
+    endTime: timeMapper.toPlayerAbsolute(meta.endTime),
+    totalTime: timeMapper.toPlayerTime(meta.totalTime),
+  });
+  export const getMetaData: RRwebPlayerExpose['getMetaData'] = () =>
+    mapMetaData(replayer.getMetaData());
   export const getReplayer: RRwebPlayerExpose['getReplayer'] = () => replayer;
 
   // by pass controller methods as public API
@@ -151,7 +171,7 @@
         `);
     }
 
-    replayer = new Replayer(events, {
+    replayer = new Replayer(normalizedEvents, {
       speed,
       root: frame,
       unpackFn: unpack,
@@ -234,6 +254,7 @@
       {skipInactive}
       {tags}
       {inactiveColor}
+      {timeMapper}
       on:fullscreen={() => toggleFullscreen()}
     />
   {/if}

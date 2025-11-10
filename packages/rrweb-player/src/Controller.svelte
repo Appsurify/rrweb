@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { EventType } from '@appsurify-testmap/rrweb-types';
-  import type { playerMetaData } from '@appsurify-testmap/rrweb-types';
+import { EventType } from '@appsurify-testmap/rrweb-types';
+import type { playerMetaData } from '@appsurify-testmap/rrweb-types';
   import type {
     Replayer,
     PlayerMachineState,
@@ -12,7 +12,12 @@
     createEventDispatcher,
     afterUpdate,
   } from 'svelte';
-  import { formatTime, getInactivePeriods } from './utils';
+  import {
+    formatTime,
+    getInactivePeriods,
+    type TimelineMapper,
+    createIdentityTimelineMapper,
+  } from './utils';
   import Switch from './components/Switch.svelte';
 
   const dispatch = createEventDispatcher();
@@ -25,6 +30,7 @@
   export let speed = speedOption.length ? speedOption[0] : 1;
   export let tags: Record<string, string> = {};
   export let inactiveColor: string;
+  export let timeMapper: TimelineMapper = createIdentityTimelineMapper();
 
   let currentTime = 0;
   $: {
@@ -46,8 +52,17 @@
     end: number;
   } | null = null;
 
+  const readMeta = (): playerMetaData => {
+    const rawMeta = replayer.getMetaData();
+    return {
+      startTime: timeMapper.toPlayerAbsolute(rawMeta.startTime),
+      endTime: timeMapper.toPlayerAbsolute(rawMeta.endTime),
+      totalTime: timeMapper.toPlayerTime(rawMeta.totalTime),
+    };
+  };
+
   let meta: playerMetaData;
-  $: meta = replayer.getMetaData();
+  $: meta = readMeta();
   let percentage: string;
   $: {
     const percent = Math.min(1, currentTime / meta.totalTime);
@@ -78,8 +93,10 @@
   $: customEvents = (() => {
     const { context } = replayer.service.state;
     const totalEvents = context.events.length;
-    const start = context.events[0].timestamp;
-    const end = context.events[totalEvents - 1].timestamp;
+    const start = timeMapper.toPlayerAbsolute(context.events[0].timestamp);
+    const end = timeMapper.toPlayerAbsolute(
+      context.events[totalEvents - 1].timestamp,
+    );
     const customEvents: CustomEvent[] = [];
 
     // loop through all the events and find out custom event.
@@ -89,10 +106,13 @@
        * to place it in player's timeline.
        */
       if (event.type === EventType.Custom) {
+        const convertedTimestamp = timeMapper.toPlayerAbsolute(
+          event.timestamp,
+        );
         const customEvent = {
           name: event.data.tag,
           background: tags[event.data.tag] || 'rgb(73, 80, 246)',
-          position: `${position(start, end, event.timestamp)}%`,
+          position: `${position(start, end, convertedTimestamp)}%`,
         };
         customEvents.push(customEvent);
       }
@@ -110,10 +130,17 @@
   $: inactivePeriods = (() => {
     try {
       const { context } = replayer.service.state;
-      const totalEvents = context.events.length;
-      const start = context.events[0].timestamp;
-      const end = context.events[totalEvents - 1].timestamp;
-      const periods = getInactivePeriods(context.events, replayer.config.inactivePeriodThreshold);
+      const playerEvents = context.events.map((event) => ({
+        ...event,
+        timestamp: timeMapper.toPlayerAbsolute(event.timestamp),
+      }));
+      const totalEvents = playerEvents.length;
+      const start = playerEvents[0].timestamp;
+      const end = playerEvents[totalEvents - 1].timestamp;
+      const periods = getInactivePeriods(
+        playerEvents,
+        replayer.config.inactivePeriodThreshold,
+      );
       // calculate the indicator width.
       const getWidth = (
         startTime: number,
@@ -142,7 +169,7 @@
     stopTimer();
 
     function update() {
-      currentTime = replayer.getCurrentTime();
+      currentTime = timeMapper.toPlayerTime(replayer.getCurrentTime());
 
       if (pauseAt && currentTime >= pauseAt) {
         if (loop) {
@@ -192,7 +219,7 @@
       replayer.play();
       finished = false;
     } else {
-      replayer.play(currentTime);
+      replayer.play(timeMapper.toReplayerTime(currentTime));
     }
   };
 
@@ -211,9 +238,9 @@
     const resumePlaying =
       typeof play === 'boolean' ? play : playerState === 'playing';
     if (resumePlaying) {
-      replayer.play(timeOffset);
+      replayer.play(timeMapper.toReplayerTime(timeOffset));
     } else {
-      replayer.pause(timeOffset);
+      replayer.pause(timeMapper.toReplayerTime(timeOffset));
     }
   };
 
@@ -234,7 +261,7 @@
     currentTime = timeOffset;
     pauseAt = endTimeOffset;
     onPauseHook = afterHook || null;
-    replayer.play(timeOffset);
+    replayer.play(timeMapper.toReplayerTime(timeOffset));
   };
 
   const handleProgressClick = (event: MouseEvent) => {
@@ -272,7 +299,7 @@
     }
     replayer.setConfig({ speed });
     if (needFreeze) {
-      replayer.play(currentTime);
+      replayer.play(timeMapper.toReplayerTime(currentTime));
     }
   };
 
@@ -282,7 +309,7 @@
 
   export const triggerUpdateMeta = () => {
     return Promise.resolve().then(() => {
-      meta = replayer.getMetaData();
+      meta = readMeta();
     });
   };
 
