@@ -1,35 +1,137 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Counter - Visual Coverage Demo</title>
+    <title>Testmap Demo App - Feedback Form</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🔢 Простой счётчик</h1>
-            <p>Демонстрация Visual Coverage с Cypress</p>
-        </header>
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="app-title">Testmap Demo App</h1>
+            <nav class="header-nav">
+                <button class="nav-button">Feedback</button>
+                <button class="nav-button">Admin</button>
+            </nav>
+        </div>
+    </header>
 
-        <main>
-            <div class="counter-container">
-                <div class="counter-display">
-                    <span id="counter-value">0</span>
+    <main class="main-content">
+        <div class="form-container">
+            <h2 class="form-title">Feedback Form</h2>
+            <p class="form-subtitle">Please fill in all fields to submit your feedback</p>
+
+            <form id="feedback-form" class="feedback-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName" class="form-label">First Name *</label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            name="firstName"
+                            class="form-input"
+                            placeholder="Enter your first name"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastName" class="form-label">Last Name *</label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            class="form-input"
+                            placeholder="Enter your last name"
+                            required
+                        >
+                    </div>
                 </div>
-                <button id="increment-btn" class="btn">
-                    Нажми меня! (+1)
-                </button>
-            </div>
-        </main>
 
-        <footer>
-            <p>Visual Coverage Simple Demo</p>
-        </footer>
-    </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="position" class="form-label">Position *</label>
+                        <input
+                            type="text"
+                            id="position"
+                            name="position"
+                            class="form-input"
+                            placeholder="Enter your position"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country" class="form-label">Country *</label>
+                        <input
+                            type="text"
+                            id="country"
+                            name="country"
+                            class="form-input"
+                            placeholder="Enter your country"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="industry" class="form-label">Industry *</label>
+                        <input
+                            type="text"
+                            id="industry"
+                            name="industry"
+                            class="form-input"
+                            placeholder="Enter your industry"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date" class="form-label">Date *</label>
+                        <input
+                            type="date"
+                            id="date"
+                            name="date"
+                            class="form-input"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-spacer"></div>
+
+                <div class="form-group full-width">
+                    <label for="message" class="form-label">Message *</label>
+                    <textarea
+                        id="message"
+                        name="message"
+                        class="form-textarea"
+                        rows="8"
+                        placeholder="Enter your message here..."
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-spacer"></div>
+
+                <div class="form-group full-width">
+                    <button
+                        type="submit"
+                        id="submit-btn"
+                        class="submit-button"
+                        disabled
+                    >
+                        Submit Feedback
+                    </button>
+                </div>
+              <div class="form-spacer"></div>
+              <div class="form-spacer"></div>
+            </form>
+        </div>
+    </main>
 
     <script src="script.js"></script>
 </body>
 </html>
-

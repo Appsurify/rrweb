@@ -53,8 +53,8 @@ export default defineConfig({
     baseUrl: 'http://localhost:3001',
 
     // Viewport
-    viewportWidth: 1280,
-    viewportHeight: 720,
+    viewportWidth: 800,
+    viewportHeight: 500,
 
     // Performance
     video: false,

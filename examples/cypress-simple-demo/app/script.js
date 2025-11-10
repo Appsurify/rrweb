@@ -1,54 +1,53 @@
-// Состояние приложения
-let counter = 0;
-
-// Инициализация
+// Form validation and submission logic
 document.addEventListener('DOMContentLoaded', () => {
-    initCounter();
-    loadCounterFromStorage();
-});
+    const form = document.getElementById('feedback-form');
+    const submitButton = document.getElementById('submit-btn');
+    const requiredFields = [
+        'firstName',
+        'lastName',
+        'position',
+        'country',
+        'industry',
+        'date',
+        'message'
+    ];
 
-// Инициализация счётчика
-function initCounter() {
-    const btn = document.getElementById('increment-btn');
-    const counterDisplay = document.getElementById('counter-value');
-    
-    btn.addEventListener('click', () => {
-        incrementCounter();
+    // Get all form inputs
+    const inputs = requiredFields.map(fieldId => document.getElementById(fieldId));
+
+    // Function to check if all fields are filled
+    function checkFormValidity() {
+        const allFilled = inputs.every(input => {
+            if (input.type === 'textarea') {
+                return input.value.trim() !== '';
+            }
+            return input.value.trim() !== '';
+        });
+
+        submitButton.disabled = !allFilled;
+    }
+
+    // Add event listeners to all inputs
+    inputs.forEach(input => {
+        input.addEventListener('input', checkFormValidity);
+        input.addEventListener('change', checkFormValidity);
     });
-}
 
-// Увеличение счётчика
-function incrementCounter() {
-    counter++;
-    updateDisplay();
-    saveCounterToStorage();
-}
-
-// Обновление отображения
-function updateDisplay() {
-    const counterDisplay = document.getElementById('counter-value');
-    counterDisplay.textContent = counter;
-}
-
-// Сохранение в localStorage
-function saveCounterToStorage() {
-    try {
-        localStorage.setItem('simple-counter', counter.toString());
-    } catch (e) {
-        console.error('Failed to save counter:', e);
-    }
-}
-
-// Загрузка из localStorage
-function loadCounterFromStorage() {
-    try {
-        const stored = localStorage.getItem('simple-counter');
-        if (stored !== null) {
-            counter = parseInt(stored, 10) || 0;
-            updateDisplay();
+    // Handle form submission
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        if (!submitButton.disabled) {
+            // Form is valid, but we don't actually submit
+            // Just show a simple message
+            alert('Thank you for your feedback! (This is a demo - no data was submitted)');
+            
+            // Optionally reset the form
+            // form.reset();
+            // checkFormValidity();
         }
-    } catch (e) {
-        console.error('Failed to load counter:', e);
-    }
-}
+    });
 
+    // Initial check
+    checkFormValidity();
+});
