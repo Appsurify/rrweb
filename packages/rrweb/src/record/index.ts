@@ -44,6 +44,7 @@ import {
 import dom from '@appsurify-testmap/rrweb-utils';
 
 
+
 const version = __APP_VERSION__;
 
 let wrappedEmit!: (e: eventWithoutTime, isCheckout?: boolean) => void;
@@ -306,6 +307,7 @@ function record<T = eventWithTime>(
   let lastFullSnapshotEvent: eventWithTime;
   let incrementalSnapshotCount = 0;
   let recentVisibilityChanges = 0;
+
   const onVisibilityActivity = (count: number) => {
     recentVisibilityChanges += count;
   };
@@ -326,9 +328,14 @@ function record<T = eventWithTime>(
     return e as unknown as T;
   };
 
+  let lastMetaHref: string | null = null;
+  let navSnapshotInProgress = false;
+
   wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
     const e = r as eventWithTime;
     e.timestamp = nowTimestamp();
+    // Флаг навигационного FullSnapshot в рамках текущего вызова wrappedEmit
+    let navTriggeredFS = false;
 
     if (
       mutationBuffers[0]?.isFrozen() &&
@@ -343,8 +350,27 @@ function record<T = eventWithTime>(
       mutationBuffers.forEach((buf) => buf.unfreeze());
     }
 
-    if (inEmittingFrame) {
+    // NEW: мгновенная реакция на смену URL, независимо от порогов
+    if (
+      !navSnapshotInProgress &&
+      e.type !== EventType.Meta &&
+      e.type !== EventType.FullSnapshot &&
+      lastMetaHref &&
+      window.location.href !== lastMetaHref
+    ) {
+      navSnapshotInProgress = true;
+      try {
+        // Сбросить счётчики при навигационном FullSnapshot
+        recentVisibilityChanges = 0;
+        incrementalSnapshotCount = 0;
+        navTriggeredFS = true;
+        takeFullSnapshot(true); // emit Meta -> обновит lastMetaHref, затем FullSnapshot
+      } finally {
+        navSnapshotInProgress = false;
+      }
+    }
 
+    if (inEmittingFrame) {
       emit?.(eventProcessor(e), isCheckout);
     } else if (passEmitsToParent) {
 
@@ -355,6 +381,11 @@ function record<T = eventWithTime>(
         isCheckout,
       };
       window.parent.postMessage(message, '*');
+    }
+
+    if (e.type === EventType.Meta) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+      lastMetaHref = (e as any).data?.href || window.location.href;
     }
 
     if (e.type === EventType.FullSnapshot) {
@@ -370,19 +401,22 @@ function record<T = eventWithTime>(
       }
 
       incrementalSnapshotCount++;
-      const exceedCount =
-        checkoutEveryNth && incrementalSnapshotCount >= checkoutEveryNth;
-      const exceedTime =
-        checkoutEveryNms &&
-        e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
-      const exceedVisibility =
-        checkoutEveryNvm && recentVisibilityChanges >= checkoutEveryNvm;
+      // Если в начале этого вызова был навигационный FullSnapshot, пропускаем пороги полностью
+      if (!navTriggeredFS) {
+        const exceedCount =
+          checkoutEveryNth && incrementalSnapshotCount >= checkoutEveryNth;
+        const exceedTime =
+          checkoutEveryNms &&
+          e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
+        const exceedVisibility =
+          checkoutEveryNvm && recentVisibilityChanges >= checkoutEveryNvm;
 
-      if (exceedCount || exceedTime || exceedVisibility) {
-        if (exceedVisibility) {
-          recentVisibilityChanges = 0;
+        if (exceedCount || exceedTime || exceedVisibility) {
+          if (exceedVisibility) {
+            recentVisibilityChanges = 0;
+          }
+          takeFullSnapshot(true);
         }
-        takeFullSnapshot(true);
       }
 
     }
