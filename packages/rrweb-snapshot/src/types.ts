@@ -74,3 +74,41 @@ export type KeepIframeSrcFn = (src: string) => boolean;
 export type BuildCache = {
   stylesWithHoverClass: Map<string, string>;
 };
+
+export type XPathOptions = {
+  /**
+   * Prefer shorter XPath expressions when possible (e.g., using ID selectors)
+   * When false (default), builds full paths according to W3C standards
+   * @default false
+   */
+  preferShortPath?: boolean;
+  /**
+   * Include namespace prefixes in XPath expressions (e.g., svg:circle)
+   * @default false
+   */
+  includeNamespaces?: boolean;
+};
+
+export type SelectorOptions = {
+  /**
+   * Prefer shorter CSS selector expressions when possible (e.g., using ID selectors)
+   * When false (default), builds full paths according to W3C standards
+   * @default false
+   */
+  preferShortPath?: boolean;
+  /**
+   * Reserved for future CSS Level 4 pseudo-class support
+   * @default false
+   */
+  useLevel4?: boolean;
+  /**
+   * Include data-* attributes in selector generation
+   * @default false
+   */
+  includeDataAttributes?: boolean;
+  /**
+   * Include aria-* attributes in selector generation
+   * @default false
+   */
+  includeAriaAttributes?: boolean;
+};

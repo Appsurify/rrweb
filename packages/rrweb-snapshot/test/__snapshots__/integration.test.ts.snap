@@ -14,7 +14,9 @@ exports[`dialog integration tests > should capture open attribute for modal dial
           \\"tagName\\": \\"head\\",
           \\"attributes\\": {},
           \\"childNodes\\": [],
-          \\"id\\": 3
+          \\"id\\": 3,
+          \\"isVisible\\": false,
+          \\"isInteractive\\": false
         },
         {
           \\"type\\": 2,
@@ -24,7 +26,8 @@ exports[`dialog integration tests > should capture open attribute for modal dial
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 5
+              \\"id\\": 5,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -37,21 +40,29 @@ exports[`dialog integration tests > should capture open attribute for modal dial
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"I'm a dialog\\",
-                  \\"id\\": 7
+                  \\"id\\": 7,
+                  \\"isVisible\\": true
                 }
               ],
-              \\"id\\": 6
+              \\"id\\": 6,
+              \\"isVisible\\": true,
+              \\"isInteractive\\": true
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-              \\"id\\": 8
+              \\"id\\": 8,
+              \\"isVisible\\": false
             }
           ],
-          \\"id\\": 4
+          \\"id\\": 4,
+          \\"isVisible\\": true,
+          \\"isInteractive\\": false
         }
       ],
-      \\"id\\": 2
+      \\"id\\": 2,
+      \\"isVisible\\": true,
+      \\"isInteractive\\": false
     }
   ],
   \\"compatMode\\": \\"BackCompat\\",
@@ -73,7 +84,9 @@ exports[`dialog integration tests > should capture open attribute for non modal 
           \\"tagName\\": \\"head\\",
           \\"attributes\\": {},
           \\"childNodes\\": [],
-          \\"id\\": 3
+          \\"id\\": 3,
+          \\"isVisible\\": false,
+          \\"isInteractive\\": false
         },
         {
           \\"type\\": 2,
@@ -83,7 +96,8 @@ exports[`dialog integration tests > should capture open attribute for non modal 
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 5
+              \\"id\\": 5,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -96,21 +110,29 @@ exports[`dialog integration tests > should capture open attribute for non modal 
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"I'm a dialog\\",
-                  \\"id\\": 7
+                  \\"id\\": 7,
+                  \\"isVisible\\": true
                 }
               ],
-              \\"id\\": 6
+              \\"id\\": 6,
+              \\"isVisible\\": true,
+              \\"isInteractive\\": true
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-              \\"id\\": 8
+              \\"id\\": 8,
+              \\"isVisible\\": false
             }
           ],
-          \\"id\\": 4
+          \\"id\\": 4,
+          \\"isVisible\\": true,
+          \\"isInteractive\\": false
         }
       ],
-      \\"id\\": 2
+      \\"id\\": 2,
+      \\"isVisible\\": true,
+      \\"isInteractive\\": false
     }
   ],
   \\"compatMode\\": \\"BackCompat\\",
@@ -144,7 +166,8 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 5
+              \\"id\\": 5,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -153,12 +176,15 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
                 \\"charset\\": \\"UTF-8\\"
               },
               \\"childNodes\\": [],
-              \\"id\\": 6
+              \\"id\\": 6,
+              \\"isVisible\\": false,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 7
+              \\"id\\": 7,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -168,12 +194,15 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
                 \\"content\\": \\"width=device-width, initial-scale=1.0\\"
               },
               \\"childNodes\\": [],
-              \\"id\\": 8
+              \\"id\\": 8,
+              \\"isVisible\\": false,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 9
+              \\"id\\": 9,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -183,23 +212,30 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"Main\\",
-                  \\"id\\": 11
+                  \\"id\\": 11,
+                  \\"isVisible\\": false
                 }
               ],
-              \\"id\\": 10
+              \\"id\\": 10,
+              \\"isVisible\\": false,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n  \\",
-              \\"id\\": 12
+              \\"id\\": 12,
+              \\"isVisible\\": false
             }
           ],
-          \\"id\\": 4
+          \\"id\\": 4,
+          \\"isVisible\\": false,
+          \\"isInteractive\\": false
         },
         {
           \\"type\\": 3,
           \\"textContent\\": \\"\\\\n  \\",
-          \\"id\\": 13
+          \\"id\\": 13,
+          \\"isVisible\\": false
         },
         {
           \\"type\\": 2,
@@ -209,7 +245,8 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 15
+              \\"id\\": 15,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -218,12 +255,15 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
                 \\"id\\": \\"one\\"
               },
               \\"childNodes\\": [],
-              \\"id\\": 16
+              \\"id\\": 16,
+              \\"isVisible\\": true,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 17
+              \\"id\\": 17,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -232,18 +272,25 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
                 \\"id\\": \\"two\\"
               },
               \\"childNodes\\": [],
-              \\"id\\": 18
+              \\"id\\": 18,
+              \\"isVisible\\": true,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-              \\"id\\": 19
+              \\"id\\": 19,
+              \\"isVisible\\": false
             }
           ],
-          \\"id\\": 14
+          \\"id\\": 14,
+          \\"isVisible\\": true,
+          \\"isInteractive\\": false
         }
       ],
-      \\"id\\": 3
+      \\"id\\": 3,
+      \\"isVisible\\": true,
+      \\"isInteractive\\": false
     }
   ],
   \\"id\\": 1
@@ -350,41 +397,6 @@ exports[`integration tests > [html file]: dynamic-stylesheet.html 1`] = `
   <body>
     <p>p tag</p>
   </body></html>"
-`;
-
-exports[`integration tests > [html file]: form-fields.html 1`] = `
-"<!DOCTYPE html><html lang=\\"en\\"><head>
-    <meta charset=\\"UTF-8\\" />
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1.0\\" />
-    <meta http-equiv=\\"X-UA-Compatible\\" content=\\"ie=edge\\" />
-    <title>form fields</title>
-  </head>  <body>
-    <form>
-      <label for=\\"text\\">
-        <input type=\\"text\\" value=\\"1\\" />
-      </label>
-      <label for=\\"radio\\">
-        <input type=\\"radio\\" checked=\\"\\" />
-      </label>
-      <label for=\\"checkbox\\">
-        <input type=\\"checkbox\\" checked=\\"\\" />
-      </label>
-      <label for=\\"textarea\\">
-        <textarea name=\\"\\" id=\\"\\" cols=\\"30\\" rows=\\"10\\">1234</textarea>
-        <textarea name=\\"\\" id=\\"\\" cols=\\"30\\" rows=\\"10\\">1234</textarea>
-      </label>
-      <label for=\\"select\\">
-        <select name=\\"\\" id=\\"\\" value=\\"2\\">
-          <option value=\\"1\\">1</option>
-          <option value=\\"2\\" selected=\\"\\">2</option>
-        </select>
-      </label>
-      <label>
-        <input name=\\"tagName\\" />
-      </label>
-    </form>
-  
-  <noscript>SCRIPT_PLACEHOLDER</noscript></body></html>"
 `;
 
 exports[`integration tests > [html file]: hover.html 1`] = `
@@ -507,25 +519,6 @@ exports[`integration tests > [html file]: preload.html 1`] = `
     <link />
   </head>
   <body></body></html>"
-`;
-
-exports[`integration tests > [html file]: shadow-dom.html 1`] = `
-"<!DOCTYPE html><html lang=\\"en\\"><head>
-    <meta charset=\\"UTF-8\\" />
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1.0\\" />
-    <title>shadow DOM</title>
-  </head>
-  <body>
-    <fancy-tabs background=\\"\\" role=\\"tablist\\" selected=\\"1\\">
-      <button slot=\\"title\\" role=\\"tab\\" tabindex=\\"-1\\" aria-selected=\\"false\\">Tab 1</button>
-      <button slot=\\"title\\" selected=\\"\\" role=\\"tab\\" tabindex=\\"0\\" aria-selected=\\"true\\">Tab 2</button>
-      <button slot=\\"title\\" role=\\"tab\\" tabindex=\\"-1\\" aria-selected=\\"false\\">Tab 3</button>
-      <section role=\\"tabpanel\\" tabindex=\\"0\\" aria-hidden=\\"true\\">content panel 1</section>
-      <section role=\\"tabpanel\\" tabindex=\\"0\\" aria-hidden=\\"false\\">content panel 2</section>
-      <section role=\\"tabpanel\\" tabindex=\\"0\\" aria-hidden=\\"true\\">content panel 3</section>
-    </fancy-tabs>
-    <noscript>SCRIPT_PLACEHOLDER</noscript>
-  </body></html>"
 `;
 
 exports[`integration tests > [html file]: svg.html 1`] = `
@@ -656,7 +649,8 @@ exports[`integration tests > should be able to record elements even when .childN
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 5
+              \\"id\\": 5,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -665,12 +659,15 @@ exports[`integration tests > should be able to record elements even when .childN
                 \\"charset\\": \\"UTF-8\\"
               },
               \\"childNodes\\": [],
-              \\"id\\": 6
+              \\"id\\": 6,
+              \\"isVisible\\": false,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 7
+              \\"id\\": 7,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -680,12 +677,15 @@ exports[`integration tests > should be able to record elements even when .childN
                 \\"content\\": \\"width=device-width, initial-scale=1.0\\"
               },
               \\"childNodes\\": [],
-              \\"id\\": 8
+              \\"id\\": 8,
+              \\"isVisible\\": false,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 9
+              \\"id\\": 9,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -695,15 +695,19 @@ exports[`integration tests > should be able to record elements even when .childN
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"Document\\",
-                  \\"id\\": 11
+                  \\"id\\": 11,
+                  \\"isVisible\\": false
                 }
               ],
-              \\"id\\": 10
+              \\"id\\": 10,
+              \\"isVisible\\": false,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 12
+              \\"id\\": 12,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -713,23 +717,30 @@ exports[`integration tests > should be able to record elements even when .childN
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"SCRIPT_PLACEHOLDER\\",
-                  \\"id\\": 14
+                  \\"id\\": 14,
+                  \\"isVisible\\": false
                 }
               ],
-              \\"id\\": 13
+              \\"id\\": 13,
+              \\"isVisible\\": false,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n  \\",
-              \\"id\\": 15
+              \\"id\\": 15,
+              \\"isVisible\\": false
             }
           ],
-          \\"id\\": 4
+          \\"id\\": 4,
+          \\"isVisible\\": false,
+          \\"isInteractive\\": false
         },
         {
           \\"type\\": 3,
           \\"textContent\\": \\"\\\\n  \\",
-          \\"id\\": 16
+          \\"id\\": 16,
+          \\"isVisible\\": false
         },
         {
           \\"type\\": 2,
@@ -739,7 +750,8 @@ exports[`integration tests > should be able to record elements even when .childN
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 18
+              \\"id\\": 18,
+              \\"isVisible\\": false
             },
             {
               \\"type\\": 2,
@@ -749,7 +761,8 @@ exports[`integration tests > should be able to record elements even when .childN
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 20
+                  \\"id\\": 20,
+                  \\"isVisible\\": false
                 },
                 {
                   \\"type\\": 2,
@@ -759,15 +772,19 @@ exports[`integration tests > should be able to record elements even when .childN
                     {
                       \\"type\\": 3,
                       \\"textContent\\": \\"a\\",
-                      \\"id\\": 22
+                      \\"id\\": 22,
+                      \\"isVisible\\": true
                     }
                   ],
-                  \\"id\\": 21
+                  \\"id\\": 21,
+                  \\"isVisible\\": true,
+                  \\"isInteractive\\": false
                 },
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 23
+                  \\"id\\": 23,
+                  \\"isVisible\\": false
                 },
                 {
                   \\"type\\": 2,
@@ -777,15 +794,19 @@ exports[`integration tests > should be able to record elements even when .childN
                     {
                       \\"type\\": 3,
                       \\"textContent\\": \\"b\\",
-                      \\"id\\": 25
+                      \\"id\\": 25,
+                      \\"isVisible\\": true
                     }
                   ],
-                  \\"id\\": 24
+                  \\"id\\": 24,
+                  \\"isVisible\\": true,
+                  \\"isInteractive\\": false
                 },
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 26
+                  \\"id\\": 26,
+                  \\"isVisible\\": false
                 },
                 {
                   \\"type\\": 2,
@@ -795,15 +816,19 @@ exports[`integration tests > should be able to record elements even when .childN
                     {
                       \\"type\\": 3,
                       \\"textContent\\": \\"c\\",
-                      \\"id\\": 28
+                      \\"id\\": 28,
+                      \\"isVisible\\": true
                     }
                   ],
-                  \\"id\\": 27
+                  \\"id\\": 27,
+                  \\"isVisible\\": true,
+                  \\"isInteractive\\": false
                 },
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 29
+                  \\"id\\": 29,
+                  \\"isVisible\\": false
                 },
                 {
                   \\"type\\": 2,
@@ -813,412 +838,40 @@ exports[`integration tests > should be able to record elements even when .childN
                     {
                       \\"type\\": 3,
                       \\"textContent\\": \\"d\\",
-                      \\"id\\": 31
+                      \\"id\\": 31,
+                      \\"isVisible\\": true
                     }
                   ],
-                  \\"id\\": 30
+                  \\"id\\": 30,
+                  \\"isVisible\\": true,
+                  \\"isInteractive\\": false
                 },
                 {
                   \\"type\\": 3,
                   \\"textContent\\": \\"\\\\n    \\",
-                  \\"id\\": 32
+                  \\"id\\": 32,
+                  \\"isVisible\\": false
                 }
               ],
-              \\"id\\": 19
+              \\"id\\": 19,
+              \\"isVisible\\": true,
+              \\"isInteractive\\": false
             },
             {
               \\"type\\": 3,
               \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-              \\"id\\": 33
+              \\"id\\": 33,
+              \\"isVisible\\": false
             }
           ],
-          \\"id\\": 17
+          \\"id\\": 17,
+          \\"isVisible\\": true,
+          \\"isInteractive\\": false
         }
       ],
-      \\"id\\": 3
-    }
-  ],
-  \\"id\\": 1
-}"
-`;
-
-exports[`shadow DOM integration tests > snapshot shadow DOM 1`] = `
-"{
-  \\"type\\": 0,
-  \\"childNodes\\": [
-    {
-      \\"type\\": 1,
-      \\"name\\": \\"html\\",
-      \\"publicId\\": \\"\\",
-      \\"systemId\\": \\"\\",
-      \\"id\\": 2
-    },
-    {
-      \\"type\\": 2,
-      \\"tagName\\": \\"html\\",
-      \\"attributes\\": {
-        \\"lang\\": \\"en\\"
-      },
-      \\"childNodes\\": [
-        {
-          \\"type\\": 2,
-          \\"tagName\\": \\"head\\",
-          \\"attributes\\": {},
-          \\"childNodes\\": [
-            {
-              \\"type\\": 3,
-              \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 5
-            },
-            {
-              \\"type\\": 2,
-              \\"tagName\\": \\"meta\\",
-              \\"attributes\\": {
-                \\"charset\\": \\"UTF-8\\"
-              },
-              \\"childNodes\\": [],
-              \\"id\\": 6
-            },
-            {
-              \\"type\\": 3,
-              \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 7
-            },
-            {
-              \\"type\\": 2,
-              \\"tagName\\": \\"meta\\",
-              \\"attributes\\": {
-                \\"name\\": \\"viewport\\",
-                \\"content\\": \\"width=device-width, initial-scale=1.0\\"
-              },
-              \\"childNodes\\": [],
-              \\"id\\": 8
-            },
-            {
-              \\"type\\": 3,
-              \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 9
-            },
-            {
-              \\"type\\": 2,
-              \\"tagName\\": \\"title\\",
-              \\"attributes\\": {},
-              \\"childNodes\\": [
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"shadow DOM\\",
-                  \\"id\\": 11
-                }
-              ],
-              \\"id\\": 10
-            },
-            {
-              \\"type\\": 3,
-              \\"textContent\\": \\"\\\\n  \\",
-              \\"id\\": 12
-            }
-          ],
-          \\"id\\": 4
-        },
-        {
-          \\"type\\": 3,
-          \\"textContent\\": \\"\\\\n  \\",
-          \\"id\\": 13
-        },
-        {
-          \\"type\\": 2,
-          \\"tagName\\": \\"body\\",
-          \\"attributes\\": {},
-          \\"childNodes\\": [
-            {
-              \\"type\\": 3,
-              \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 15
-            },
-            {
-              \\"type\\": 2,
-              \\"tagName\\": \\"fancy-tabs\\",
-              \\"attributes\\": {
-                \\"background\\": \\"\\",
-                \\"role\\": \\"tablist\\",
-                \\"selected\\": \\"1\\"
-              },
-              \\"childNodes\\": [
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 17
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"button\\",
-                  \\"attributes\\": {
-                    \\"slot\\": \\"title\\",
-                    \\"role\\": \\"tab\\",
-                    \\"tabindex\\": \\"-1\\",
-                    \\"aria-selected\\": \\"false\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"Tab 1\\",
-                      \\"id\\": 19
-                    }
-                  ],
-                  \\"id\\": 18
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 20
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"button\\",
-                  \\"attributes\\": {
-                    \\"slot\\": \\"title\\",
-                    \\"selected\\": \\"\\",
-                    \\"role\\": \\"tab\\",
-                    \\"tabindex\\": \\"0\\",
-                    \\"aria-selected\\": \\"true\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"Tab 2\\",
-                      \\"id\\": 22
-                    }
-                  ],
-                  \\"id\\": 21
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 23
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"button\\",
-                  \\"attributes\\": {
-                    \\"slot\\": \\"title\\",
-                    \\"role\\": \\"tab\\",
-                    \\"tabindex\\": \\"-1\\",
-                    \\"aria-selected\\": \\"false\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"Tab 3\\",
-                      \\"id\\": 25
-                    }
-                  ],
-                  \\"id\\": 24
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 26
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"section\\",
-                  \\"attributes\\": {
-                    \\"role\\": \\"tabpanel\\",
-                    \\"tabindex\\": \\"0\\",
-                    \\"aria-hidden\\": \\"true\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"content panel 1\\",
-                      \\"id\\": 28
-                    }
-                  ],
-                  \\"id\\": 27
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 29
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"section\\",
-                  \\"attributes\\": {
-                    \\"role\\": \\"tabpanel\\",
-                    \\"tabindex\\": \\"0\\",
-                    \\"aria-hidden\\": \\"false\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"content panel 2\\",
-                      \\"id\\": 31
-                    }
-                  ],
-                  \\"id\\": 30
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n      \\",
-                  \\"id\\": 32
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"section\\",
-                  \\"attributes\\": {
-                    \\"role\\": \\"tabpanel\\",
-                    \\"tabindex\\": \\"0\\",
-                    \\"aria-hidden\\": \\"true\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"content panel 3\\",
-                      \\"id\\": 34
-                    }
-                  ],
-                  \\"id\\": 33
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n    \\",
-                  \\"id\\": 35
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n            \\",
-                  \\"id\\": 36,
-                  \\"isShadow\\": true
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"style\\",
-                  \\"attributes\\": {
-                    \\"_cssText\\": \\":host { display: inline-block; width: 650px; font-family: \\\\\\"Roboto Slab\\\\\\"; contain: content; }:host([background]) { background: var(--background-color, #9E9E9E); border-radius: 10px; padding: 10px; }#panels { box-shadow: rgba(0, 0, 0, 0.3) 0px 2px 2px; background: white; border-radius: 3px; padding: 16px; height: 250px; overflow: auto; }#tabs { display: inline-flex; user-select: none; }#tabs slot { display: inline-flex; }#tabs ::slotted(*) { font: 400 16px / 22px Roboto; padding: 16px 8px; margin: 0px; text-align: center; width: 100px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; cursor: pointer; border-top-left-radius: 3px; border-top-right-radius: 3px; background: linear-gradient(rgb(250, 250, 250), rgb(238, 238, 238)); border: none; }#tabs ::slotted([aria-selected=\\\\\\"true\\\\\\"]) { font-weight: 600; background: white; box-shadow: none; }#tabs ::slotted(:focus) { z-index: 1; }#panels ::slotted([aria-hidden=\\\\\\"true\\\\\\"]) { display: none; }\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"\\",
-                      \\"id\\": 38
-                    }
-                  ],
-                  \\"id\\": 37,
-                  \\"isShadow\\": true
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n            \\",
-                  \\"id\\": 39,
-                  \\"isShadow\\": true
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"div\\",
-                  \\"attributes\\": {
-                    \\"id\\": \\"tabs\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"\\\\n              \\",
-                      \\"id\\": 41
-                    },
-                    {
-                      \\"type\\": 2,
-                      \\"tagName\\": \\"slot\\",
-                      \\"attributes\\": {
-                        \\"id\\": \\"tabsSlot\\",
-                        \\"name\\": \\"title\\"
-                      },
-                      \\"childNodes\\": [],
-                      \\"id\\": 42
-                    },
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"\\\\n            \\",
-                      \\"id\\": 43
-                    }
-                  ],
-                  \\"id\\": 40,
-                  \\"isShadow\\": true
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n            \\",
-                  \\"id\\": 44,
-                  \\"isShadow\\": true
-                },
-                {
-                  \\"type\\": 2,
-                  \\"tagName\\": \\"div\\",
-                  \\"attributes\\": {
-                    \\"id\\": \\"panels\\"
-                  },
-                  \\"childNodes\\": [
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"\\\\n              \\",
-                      \\"id\\": 46
-                    },
-                    {
-                      \\"type\\": 2,
-                      \\"tagName\\": \\"slot\\",
-                      \\"attributes\\": {
-                        \\"id\\": \\"panelsSlot\\"
-                      },
-                      \\"childNodes\\": [],
-                      \\"id\\": 47
-                    },
-                    {
-                      \\"type\\": 3,
-                      \\"textContent\\": \\"\\\\n            \\",
-                      \\"id\\": 48
-                    }
-                  ],
-                  \\"id\\": 45,
-                  \\"isShadow\\": true
-                },
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"\\\\n          \\",
-                  \\"id\\": 49,
-                  \\"isShadow\\": true
-                }
-              ],
-              \\"isCustom\\": true,
-              \\"id\\": 16,
-              \\"isShadowHost\\": true
-            },
-            {
-              \\"type\\": 3,
-              \\"textContent\\": \\"\\\\n    \\",
-              \\"id\\": 50
-            },
-            {
-              \\"type\\": 2,
-              \\"tagName\\": \\"script\\",
-              \\"attributes\\": {},
-              \\"childNodes\\": [
-                {
-                  \\"type\\": 3,
-                  \\"textContent\\": \\"SCRIPT_PLACEHOLDER\\",
-                  \\"id\\": 52
-                }
-              ],
-              \\"id\\": 51
-            },
-            {
-              \\"type\\": 3,
-              \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-              \\"id\\": 53
-            }
-          ],
-          \\"id\\": 14
-        }
-      ],
-      \\"id\\": 3
+      \\"id\\": 3,
+      \\"isVisible\\": true,
+      \\"isInteractive\\": false
     }
   ],
   \\"id\\": 1

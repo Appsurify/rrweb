@@ -7,6 +7,8 @@ export default mergeConfig(
   defineProject({
     test: {
       globals: true,
+      setupFiles: ['./test/setup.ts'],
+      environment: 'jsdom',
     },
   }),
 );

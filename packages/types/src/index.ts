@@ -840,7 +840,6 @@ export type serializedNode = (
   isShadow?: boolean;
   isVisible?: boolean;
   isInteractive?: boolean;
-  xpath?: string;
   selector?: string;
 };
 
@@ -876,6 +875,37 @@ export interface IMirror<TNode> {
 export type DataURLOptions = Partial<{
   type: string;
   quality: number;
+}>;
+
+/**
+ * Options for SEQL selector generation.
+ * SEQL (Semantic Element Query Language) generates stable selectors based on
+ * semantic HTML, ARIA roles, and stable attributes rather than brittle CSS paths.
+ */
+export type SelectorOptions = Partial<{
+  /**
+   * Maximum depth for path traversal from anchor to target.
+   * Default: 10
+   */
+  maxPathDepth: number;
+
+  /**
+   * Enable SVG fingerprinting for SVG elements.
+   * Default: true
+   */
+  enableSvgFingerprint: boolean;
+
+  /**
+   * Minimum confidence threshold to accept generated selector.
+   * Default: 0.3
+   */
+  confidenceThreshold: number;
+
+  /**
+   * Fallback to body element if no semantic anchor found.
+   * Default: true
+   */
+  fallbackToBody: boolean;
 }>;
 
 // Types for @rrweb/packer

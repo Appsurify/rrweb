@@ -1,4 +1,4 @@
-import type { AcceptedPlugin, Rule } from 'postcss';
+import type { AcceptedPlugin, Rule, Declaration } from 'postcss';
 
 const MEDIA_SELECTOR = /(max|min)-device-(width|height)/;
 const MEDIA_SELECTOR_GLOBAL = new RegExp(MEDIA_SELECTOR.source, 'g');
@@ -38,4 +38,34 @@ const pseudoClassPlugin: AcceptedPlugin = {
   },
 };
 
-export { mediaSelectorPlugin, pseudoClassPlugin };
+const animationFillModePlugin: AcceptedPlugin = {
+  postcssPlugin: 'postcss-animation-fill-mode',
+  prepare: function () {
+    return {
+      Rule: function (rule) {
+        let hasAnimation = false;
+        let hasAnimationFillMode = false;
+        let animationDeclaration: Declaration | null = null;
+
+        rule.walkDecls((decl) => {
+          if (decl.prop === 'animation') {
+            hasAnimation = true;
+            animationDeclaration = decl;
+          }
+          if (decl.prop === 'animation-fill-mode') {
+            hasAnimationFillMode = true;
+          }
+        });
+
+        if (hasAnimation && !hasAnimationFillMode && animationDeclaration) {
+          rule.insertAfter(animationDeclaration, {
+            prop: 'animation-fill-mode',
+            value: 'forwards',
+          });
+        }
+      },
+    };
+  },
+};
+
+export { mediaSelectorPlugin, pseudoClassPlugin, animationFillModePlugin };

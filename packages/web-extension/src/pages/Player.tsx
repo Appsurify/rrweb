@@ -98,7 +98,11 @@ export default function Player() {
 
         playerRef.current = new Replayer({
           target: playerElRef.current,
-          props: { events, autoPlay: false },
+          props: {
+            events,
+            autoPlay: false,
+            pauseAnimation: false,
+          },
         });
         console.info(playerRef.current);
       })

@@ -30,13 +30,13 @@ import {
   extractFileExtension,
   absolutifyURLs,
   markCssSplits,
-  buildXPath,
-  buildSelector,
   isTextVisible,
   isElementVisible,
   isElementInteractive,
 } from "./utils";
 import dom from '@appsurify-testmap/rrweb-utils';
+import { generateSEQL } from '@whenessel/seql-js';
+import type { GeneratorOptions as SEQLGeneratorOptions } from '@whenessel/seql-js';
 
 let _id = 1;
 const tagNameRegex = new RegExp('[^a-z0-9-_:]');
@@ -222,8 +222,9 @@ export function ignoreAttribute(
 
 export function isExcludeAttribute(
   name: string,
-  exclude: string | RegExp
+  exclude: string | RegExp | undefined
 ): boolean {
+  if (!exclude) return false;
   return typeof exclude === 'string'
     ? name.includes(exclude)
     : exclude.test(name);
@@ -408,7 +409,7 @@ function serializeNode(
     mirror: Mirror;
     blockClass: string | RegExp;
     blockSelector: string | null;
-    excludeAttribute: string | RegExp;
+    excludeAttribute?: string | RegExp;
     needsMask: boolean;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
@@ -564,7 +565,7 @@ function serializeElementNode(
     doc: Document;
     blockClass: string | RegExp;
     blockSelector: string | null;
-    excludeAttribute: string | RegExp;
+    excludeAttribute?: string | RegExp;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
     maskInputFn: MaskInputFn | undefined;
@@ -930,7 +931,7 @@ export function serializeNodeWithId(
     blockSelector: string | null;
     maskTextClass: string | RegExp;
     maskTextSelector: string | null;
-    excludeAttribute: string | RegExp;
+    excludeAttribute?: string | RegExp;
     skipChild: boolean;
     inlineStylesheet: boolean;
     newlyAddedElement?: boolean;
@@ -956,6 +957,15 @@ export function serializeNodeWithId(
     ) => unknown;
     stylesheetLoadTimeout?: number;
     cssCaptured?: boolean;
+    /**
+     * SEQL selector generation options. null means selector should not be recorded.
+     */
+    selectorOptions?: {
+      maxPathDepth: number;
+      enableSvgFingerprint?: boolean;
+      confidenceThreshold?: number;
+      fallbackToBody?: boolean;
+    } | null;
   },
 ): serializedNodeWithId | null {
   const {
@@ -983,6 +993,7 @@ export function serializeNodeWithId(
     keepIframeSrcFn = () => false,
     newlyAddedElement = false,
     cssCaptured = false,
+    selectorOptions,
   } = options;
   let { needsMask } = options;
   let { preserveWhiteSpace = true } = options;
@@ -1038,14 +1049,30 @@ export function serializeNodeWithId(
   }
 
   const serializedNode = Object.assign(_serializedNode, { id });
+
+  // Генерация SEQL селектора и метаданных видимости/интерактивности
   if (isElement(n) || n.nodeType === Node.TEXT_NODE) {
-    serializedNode.xpath = buildXPath(n);
-    if (isElement(n)) {
-      const selector = buildSelector(n);
-      if (selector) {
-        serializedNode.selector = selector;
+    // Генерация SEQL селектора
+    if (isElement(n) && selectorOptions !== null && selectorOptions !== undefined) {
+      try {
+        const seqlGeneratorOptions: SEQLGeneratorOptions = {
+          maxPathDepth: selectorOptions.maxPathDepth,
+          enableSvgFingerprint: selectorOptions.enableSvgFingerprint,
+          confidenceThreshold: selectorOptions.confidenceThreshold,
+          fallbackToBody: selectorOptions.fallbackToBody,
+        };
+        const selector = generateSEQL(n as Element, seqlGeneratorOptions);
+        if (selector) {
+          serializedNode.selector = selector;
+        }
+      } catch (error) {
+        // Если SEQL генерация не удалась, просто пропускаем
+        // и не добавляем поле selector
+        console.warn('Failed to generate SEQL selector:', error);
       }
     }
+
+    // Существующий код для isVisible и isInteractive
     if (n.nodeType === Node.TEXT_NODE) {
       serializedNode.isVisible = isTextVisible(n as Text);
     }
@@ -1112,6 +1139,7 @@ export function serializeNodeWithId(
       stylesheetLoadTimeout,
       keepIframeSrcFn,
       cssCaptured: false,
+      selectorOptions,
     };
 
     if (
@@ -1188,6 +1216,7 @@ export function serializeNodeWithId(
             onStylesheetLoad,
             stylesheetLoadTimeout,
             keepIframeSrcFn,
+            selectorOptions,
           });
 
           if (serializedIframeNode) {
@@ -1241,6 +1270,7 @@ export function serializeNodeWithId(
             onStylesheetLoad,
             stylesheetLoadTimeout,
             keepIframeSrcFn,
+            selectorOptions,
           });
 
           if (serializedLinkNode) {
@@ -1288,6 +1318,20 @@ function snapshot(
     ) => unknown;
     stylesheetLoadTimeout?: number;
     keepIframeSrcFn?: KeepIframeSrcFn;
+    /**
+     * Configuration for SEQL selector generation.
+     * - `true` - use default SEQL options
+     * - `false` - do not record selector
+     * - Object with custom SEQL options
+     */
+    selector?:
+      | boolean
+      | {
+          maxPathDepth?: number;
+          enableSvgFingerprint?: boolean;
+          confidenceThreshold?: number;
+          fallbackToBody?: boolean;
+        };
   },
 ): serializedNodeWithId | null {
   const {
@@ -1312,6 +1356,7 @@ function snapshot(
     onStylesheetLoad,
     stylesheetLoadTimeout,
     keepIframeSrcFn = () => false,
+    selector,
   } = options || {};
   // console.debug(`${Date.now()} [rrweb-snapshot] snapshot:options:`, options);
   const maskInputOptions: MaskInputOptions =
@@ -1357,6 +1402,37 @@ function snapshot(
       : slimDOM === false
       ? {}
       : slimDOM;
+
+  // Нормализация опций для SEQL селекторов
+  const selectorOptions: {
+    maxPathDepth: number;
+    enableSvgFingerprint?: boolean;
+    confidenceThreshold?: number;
+    fallbackToBody?: boolean;
+  } | null =
+    selector === false
+      ? null
+      : selector === true
+        ? {
+            maxPathDepth: 10,
+            enableSvgFingerprint: true,
+            confidenceThreshold: 0.3,
+            fallbackToBody: true,
+          }
+        : selector === undefined
+          ? {
+              maxPathDepth: 10,
+              enableSvgFingerprint: true,
+              confidenceThreshold: 0.3,
+              fallbackToBody: true,
+            }
+          : {
+              maxPathDepth: selector.maxPathDepth ?? 10,
+              enableSvgFingerprint: selector.enableSvgFingerprint ?? true,
+              confidenceThreshold: selector.confidenceThreshold ?? 0.3,
+              fallbackToBody: selector.fallbackToBody ?? true,
+            };
+
   return serializeNodeWithId(n, {
     doc: n,
     mirror,
@@ -1382,6 +1458,7 @@ function snapshot(
     stylesheetLoadTimeout,
     keepIframeSrcFn,
     newlyAddedElement: false,
+    selectorOptions,
   });
 }
 

@@ -151,6 +151,10 @@ export function stringifyRule(rule: CSSRule, sheetHref: string | null): string {
     return importStringified;
   } else {
     let ruleStringified = rule.cssText;
+    if (rule.type === CSSRule.KEYFRAMES_RULE || rule.type === CSSRule.KEYFRAME_RULE) {
+      // Keyframes сериализуются правильно через cssText
+      // Но нужно убедиться, что они не теряются
+    }
     if (isCSSStyleRule(rule) && rule.selectorText.includes(':')) {
       // Safari does not escape selectors with : properly
       // see https://bugs.webkit.org/show_bug.cgi?id=184604
@@ -595,125 +599,6 @@ export function markCssSplits(
   return splitCssText(cssText, style).join('/* rr_split */');
 }
 
-// Проверка уникальности селектора
-function isSelectorUnique(selector: string, target: Element): boolean {
-  try {
-    const matches = document.querySelectorAll(selector);
-    return matches.length === 1 && matches[0] === target;
-  } catch {
-    return false;
-  }
-}
-
-export function buildSelector(node: Node): string | null {
-  if (!(node instanceof Element)) return null;
-
-  if (node.id) {
-    return `#${CSS.escape(node.id)}`;
-  }
-
-  const parts: string[] = [];
-  const tag = node.tagName.toLowerCase();
-
-  if (node.classList.length) {
-    parts.push(...Array.from(node.classList).map(cls => `.${CSS.escape(cls)}`));
-  }
-
-  Array.from(node.attributes).forEach(attr => {
-    if (attr.name.startsWith('data-')) {
-      parts.push(`[${attr.name}="${CSS.escape(attr.value)}"]`);
-    }
-  });
-
-  const shortSelector = `${tag}${parts.join('')}`;
-  if (isSelectorUnique(shortSelector, node)) {
-    return shortSelector;
-  }
-
-  // ✅ Собираем путь как массив
-  const pathParts: string[] = [];
-  let current: Element | null = node;
-
-  while (current && current.nodeType === Node.ELEMENT_NODE) {
-    const parent: Element | null = current.parentElement;
-    const tagName = current.tagName.toLowerCase();
-
-    let nth = '';
-    if (parent) {
-      const siblings = Array.from(parent.children).filter(
-        el => el.tagName.toLowerCase() === tagName
-      );
-      if (siblings.length > 1) {
-        nth = `:nth-of-type(${siblings.indexOf(current) + 1})`;
-      }
-    }
-
-    pathParts.unshift(`${tagName}${nth}`);
-    current = parent;
-  }
-
-  return pathParts.join(' > ') || null;
-}
-
-export function buildXPath(node: Node): string {
-  switch (node.nodeType) {
-    case Node.DOCUMENT_NODE:
-      return '/';
-
-    case Node.DOCUMENT_TYPE_NODE:
-      return '/html/doctype';
-
-    case Node.ELEMENT_NODE: {
-      const element = node as Element;
-
-      if (element.id) {
-        return `//*[@id="${CSS.escape(element.id)}"]`;
-      }
-
-      if (element.tagName.toLowerCase() === 'html') return '/html';
-      if (element === document.head) return '/html/head';
-      if (element === document.body) return '/html/body';
-
-      const parent = element.parentNode;
-      if (!parent) return '';
-
-      const tag = element.tagName.toLowerCase();
-      const siblings = Array.from(parent.children).filter(
-        el => el.tagName.toLowerCase() === tag,
-      );
-      const index = siblings.length > 1
-        ? `[${siblings.indexOf(element) + 1}]`
-        : '';
-
-      return `${buildXPath(parent)}/${tag}${index}`;
-    }
-
-    case Node.TEXT_NODE:
-    case Node.CDATA_SECTION_NODE:
-    case Node.COMMENT_NODE: {
-      const parent = node.parentNode;
-      if (!parent) return '';
-
-      const typeMap = {
-        [Node.TEXT_NODE]: 'text()',
-        [Node.CDATA_SECTION_NODE]: 'text()', // CDATA ≡ text() в XPath
-        [Node.COMMENT_NODE]: 'comment()',
-      };
-
-      const sameTypeSiblings = Array.from(parent.childNodes).filter(
-        sibling => sibling.nodeType === node.nodeType,
-      );
-      const index = sameTypeSiblings.length > 1
-        ? `[${sameTypeSiblings.indexOf(node as ChildNode)}]`
-        : '';
-
-      return `${buildXPath(parent)}/${typeMap[node.nodeType]}${index}`;
-    }
-
-    default:
-      return '';
-  }
-}
 
 // TODO: Maybe depricated
 // export function getXPath(node: Node): string {

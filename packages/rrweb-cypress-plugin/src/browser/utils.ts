@@ -27,19 +27,6 @@ export function safeSerializeArray(arr: unknown[]): (string | number | boolean |
     });
 }
 
-export function buildSelector(subject: JQuery<HTMLElement> | undefined): string | null {
-  const el = subject?.[0];
-  if (!el) return null;
-
-  const tag = el.tagName.toLowerCase();
-  const id = el.id ? `#${el.id}` : '';
-  const classSelector = Array.from(el.classList)
-    .map(cls => `.${cls}`)
-    .join('');
-
-  return `${tag}${id}${classSelector}`;
-}
-
 export function getTestKey(test: Mocha.Test | { titlePath: () => string[] }): string {
     return test.titlePath().join(' > ');
 }

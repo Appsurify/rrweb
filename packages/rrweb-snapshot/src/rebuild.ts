@@ -1,4 +1,4 @@
-import { mediaSelectorPlugin, pseudoClassPlugin } from './css';
+import { mediaSelectorPlugin, pseudoClassPlugin, animationFillModePlugin } from './css';
 import {
   type serializedNodeWithId,
   type serializedElementNodeWithId,
@@ -72,6 +72,7 @@ export function adaptCssForReplay(cssText: string, cache: BuildCache): string {
     const ast: { css: string } = postcss([
       mediaSelectorPlugin,
       pseudoClassPlugin,
+      animationFillModePlugin,
     ]).process(cssText);
     result = ast.css;
   } catch (error) {

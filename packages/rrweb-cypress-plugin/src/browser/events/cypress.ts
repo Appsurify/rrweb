@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 import {getCurrentTestContext, setCurrentTestContext} from '../runtime';
-import {safeSerializeArray, buildSelector, getTestKey, mapTestRunContextToResult} from '../utils';
+import {safeSerializeArray, getTestKey, mapTestRunContextToResult} from '../utils';
 import RRWebRecorder from '../../recorder';
 import defaultRecordOptions from '../../recorder';
 import type {RecorderEvent} from '../../recorder/types';
@@ -248,8 +248,8 @@ const onTestBeforeRun = (attributes: Cypress.ObjectLike, test: Mocha.Test) => {
                 const liveCommand = testRunContext.commandLiveRefs.get(event.data.payload.id) as Cypress.CommandQueue;
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
                 const subject = liveCommand?.get('subject')
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
-                const selector = subject?.selector ?? buildSelector(subject);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+                const selector = subject?.selector;
 
                 const mirror = recorder.getMirror();
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access

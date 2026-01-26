@@ -6,47 +6,6 @@
 import type { StringifyOptions } from './index';
 
 /**
- * transfer the node path in Event to string
- * @param node - the first node in a node path array
- */
-function pathToSelector(node: HTMLElement): string | '' {
-  if (!node || !node.outerHTML) {
-    return '';
-  }
-
-  let path = '';
-  while (node.parentElement) {
-    let name = node.localName;
-    if (!name) {
-      break;
-    }
-    name = name.toLowerCase();
-    const parent = node.parentElement;
-
-    const domSiblings = [];
-
-    if (parent.children && parent.children.length > 0) {
-      for (let i = 0; i < parent.children.length; i++) {
-        const sibling = parent.children[i];
-        if (sibling.localName && sibling.localName.toLowerCase) {
-          if (sibling.localName.toLowerCase() === name) {
-            domSiblings.push(sibling);
-          }
-        }
-      }
-    }
-
-    if (domSiblings.length > 1) {
-      name += `:eq(${domSiblings.indexOf(node)})`;
-    }
-    path = name + (path ? '>' + path : '');
-    node = parent;
-  }
-
-  return path;
-}
-
-/**
  * judge is object
  */
 function isObject(obj: unknown): boolean {
@@ -129,13 +88,7 @@ export function stringify(
           const eventValue = (value as unknown as Record<string, unknown>)[
             eventKey
           ];
-          if (Array.isArray(eventValue)) {
-            eventResult[eventKey] = pathToSelector(
-              (eventValue.length ? eventValue[0] : null) as HTMLElement,
-            );
-          } else {
-            eventResult[eventKey] = eventValue;
-          }
+          eventResult[eventKey] = eventValue;
         }
         return eventResult;
       } else if (value instanceof Node) {
