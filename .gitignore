@@ -55,3 +55,4 @@ vite.config.ts.timestamp-*
 /examples/booking-demo/yarn.lock
 /yarn.lock
 /.npmrc
+/examples/booking-demo/test-results/
