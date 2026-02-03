@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="Mocha Tests" time="9.690" tests="1" failures="0">
-  <testsuite name="Root Suite" timestamp="2026-01-29T06:00:12" tests="0" file="tests/cypress/e2e/seaside.spec.cy.ts" time="0.000" failures="0">
-  </testsuite>
-  <testsuite name="Book Deluxe Sea View Suite" timestamp="2026-01-29T06:00:12" tests="1" time="9.690" failures="0">
-    <testcase name="Book Deluxe Sea View Suite completes the full booking flow" time="5.156" classname="completes the full booking flow">
-    </testcase>
-  </testsuite>
-</testsuites>

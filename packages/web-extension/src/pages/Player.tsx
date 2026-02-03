@@ -33,6 +33,7 @@ import { settingsManager } from '~/utils/settingsManager';
 import { injectRrwebPlayerStyleInline } from '~/utils/injectRrwebPlayerStyle';
 import Channel from "~/utils/channel";
 import Browser from "webextension-polyfill";
+import SEQLSelectorPanel from '~/components/SEQLSelectorPanel';
 
 
 const channel = new Channel();
@@ -44,6 +45,7 @@ export default function Player() {
   const { sessionId } = useParams();
   const [session, setSession] = useState<Session | null>(null);
   const [sessionName, setSessionName] = useState('');
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const toast = useToast();
 
   // Local state for metadata
@@ -105,6 +107,7 @@ export default function Player() {
           },
         });
         console.info(playerRef.current);
+        setIsPlayerReady(true);
       })
       .catch((err) => {
         console.error(err);
@@ -112,6 +115,7 @@ export default function Player() {
     return () => {
       playerRef.current?.pause();
       playerRef.current?.$destroy();
+      setIsPlayerReady(false);
     };
   }, [sessionId]);
 
@@ -205,6 +209,12 @@ export default function Player() {
         <VStack spacing={4} align="stretch">
           {/* Container for the player with a specified minimum height */}
           <Box ref={playerElRef} minH="400px" mb={4} />
+
+          {/* SEQL Selector Debugger */}
+          {isPlayerReady && (
+            <SEQLSelectorPanel playerRef={playerRef} />
+          )}
+
           <Box>
             <Flex align="center" mb={2}>
               <FormLabel fontSize="lg" fontWeight="bold" mr={2}>

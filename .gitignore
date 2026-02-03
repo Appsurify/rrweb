@@ -50,3 +50,6 @@ vite.config.ts.timestamp-*
 /.cache/
 /.serena/
 /secrets/
+/examples/cypress-simple-demo/yarn.lock
+/examples/cypress-demo/yarn.lock
+/examples/booking-demo/yarn.lock

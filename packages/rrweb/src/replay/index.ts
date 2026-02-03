@@ -611,9 +611,10 @@ export class Replayer {
     }
 
     this.iframe = document.createElement('iframe');
-    const attributes = ['allow-same-origin'];
+    const attributes = ['allow-same-origin', 'allow-scripts'];
     if (this.config.UNSAFE_replayCanvas) {
-      attributes.push('allow-scripts');
+      // UNSAFE_replayCanvas is already covered by 'allow-scripts'
+      // but we keep this check for backwards compatibility
     }
     // hide iframe before first meta event
     this.iframe.style.display = 'none';
