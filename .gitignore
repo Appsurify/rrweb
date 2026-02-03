@@ -53,3 +53,5 @@ vite.config.ts.timestamp-*
 /examples/cypress-simple-demo/yarn.lock
 /examples/cypress-demo/yarn.lock
 /examples/booking-demo/yarn.lock
+/yarn.lock
+/.npmrc
