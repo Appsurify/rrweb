@@ -10,6 +10,7 @@ import {
   sampleStyleSheetRemoveEvents as stylesheetRemoveEvents,
   sampleRemoteStyleSheetEvents as remoteStyleSheetEvents,
   waitForRAF,
+  waitForTimeout,
 } from './utils';
 import styleSheetRuleEvents from './events/style-sheet-rule-events';
 import orderingEvents from './events/ordering';
@@ -785,7 +786,7 @@ describe('replayer', function () {
       const replayer = new Replayer(events);
       replayer.play();
     `);
-    await page.waitForTimeout(50);
+    await waitForTimeout(50);
 
     await assertDomSnapshot(page);
   });
@@ -799,7 +800,7 @@ describe('replayer', function () {
       replayer.addEvent(events[events.length-2]);
       replayer.addEvent(events[events.length-1]);
     `);
-    await page.waitForTimeout(50);
+    await waitForTimeout(50);
 
     await assertDomSnapshot(page);
   });
@@ -828,7 +829,7 @@ describe('replayer', function () {
       var replayer = new Replayer(events,{showDebug:true});
       replayer.play();
     `);
-    await page.waitForTimeout(600);
+    await waitForTimeout(600);
     const iframe = await page.$('iframe');
     const contentDocument = await iframe!.contentFrame()!;
     const colorRGBMap = {

@@ -15,6 +15,7 @@ exports[`dialog integration tests > should capture open attribute for modal dial
           \\"attributes\\": {},
           \\"childNodes\\": [],
           \\"id\\": 3,
+          \\"selector\\": \\"v1.0: html :: head#1\\",
           \\"isVisible\\": false,
           \\"isInteractive\\": false
         },
@@ -45,6 +46,7 @@ exports[`dialog integration tests > should capture open attribute for modal dial
                 }
               ],
               \\"id\\": 6,
+              \\"selector\\": \\"v1.0: body :: dialog#1\\",
               \\"isVisible\\": true,
               \\"isInteractive\\": true
             },
@@ -56,11 +58,13 @@ exports[`dialog integration tests > should capture open attribute for modal dial
             }
           ],
           \\"id\\": 4,
+          \\"selector\\": \\"v1.0: html :: body#2\\",
           \\"isVisible\\": true,
           \\"isInteractive\\": false
         }
       ],
       \\"id\\": 2,
+      \\"selector\\": \\"v1.0: html :: html\\",
       \\"isVisible\\": true,
       \\"isInteractive\\": false
     }
@@ -85,6 +89,7 @@ exports[`dialog integration tests > should capture open attribute for non modal 
           \\"attributes\\": {},
           \\"childNodes\\": [],
           \\"id\\": 3,
+          \\"selector\\": \\"v1.0: html :: head#1\\",
           \\"isVisible\\": false,
           \\"isInteractive\\": false
         },
@@ -115,6 +120,7 @@ exports[`dialog integration tests > should capture open attribute for non modal 
                 }
               ],
               \\"id\\": 6,
+              \\"selector\\": \\"v1.0: body :: dialog#1\\",
               \\"isVisible\\": true,
               \\"isInteractive\\": true
             },
@@ -126,11 +132,13 @@ exports[`dialog integration tests > should capture open attribute for non modal 
             }
           ],
           \\"id\\": 4,
+          \\"selector\\": \\"v1.0: html :: body#2\\",
           \\"isVisible\\": true,
           \\"isInteractive\\": false
         }
       ],
       \\"id\\": 2,
+      \\"selector\\": \\"v1.0: html :: html\\",
       \\"isVisible\\": true,
       \\"isInteractive\\": false
     }
@@ -177,6 +185,7 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
               },
               \\"childNodes\\": [],
               \\"id\\": 6,
+              \\"selector\\": \\"v1.0: html :: head#1 > meta#1\\",
               \\"isVisible\\": false,
               \\"isInteractive\\": false
             },
@@ -195,6 +204,7 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
               },
               \\"childNodes\\": [],
               \\"id\\": 8,
+              \\"selector\\": \\"v1.0: html :: head#1 > meta[name=\\\\\\"viewport\\\\\\"]#2\\",
               \\"isVisible\\": false,
               \\"isInteractive\\": false
             },
@@ -217,6 +227,7 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
                 }
               ],
               \\"id\\": 10,
+              \\"selector\\": \\"v1.0: html :: head#1 > title#3\\",
               \\"isVisible\\": false,
               \\"isInteractive\\": false
             },
@@ -228,6 +239,7 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
             }
           ],
           \\"id\\": 4,
+          \\"selector\\": \\"v1.0: html :: head#1\\",
           \\"isVisible\\": false,
           \\"isInteractive\\": false
         },
@@ -256,6 +268,7 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
               },
               \\"childNodes\\": [],
               \\"id\\": 16,
+              \\"selector\\": \\"v1.0: body :: iframe[id=\\\\\\"one\\\\\\"]\\",
               \\"isVisible\\": true,
               \\"isInteractive\\": false
             },
@@ -273,6 +286,7 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
               },
               \\"childNodes\\": [],
               \\"id\\": 18,
+              \\"selector\\": \\"v1.0: body :: iframe[id=\\\\\\"two\\\\\\"]\\",
               \\"isVisible\\": true,
               \\"isInteractive\\": false
             },
@@ -284,11 +298,13 @@ exports[`iframe integration tests > snapshot async iframes 1`] = `
             }
           ],
           \\"id\\": 14,
+          \\"selector\\": \\"v1.0: html :: body#2\\",
           \\"isVisible\\": true,
           \\"isInteractive\\": false
         }
       ],
       \\"id\\": 3,
+      \\"selector\\": \\"v1.0: html :: html\\",
       \\"isVisible\\": true,
       \\"isInteractive\\": false
     }
@@ -431,7 +447,7 @@ exports[`integration tests > [html file]: iframe-inner.html 1`] = `
 `;
 
 exports[`integration tests > [html file]: invalid-attribute.html 1`] = `
-"<html foo=\\"bar\\"><head></head><body>
+"<html foo=\\"bar\\" ''=\\"\\"><head></head><body>
 </body></html>"
 `;
 
@@ -660,6 +676,7 @@ exports[`integration tests > should be able to record elements even when .childN
               },
               \\"childNodes\\": [],
               \\"id\\": 6,
+              \\"selector\\": \\"v1.0: html :: head#1 > meta#1\\",
               \\"isVisible\\": false,
               \\"isInteractive\\": false
             },
@@ -678,6 +695,7 @@ exports[`integration tests > should be able to record elements even when .childN
               },
               \\"childNodes\\": [],
               \\"id\\": 8,
+              \\"selector\\": \\"v1.0: html :: head#1 > meta[name=\\\\\\"viewport\\\\\\"]#2\\",
               \\"isVisible\\": false,
               \\"isInteractive\\": false
             },
@@ -700,6 +718,7 @@ exports[`integration tests > should be able to record elements even when .childN
                 }
               ],
               \\"id\\": 10,
+              \\"selector\\": \\"v1.0: html :: head#1 > title#3\\",
               \\"isVisible\\": false,
               \\"isInteractive\\": false
             },
@@ -722,6 +741,7 @@ exports[`integration tests > should be able to record elements even when .childN
                 }
               ],
               \\"id\\": 13,
+              \\"selector\\": \\"v1.0: html :: head#1 > script#4\\",
               \\"isVisible\\": false,
               \\"isInteractive\\": false
             },
@@ -733,6 +753,7 @@ exports[`integration tests > should be able to record elements even when .childN
             }
           ],
           \\"id\\": 4,
+          \\"selector\\": \\"v1.0: html :: head#1\\",
           \\"isVisible\\": false,
           \\"isInteractive\\": false
         },
@@ -854,6 +875,7 @@ exports[`integration tests > should be able to record elements even when .childN
                 }
               ],
               \\"id\\": 19,
+              \\"selector\\": \\"v1.0: body :: ul#1\\",
               \\"isVisible\\": true,
               \\"isInteractive\\": false
             },
@@ -865,11 +887,13 @@ exports[`integration tests > should be able to record elements even when .childN
             }
           ],
           \\"id\\": 17,
+          \\"selector\\": \\"v1.0: html :: body#2\\",
           \\"isVisible\\": true,
           \\"isInteractive\\": false
         }
       ],
       \\"id\\": 3,
+      \\"selector\\": \\"v1.0: html :: html\\",
       \\"isVisible\\": true,
       \\"isInteractive\\": false
     }

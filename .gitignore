@@ -43,3 +43,10 @@ vite.config.ts.timestamp-*
 /dev-runtime/
 /snippets/
 
+/.cache/
+/.serena/.gitignore
+/.serena/project.yml
+/secrets/token.txt
+/.cache/
+/.serena/
+/secrets/

@@ -11,6 +11,7 @@ import {
   ISuite,
   hideMouseAnimation,
   fakeGoto,
+  waitForTimeout,
 } from '../utils';
 import type { recordOptions } from '../../src/types';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
@@ -105,7 +106,7 @@ describe('e2e webgl', () => {
     );
 
     await waitForRAF(page);
-    await page.waitForTimeout(100);
+    await waitForTimeout(100);
     const snapshots: eventWithTime[] = (await page.evaluate(
       'window.snapshots',
     )) as eventWithTime[];

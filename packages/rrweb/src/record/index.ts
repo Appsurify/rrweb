@@ -24,18 +24,19 @@ import {
   IncrementalSource,
   type listenerHandler,
   type mutationCallbackParam,
+  type visibilityCallbackParam,
   type scrollCallback,
   type canvasMutationParam,
   type adoptedStyleSheetParam,
-  type visibilityMutationCallbackParam,
 } from "@appsurify-testmap/rrweb-types";
 import type { CrossOriginIframeMessageEventContent } from '../types';
 import { IframeManager } from './iframe-manager';
 import { ShadowDomManager } from './shadow-dom-manager';
 import { CanvasManager } from './observers/canvas/canvas-manager';
+import { VisibilityManager } from './observers/visibility/visibility-manager';
 import { StylesheetManager } from './stylesheet-manager';
 import ProcessedNodeManager from './processed-node-manager';
-import { VisibilityManager} from './observers/visibility/visibility-manager';
+import { normalizeSelectorOptions } from './selector';
 import {
   callbackWrapper,
   registerErrorHandler,
@@ -51,7 +52,6 @@ let wrappedEmit!: (e: eventWithoutTime, isCheckout?: boolean) => void;
 
 let takeFullSnapshot!: (isCheckout?: boolean) => void;
 let canvasManager!: CanvasManager;
-let visibilityManager!: VisibilityManager;
 let recording = false;
 
 const customEventQueue: eventWithoutTime[] = [];
@@ -216,6 +216,7 @@ function record<T = eventWithTime>(
     plugins,
     keepIframeSrcFn = () => false,
     ignoreCSSAttributes = new Set([]),
+    selector,
     errorHandler,
   } = options;
   registerErrorHandler(errorHandler);
@@ -302,15 +303,13 @@ function record<T = eventWithTime>(
       ? _slimDOMOptions
       : {};
 
+  const selectorOptions = normalizeSelectorOptions(selector);
+
   polyfill();
 
   let lastFullSnapshotEvent: eventWithTime;
   let incrementalSnapshotCount = 0;
-  let recentVisibilityChanges = 0;
-
-  const onVisibilityActivity = (count: number) => {
-    recentVisibilityChanges += count;
-  };
+  let visibilityMutationCount = 0;
 
   const eventProcessor = (e: eventWithTime): T => {
     for (const plugin of plugins || []) {
@@ -328,14 +327,9 @@ function record<T = eventWithTime>(
     return e as unknown as T;
   };
 
-  let lastMetaHref: string | null = null;
-  let navSnapshotInProgress = false;
-
   wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
     const e = r as eventWithTime;
     e.timestamp = nowTimestamp();
-    // Флаг навигационного FullSnapshot в рамках текущего вызова wrappedEmit
-    let navTriggeredFS = false;
 
     if (
       mutationBuffers[0]?.isFrozen() &&
@@ -348,49 +342,24 @@ function record<T = eventWithTime>(
       // we've got a user initiated event so first we need to apply
       // all DOM changes that have been buffering during paused state
       mutationBuffers.forEach((buf) => buf.unfreeze());
-    }
-
-    // NEW: мгновенная реакция на смену URL, независимо от порогов
-    if (
-      !navSnapshotInProgress &&
-      e.type !== EventType.Meta &&
-      e.type !== EventType.FullSnapshot &&
-      lastMetaHref &&
-      window.location.href !== lastMetaHref
-    ) {
-      navSnapshotInProgress = true;
-      try {
-        // Сбросить счётчики при навигационном FullSnapshot
-        recentVisibilityChanges = 0;
-        incrementalSnapshotCount = 0;
-        navTriggeredFS = true;
-        takeFullSnapshot(true); // emit Meta -> обновит lastMetaHref, затем FullSnapshot
-      } finally {
-        navSnapshotInProgress = false;
-      }
+      visibilityManager?.unfreeze();
     }
 
     if (inEmittingFrame) {
       emit?.(eventProcessor(e), isCheckout);
     } else if (passEmitsToParent) {
-
       const message: CrossOriginIframeMessageEventContent<T> = {
         type: 'rrweb',
         event: eventProcessor(e),
-        origin: window.location.origin,
         isCheckout,
       };
       window.parent.postMessage(message, '*');
     }
 
-    if (e.type === EventType.Meta) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-      lastMetaHref = (e as any).data?.href || window.location.href;
-    }
-
     if (e.type === EventType.FullSnapshot) {
       lastFullSnapshotEvent = e;
       incrementalSnapshotCount = 0;
+      visibilityMutationCount = 0;
     } else if (e.type === EventType.IncrementalSnapshot) {
       // attach iframe should be considered as full snapshot
       if (
@@ -399,26 +368,19 @@ function record<T = eventWithTime>(
       ) {
         return;
       }
-
-      incrementalSnapshotCount++;
-      // Если в начале этого вызова был навигационный FullSnapshot, пропускаем пороги полностью
-      if (!navTriggeredFS) {
+      // visibility mutations do not contribute to incremental snapshot checkout threshold
+      if (e.data.source !== IncrementalSource.Visibility) {
+        incrementalSnapshotCount++;
         const exceedCount =
           checkoutEveryNth && incrementalSnapshotCount >= checkoutEveryNth;
         const exceedTime =
           checkoutEveryNms &&
           e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
-        const exceedVisibility =
-          checkoutEveryNvm && recentVisibilityChanges >= checkoutEveryNvm;
 
-        if (exceedCount || exceedTime || exceedVisibility) {
-          if (exceedVisibility) {
-            recentVisibilityChanges = 0;
-          }
+        if (exceedCount || exceedTime) {
           takeFullSnapshot(true);
         }
       }
-
     }
   };
 
@@ -428,6 +390,16 @@ function record<T = eventWithTime>(
       data: {
         source: IncrementalSource.Mutation,
         ...m,
+      },
+    });
+  };
+
+  const wrappedVisibilityEmit = (v: visibilityCallbackParam) => {
+    wrappedEmit({
+      type: EventType.IncrementalSnapshot,
+      data: {
+        source: IncrementalSource.Visibility,
+        ...v,
       },
     });
   };
@@ -448,16 +420,6 @@ function record<T = eventWithTime>(
         ...p,
       },
     });
-  const wrappedVisibilityMutationEmit = (p: visibilityMutationCallbackParam) => {
-    hooks?.visibilityMutation?.(p);
-    wrappedEmit({
-      type: EventType.IncrementalSnapshot,
-      data: {
-        source: IncrementalSource.VisibilityMutation,
-        ...p
-      }
-    })
-  };
 
   const wrappedAdoptedStyleSheetEmit = (a: adoptedStyleSheetParam) =>
     wrappedEmit({
@@ -507,14 +469,6 @@ function record<T = eventWithTime>(
     dataURLOptions,
   });
 
-  visibilityManager = new VisibilityManager({
-    doc: window.document,
-    mirror: mirror,
-    sampling: sampling.visibility,
-    mutationCb: wrappedVisibilityMutationEmit,
-    notifyActivity: onVisibilityActivity,
-  });
-
   const shadowDomManager = new ShadowDomManager({
     mutationCb: wrappedMutationEmit,
     scrollCb: wrappedScrollEmit,
@@ -536,12 +490,42 @@ function record<T = eventWithTime>(
       iframeManager,
       stylesheetManager,
       canvasManager,
-      visibilityManager,
       keepIframeSrcFn,
       processedNodeManager,
+      selectorOptions,
     },
     mirror,
   });
+
+  const needVisibilityObserver =
+    recordDOM &&
+    (checkoutEveryNvm != null ||
+      (sampling?.visibility !== undefined && sampling?.visibility !== false));
+
+  let visibilityManager: VisibilityManager | undefined;
+  if (needVisibilityObserver) {
+    const visibilitySampling =
+      typeof sampling?.visibility === 'object' && sampling?.visibility !== null
+        ? sampling.visibility
+        : {};
+    const recordVisibility = visibilitySampling.recordVisibility === true;
+    visibilityManager = new VisibilityManager({
+      doc: document,
+      mirror,
+      sampling: visibilitySampling,
+      mutationCb: recordVisibility ? wrappedVisibilityEmit : () => {},
+      notifyActivity:
+        checkoutEveryNvm != null
+          ? (count) => {
+              visibilityMutationCount += count;
+              if (visibilityMutationCount >= checkoutEveryNvm!) {
+                takeFullSnapshot(true);
+                visibilityMutationCount = 0;
+              }
+            }
+          : undefined,
+    });
+  }
 
   takeFullSnapshot = (isCheckout = false) => {
     if (!recordDOM) {
@@ -565,6 +549,7 @@ function record<T = eventWithTime>(
     shadowDomManager.init();
 
     mutationBuffers.forEach((buf) => buf.lock()); // don't allow any mirror modifications during snapshotting
+    visibilityManager?.lock();
     const node = snapshot(document, {
       mirror,
       blockClass,
@@ -600,6 +585,7 @@ function record<T = eventWithTime>(
         stylesheetManager.attachLinkElement(linkEl, childSn);
       },
       keepIframeSrcFn,
+      selector,
     });
 
     if (!node) {
@@ -617,6 +603,7 @@ function record<T = eventWithTime>(
       isCheckout,
     );
     mutationBuffers.forEach((buf) => buf.unlock()); // generate & emit any mutations that happened during snapshotting, as can now apply against the newly built mirror
+    visibilityManager?.unlock();
 
     // Some old browsers don't support adoptedStyleSheets.
     if (document.adoptedStyleSheets && document.adoptedStyleSheets.length > 0)
@@ -665,6 +652,18 @@ function record<T = eventWithTime>(
                 ...d,
               },
             }),
+          navigationCb: (navData) => {
+            console.debug(
+              `[${nowTimestamp()}] [rrweb:record/navigation] 🧭 Navigation detected:`,
+              navData.navigationType,
+              navData.oldHref,
+              '→',
+              navData.href,
+            );
+            // Call full snapshot with isCheckout = true
+            // This automatically resets exceedCount and exceedTime through wrappedEmit (lines 354-356)
+            takeFullSnapshot(true);
+          },
           inputCb: (v) =>
             wrappedEmit({
               type: EventType.IncrementalSnapshot,
@@ -698,7 +697,7 @@ function record<T = eventWithTime>(
               },
             }),
           canvasMutationCb: wrappedCanvasMutationEmit,
-          visibilityMutationCb: wrappedVisibilityMutationEmit,
+          visibilityManager,
           fontCb: (p) =>
             wrappedEmit({
               type: EventType.IncrementalSnapshot,
@@ -746,13 +745,13 @@ function record<T = eventWithTime>(
           blockSelector,
           slimDOMOptions,
           dataURLOptions,
+          selectorOptions,
           mirror,
           iframeManager,
           stylesheetManager,
           shadowDomManager,
           processedNodeManager,
           canvasManager,
-          visibilityManager,
           ignoreCSSAttributes,
           plugins:
             plugins

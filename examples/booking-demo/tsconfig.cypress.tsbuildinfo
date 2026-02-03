@@ -1,0 +1,1 @@
+{"root":["./tests/cypress/e2e/modern-seaside-stay.cy.ts","./tests/cypress/e2e/seaside.spec.cy.ts","./cypress.config.ts","./cypress/support/e2e.ts"],"errors":true,"version":"5.7.3"}

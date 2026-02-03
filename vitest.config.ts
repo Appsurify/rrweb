@@ -9,5 +9,9 @@ export default {
       escapeString: true,
       printBasicPrototype: true,
     },
+    // Reduce concurrency to prevent race conditions and flaky tests
+    maxConcurrency: 1,
+    fileParallelism: false,
+    pool: 'forks',
   },
 };

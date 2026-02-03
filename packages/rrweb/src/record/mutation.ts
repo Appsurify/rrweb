@@ -36,6 +36,10 @@ import {
   nowTimestamp,
 } from '../utils';
 import dom from '@appsurify-testmap/rrweb-utils';
+import {
+  resolveNodeSelector,
+  type NormalizedSelectorOptions,
+} from './selector';
 
 type DoubleLinkedListNode = {
   previous: DoubleLinkedListNode | null;
@@ -137,6 +141,27 @@ class DoubleLinkedList {
 
 const moveKey = (id: number, parentId: number) => `${id}@${parentId}`;
 
+const selectorRelevantAttributes = new Set([
+  'id',
+  'class',
+  'name',
+  'role',
+  'title',
+  'alt',
+  'placeholder',
+  'for',
+  'type',
+]);
+
+function shouldRegenerateSelector(attributeName: string): boolean {
+  const normalized = attributeName.toLowerCase();
+  return (
+    selectorRelevantAttributes.has(normalized) ||
+    normalized.startsWith('data-') ||
+    normalized.startsWith('aria-')
+  );
+}
+
 /**
  * controls the behaviour of a MutationObserver
  */
@@ -189,13 +214,13 @@ export default class MutationBuffer {
   private inlineImages: observerParam['inlineImages'];
   private slimDOMOptions: observerParam['slimDOMOptions'];
   private dataURLOptions: observerParam['dataURLOptions'];
+  private selectorOptions: NormalizedSelectorOptions | null = null;
   private doc: observerParam['doc'];
   private mirror: observerParam['mirror'];
   private iframeManager: observerParam['iframeManager'];
   private stylesheetManager: observerParam['stylesheetManager'];
   private shadowDomManager: observerParam['shadowDomManager'];
   private canvasManager: observerParam['canvasManager'];
-  private visibilityManager: observerParam['visibilityManager'];
   private processedNodeManager: observerParam['processedNodeManager'];
   private unattachedDoc: HTMLDocument;
 
@@ -217,13 +242,13 @@ export default class MutationBuffer {
         'inlineImages',
         'slimDOMOptions',
         'dataURLOptions',
+        'selectorOptions',
         'doc',
         'mirror',
         'iframeManager',
         'stylesheetManager',
         'shadowDomManager',
         'canvasManager',
-        'visibilityManager',
         'processedNodeManager',
       ] as const
     ).forEach((key) => {
@@ -235,13 +260,11 @@ export default class MutationBuffer {
   public freeze() {
     this.frozen = true;
     this.canvasManager.freeze();
-    this.visibilityManager.freeze();
   }
 
   public unfreeze() {
     this.frozen = false;
     this.canvasManager.unfreeze();
-    this.visibilityManager.unfreeze();
     this.emit();
   }
 
@@ -252,20 +275,17 @@ export default class MutationBuffer {
   public lock() {
     this.locked = true;
     this.canvasManager.lock();
-    this.visibilityManager.lock();
   }
 
   public unlock() {
     this.locked = false;
     this.canvasManager.unlock();
-    this.visibilityManager.unlock();
     this.emit();
   }
 
   public reset() {
     this.shadowDomManager.reset();
     this.canvasManager.reset();
-    this.visibilityManager.reset();
   }
 
   public processMutations = (mutations: mutationRecord[]) => {
@@ -364,6 +384,7 @@ export default class MutationBuffer {
           this.stylesheetManager.attachLinkElement(link, childSn);
         },
         cssCaptured,
+        selectorOptions: this.selectorOptions,
       });
       if (sn) {
         adds.push({
@@ -475,6 +496,11 @@ export default class MutationBuffer {
           return {
             id: this.mirror.getId(n),
             value: text.value,
+            selector: resolveNodeSelector(
+              n,
+              this.mirror,
+              this.selectorOptions,
+            ),
           };
         })
         // no need to include them on added elements, as they have just been serialized with up to date attribubtes
@@ -503,6 +529,14 @@ export default class MutationBuffer {
           return {
             id: this.mirror.getId(attribute.node),
             attributes: attributes,
+            selector: resolveNodeSelector(
+              attribute.node,
+              this.mirror,
+              this.selectorOptions,
+              {
+                force: Object.keys(attributes).some(shouldRegenerateSelector),
+              },
+            ),
           };
         })
         // no need to include them on added elements, as they have just been serialized with up to date attribubtes

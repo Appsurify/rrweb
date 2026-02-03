@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Navigation Observer Manual Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      margin: 10px 5px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #events {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 5px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .event {
+      padding: 10px;
+      margin: 5px 0;
+      background: white;
+      border-left: 4px solid #4CAF50;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    .event.meta {
+      border-left-color: #2196F3;
+    }
+    .event.fullsnapshot {
+      border-left-color: #FF9800;
+    }
+    .event.incremental {
+      border-left-color: #9E9E9E;
+    }
+    .nav-info {
+      padding: 10px;
+      background: #fffbcc;
+      border-left: 4px solid #ffd700;
+      margin: 5px 0;
+      font-family: monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧭 Navigation Observer Manual Test</h1>
+  <p>This page demonstrates the NavigationObserver feature. Click the buttons below to trigger different types of navigation and watch the events being recorded.</p>
+
+  <div>
+    <button onclick="navPushState()">Navigate to Page 1 (pushState)</button>
+    <button onclick="navPushState2()">Navigate to Page 2 (pushState)</button>
+    <button onclick="navReplaceState()">Replace State (replaceState)</button>
+    <button onclick="navBack()">Back (popstate)</button>
+    <button onclick="navHash()">Hash Change</button>
+    <button onclick="clearEvents()">Clear Events</button>
+  </div>
+
+  <h3>Recorded Events:</h3>
+  <div id="events"></div>
+
+  <script src="./dist/rrweb.js"></script>
+  <script>
+    const eventsContainer = document.getElementById('events');
+    let eventCount = 0;
+
+    function addEventToUI(type, data, isCheckout) {
+      eventCount++;
+      const eventDiv = document.createElement('div');
+      eventDiv.className = `event ${type.toLowerCase().replace('_', '')}`;
+
+      let content = `<strong>#${eventCount} - ${type}</strong>`;
+      if (isCheckout) {
+        content += ' <span style="color: red; font-weight: bold;">(CHECKOUT)</span>';
+      }
+
+      if (type === 'Meta') {
+        content += `<br>href: ${data.href}`;
+      } else if (type === 'FullSnapshot') {
+        content += `<br>Full DOM snapshot taken`;
+      }
+
+      eventDiv.innerHTML = content;
+      eventsContainer.insertBefore(eventDiv, eventsContainer.firstChild);
+    }
+
+    // Start recording with navigation observer enabled
+    console.log('Starting rrweb recording with navigation observer...');
+    const stopRecording = rrweb.record({
+      emit: (event, isCheckout) => {
+        const eventType = ['DomContentLoaded', 'Load', 'FullSnapshot', 'IncrementalSnapshot', 'Meta', 'Custom', 'Plugin'][event.type];
+
+        console.log(`Event: ${eventType}`, isCheckout ? '(checkout)' : '', event);
+
+        if (eventType === 'Meta' || eventType === 'FullSnapshot') {
+          addEventToUI(eventType, event.data, isCheckout);
+        }
+      },
+      // Navigation observer is enabled by default (sampling.navigation !== false)
+    });
+
+    // Navigation functions
+    function navPushState() {
+      console.log('🧭 Triggering pushState to /page-1');
+      const navDiv = document.createElement('div');
+      navDiv.className = 'nav-info';
+      navDiv.textContent = '🧭 Navigation: pushState -> /page-1';
+      eventsContainer.insertBefore(navDiv, eventsContainer.firstChild);
+
+      window.history.pushState({}, '', '/page-1');
+    }
+
+    function navPushState2() {
+      console.log('🧭 Triggering pushState to /page-2');
+      const navDiv = document.createElement('div');
+      navDiv.className = 'nav-info';
+      navDiv.textContent = '🧭 Navigation: pushState -> /page-2';
+      eventsContainer.insertBefore(navDiv, eventsContainer.firstChild);
+
+      window.history.pushState({}, '', '/page-2');
+    }
+
+    function navReplaceState() {
+      console.log('🧭 Triggering replaceState to /replaced');
+      const navDiv = document.createElement('div');
+      navDiv.className = 'nav-info';
+      navDiv.textContent = '🧭 Navigation: replaceState -> /replaced';
+      eventsContainer.insertBefore(navDiv, eventsContainer.firstChild);
+
+      window.history.replaceState({}, '', '/replaced');
+    }
+
+    function navBack() {
+      console.log('🧭 Triggering popstate (back)');
+      const navDiv = document.createElement('div');
+      navDiv.className = 'nav-info';
+      navDiv.textContent = '🧭 Navigation: popstate (back)';
+      eventsContainer.insertBefore(navDiv, eventsContainer.firstChild);
+
+      window.history.back();
+    }
+
+    function navHash() {
+      console.log('🧭 Triggering hashchange to #section1');
+      const navDiv = document.createElement('div');
+      navDiv.className = 'nav-info';
+      navDiv.textContent = '🧭 Navigation: hashchange -> #section1';
+      eventsContainer.insertBefore(navDiv, eventsContainer.firstChild);
+
+      window.location.hash = '#section1';
+    }
+
+    function clearEvents() {
+      eventsContainer.innerHTML = '';
+      eventCount = 0;
+    }
+
+    console.log('ℹ️ Manual test page loaded. Open the browser console to see navigation debug logs.');
+  </script>
+</body>
+</html>

@@ -1,7 +1,6 @@
 import type { Mirror } from '@appsurify-testmap/rrweb-snapshot';
 import type {
-  SamplingStrategy,
-  visibilityMutationCallback,
+  visibilityCallbackParam,
   visibilityMutation,
 } from '@appsurify-testmap/rrweb-types';
 import { computeVisibility, type VisibilityCheckEntry } from './visibility';
@@ -11,7 +10,7 @@ export class VisibilityManager {
   private locked = false;
   private pending: Map<Element, visibilityMutation> = new Map();
   private mirror: Mirror;
-  private mutationCb: visibilityMutationCallback;
+  private mutationCb: (v: visibilityCallbackParam) => void;
   private rafId: number | null = null;
   private intervalId: number | null = null;
   private rafThrottle: number;
@@ -36,8 +35,8 @@ export class VisibilityManager {
   constructor(options: {
     doc: Document;
     mirror: Mirror;
-    sampling: SamplingStrategy['visibility'];
-    mutationCb: visibilityMutationCallback;
+    sampling: boolean | Record<string, boolean | number | string | undefined> | undefined;
+    mutationCb: (v: visibilityCallbackParam) => void;
     notifyActivity?: (count: number) => void;
   }) {
     const { doc, mirror, sampling, mutationCb, notifyActivity } = options;

@@ -36,6 +36,8 @@ import {
 } from "./utils";
 import dom from '@appsurify-testmap/rrweb-utils';
 import { generateSEQL } from '@whenessel/seql-js';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import type { GeneratorOptions as SEQLGeneratorOptions } from '@whenessel/seql-js';
 
 let _id = 1;
@@ -963,7 +965,6 @@ export function serializeNodeWithId(
     selectorOptions?: {
       maxPathDepth: number;
       enableSvgFingerprint?: boolean;
-      confidenceThreshold?: number;
       fallbackToBody?: boolean;
     } | null;
   },
@@ -1058,7 +1059,6 @@ export function serializeNodeWithId(
         const seqlGeneratorOptions: SEQLGeneratorOptions = {
           maxPathDepth: selectorOptions.maxPathDepth,
           enableSvgFingerprint: selectorOptions.enableSvgFingerprint,
-          confidenceThreshold: selectorOptions.confidenceThreshold,
           fallbackToBody: selectorOptions.fallbackToBody,
         };
         const selector = generateSEQL(n as Element, seqlGeneratorOptions);
@@ -1071,6 +1071,18 @@ export function serializeNodeWithId(
         console.warn('Failed to generate SEQL selector:', error);
       }
     }
+    // if (isElement(n)) {
+    //   const selector = generateSEQL(n as Element);
+    //   if (selector) {
+    //     serializedNode.selector = selector;
+    //   } else {
+    //     console.debug('Invalid SEQL', {n});
+    //   }
+    // } else {
+    //   console.debug('Skipping SEQL generation for non-element node', {n});
+    // }
+
+
 
     // Существующий код для isVisible и isInteractive
     if (n.nodeType === Node.TEXT_NODE) {

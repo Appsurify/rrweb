@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mocha Tests" time="8.334" tests="1" failures="0">
+  <testsuite name="Root Suite" timestamp="2026-01-28T15:31:04" tests="0" file="tests/cypress/e2e/modern-seaside-stay.cy.ts" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Modern Seaside Stay" timestamp="2026-01-28T15:31:04" tests="1" time="8.333" failures="0">
+    <testcase name="Modern Seaside Stay Simple booking form" time="5.403" classname="Simple booking form">
+    </testcase>
+  </testsuite>
+</testsuites>

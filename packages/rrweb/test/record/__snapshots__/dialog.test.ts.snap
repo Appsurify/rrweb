@@ -36,13 +36,20 @@ exports[`dialog > add dialog and show 1`] = `
                       {
                         \\"type\\": 3,
                         \\"textContent\\": \\"SCRIPT_PLACEHOLDER\\",
-                        \\"id\\": 5
+                        \\"id\\": 5,
+                        \\"isVisible\\": false
                       }
                     ],
-                    \\"id\\": 4
+                    \\"id\\": 4,
+                    \\"selector\\": \\"v1.0: html :: head#1 > script[type=\\\\\\"text/javascript\\\\\\"]#1\\",
+                    \\"isVisible\\": false,
+                    \\"isInteractive\\": false
                   }
                 ],
-                \\"id\\": 3
+                \\"id\\": 3,
+                \\"selector\\": \\"v1.0: html :: head#1\\",
+                \\"isVisible\\": false,
+                \\"isInteractive\\": false
               },
               {
                 \\"type\\": 2,
@@ -52,7 +59,8 @@ exports[`dialog > add dialog and show 1`] = `
                   {
                     \\"type\\": 3,
                     \\"textContent\\": \\"\\\\n    \\",
-                    \\"id\\": 7
+                    \\"id\\": 7,
+                    \\"isVisible\\": false
                   },
                   {
                     \\"type\\": 2,
@@ -62,21 +70,32 @@ exports[`dialog > add dialog and show 1`] = `
                       {
                         \\"type\\": 3,
                         \\"textContent\\": \\"I'm a dialog\\",
-                        \\"id\\": 9
+                        \\"id\\": 9,
+                        \\"isVisible\\": false
                       }
                     ],
-                    \\"id\\": 8
+                    \\"id\\": 8,
+                    \\"selector\\": \\"v1.0: body :: dialog#1\\",
+                    \\"isVisible\\": false,
+                    \\"isInteractive\\": true
                   },
                   {
                     \\"type\\": 3,
                     \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-                    \\"id\\": 10
+                    \\"id\\": 10,
+                    \\"isVisible\\": false
                   }
                 ],
-                \\"id\\": 6
+                \\"id\\": 6,
+                \\"selector\\": \\"v1.0: html :: body#2\\",
+                \\"isVisible\\": true,
+                \\"isInteractive\\": false
               }
             ],
-            \\"id\\": 2
+            \\"id\\": 2,
+            \\"selector\\": \\"v1.0: html :: html\\",
+            \\"isVisible\\": true,
+            \\"isInteractive\\": false
           }
         ],
         \\"compatMode\\": \\"BackCompat\\",
@@ -86,6 +105,14 @@ exports[`dialog > add dialog and show 1`] = `
         \\"left\\": 0,
         \\"top\\": 0
       }
+    }
+  },
+  {
+    \\"type\\": 3,
+    \\"data\\": {
+      \\"source\\": 2,
+      \\"type\\": 5,
+      \\"id\\": -1
     }
   },
   {
@@ -107,7 +134,10 @@ exports[`dialog > add dialog and show 1`] = `
               \\"rr_open_mode\\": \\"non-modal\\"
             },
             \\"childNodes\\": [],
-            \\"id\\": 11
+            \\"id\\": 11,
+            \\"selector\\": \\"v1.0: body :: dialog#2\\",
+            \\"isVisible\\": true,
+            \\"isInteractive\\": true
           }
         }
       ]
@@ -152,13 +182,20 @@ exports[`dialog > add dialog and showModal 1`] = `
                       {
                         \\"type\\": 3,
                         \\"textContent\\": \\"SCRIPT_PLACEHOLDER\\",
-                        \\"id\\": 5
+                        \\"id\\": 5,
+                        \\"isVisible\\": false
                       }
                     ],
-                    \\"id\\": 4
+                    \\"id\\": 4,
+                    \\"selector\\": \\"v1.0: html :: head#1 > script[type=\\\\\\"text/javascript\\\\\\"]#1\\",
+                    \\"isVisible\\": false,
+                    \\"isInteractive\\": false
                   }
                 ],
-                \\"id\\": 3
+                \\"id\\": 3,
+                \\"selector\\": \\"v1.0: html :: head#1\\",
+                \\"isVisible\\": false,
+                \\"isInteractive\\": false
               },
               {
                 \\"type\\": 2,
@@ -168,7 +205,8 @@ exports[`dialog > add dialog and showModal 1`] = `
                   {
                     \\"type\\": 3,
                     \\"textContent\\": \\"\\\\n    \\",
-                    \\"id\\": 7
+                    \\"id\\": 7,
+                    \\"isVisible\\": false
                   },
                   {
                     \\"type\\": 2,
@@ -178,21 +216,32 @@ exports[`dialog > add dialog and showModal 1`] = `
                       {
                         \\"type\\": 3,
                         \\"textContent\\": \\"I'm a dialog\\",
-                        \\"id\\": 9
+                        \\"id\\": 9,
+                        \\"isVisible\\": false
                       }
                     ],
-                    \\"id\\": 8
+                    \\"id\\": 8,
+                    \\"selector\\": \\"v1.0: body :: dialog#1\\",
+                    \\"isVisible\\": false,
+                    \\"isInteractive\\": true
                   },
                   {
                     \\"type\\": 3,
                     \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-                    \\"id\\": 10
+                    \\"id\\": 10,
+                    \\"isVisible\\": false
                   }
                 ],
-                \\"id\\": 6
+                \\"id\\": 6,
+                \\"selector\\": \\"v1.0: html :: body#2\\",
+                \\"isVisible\\": true,
+                \\"isInteractive\\": false
               }
             ],
-            \\"id\\": 2
+            \\"id\\": 2,
+            \\"selector\\": \\"v1.0: html :: html\\",
+            \\"isVisible\\": true,
+            \\"isInteractive\\": false
           }
         ],
         \\"compatMode\\": \\"BackCompat\\",
@@ -202,6 +251,14 @@ exports[`dialog > add dialog and showModal 1`] = `
         \\"left\\": 0,
         \\"top\\": 0
       }
+    }
+  },
+  {
+    \\"type\\": 3,
+    \\"data\\": {
+      \\"source\\": 2,
+      \\"type\\": 5,
+      \\"id\\": -1
     }
   },
   {
@@ -223,7 +280,10 @@ exports[`dialog > add dialog and showModal 1`] = `
               \\"rr_open_mode\\": \\"modal\\"
             },
             \\"childNodes\\": [],
-            \\"id\\": 11
+            \\"id\\": 11,
+            \\"selector\\": \\"v1.0: body :: dialog#2\\",
+            \\"isVisible\\": true,
+            \\"isInteractive\\": true
           }
         }
       ]
@@ -268,13 +328,20 @@ exports[`dialog > switch to show dialog 1`] = `
                       {
                         \\"type\\": 3,
                         \\"textContent\\": \\"SCRIPT_PLACEHOLDER\\",
-                        \\"id\\": 5
+                        \\"id\\": 5,
+                        \\"isVisible\\": false
                       }
                     ],
-                    \\"id\\": 4
+                    \\"id\\": 4,
+                    \\"selector\\": \\"v1.0: html :: head#1 > script[type=\\\\\\"text/javascript\\\\\\"]#1\\",
+                    \\"isVisible\\": false,
+                    \\"isInteractive\\": false
                   }
                 ],
-                \\"id\\": 3
+                \\"id\\": 3,
+                \\"selector\\": \\"v1.0: html :: head#1\\",
+                \\"isVisible\\": false,
+                \\"isInteractive\\": false
               },
               {
                 \\"type\\": 2,
@@ -284,7 +351,8 @@ exports[`dialog > switch to show dialog 1`] = `
                   {
                     \\"type\\": 3,
                     \\"textContent\\": \\"\\\\n    \\",
-                    \\"id\\": 7
+                    \\"id\\": 7,
+                    \\"isVisible\\": false
                   },
                   {
                     \\"type\\": 2,
@@ -294,21 +362,32 @@ exports[`dialog > switch to show dialog 1`] = `
                       {
                         \\"type\\": 3,
                         \\"textContent\\": \\"I'm a dialog\\",
-                        \\"id\\": 9
+                        \\"id\\": 9,
+                        \\"isVisible\\": false
                       }
                     ],
-                    \\"id\\": 8
+                    \\"id\\": 8,
+                    \\"selector\\": \\"v1.0: body :: dialog#1\\",
+                    \\"isVisible\\": false,
+                    \\"isInteractive\\": true
                   },
                   {
                     \\"type\\": 3,
                     \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-                    \\"id\\": 10
+                    \\"id\\": 10,
+                    \\"isVisible\\": false
                   }
                 ],
-                \\"id\\": 6
+                \\"id\\": 6,
+                \\"selector\\": \\"v1.0: html :: body#2\\",
+                \\"isVisible\\": true,
+                \\"isInteractive\\": false
               }
             ],
-            \\"id\\": 2
+            \\"id\\": 2,
+            \\"selector\\": \\"v1.0: html :: html\\",
+            \\"isVisible\\": true,
+            \\"isInteractive\\": false
           }
         ],
         \\"compatMode\\": \\"BackCompat\\",
@@ -323,6 +402,14 @@ exports[`dialog > switch to show dialog 1`] = `
   {
     \\"type\\": 3,
     \\"data\\": {
+      \\"source\\": 2,
+      \\"type\\": 5,
+      \\"id\\": 8
+    }
+  },
+  {
+    \\"type\\": 3,
+    \\"data\\": {
       \\"source\\": 0,
       \\"texts\\": [],
       \\"attributes\\": [
@@ -331,7 +418,8 @@ exports[`dialog > switch to show dialog 1`] = `
           \\"attributes\\": {
             \\"open\\": \\"\\",
             \\"rr_open_mode\\": \\"modal\\"
-          }
+          },
+          \\"selector\\": \\"v1.0: body :: dialog#1\\"
         }
       ],
       \\"removes\\": [],
@@ -349,7 +437,8 @@ exports[`dialog > switch to show dialog 1`] = `
           \\"attributes\\": {
             \\"open\\": \\"\\",
             \\"rr_open_mode\\": \\"non-modal\\"
-          }
+          },
+          \\"selector\\": \\"v1.0: body :: dialog#1\\"
         }
       ],
       \\"removes\\": [],
@@ -395,13 +484,20 @@ exports[`dialog > switch to showModal dialog 1`] = `
                       {
                         \\"type\\": 3,
                         \\"textContent\\": \\"SCRIPT_PLACEHOLDER\\",
-                        \\"id\\": 5
+                        \\"id\\": 5,
+                        \\"isVisible\\": false
                       }
                     ],
-                    \\"id\\": 4
+                    \\"id\\": 4,
+                    \\"selector\\": \\"v1.0: html :: head#1 > script[type=\\\\\\"text/javascript\\\\\\"]#1\\",
+                    \\"isVisible\\": false,
+                    \\"isInteractive\\": false
                   }
                 ],
-                \\"id\\": 3
+                \\"id\\": 3,
+                \\"selector\\": \\"v1.0: html :: head#1\\",
+                \\"isVisible\\": false,
+                \\"isInteractive\\": false
               },
               {
                 \\"type\\": 2,
@@ -411,7 +507,8 @@ exports[`dialog > switch to showModal dialog 1`] = `
                   {
                     \\"type\\": 3,
                     \\"textContent\\": \\"\\\\n    \\",
-                    \\"id\\": 7
+                    \\"id\\": 7,
+                    \\"isVisible\\": false
                   },
                   {
                     \\"type\\": 2,
@@ -421,21 +518,32 @@ exports[`dialog > switch to showModal dialog 1`] = `
                       {
                         \\"type\\": 3,
                         \\"textContent\\": \\"I'm a dialog\\",
-                        \\"id\\": 9
+                        \\"id\\": 9,
+                        \\"isVisible\\": false
                       }
                     ],
-                    \\"id\\": 8
+                    \\"id\\": 8,
+                    \\"selector\\": \\"v1.0: body :: dialog#1\\",
+                    \\"isVisible\\": false,
+                    \\"isInteractive\\": true
                   },
                   {
                     \\"type\\": 3,
                     \\"textContent\\": \\"\\\\n  \\\\n\\\\n\\",
-                    \\"id\\": 10
+                    \\"id\\": 10,
+                    \\"isVisible\\": false
                   }
                 ],
-                \\"id\\": 6
+                \\"id\\": 6,
+                \\"selector\\": \\"v1.0: html :: body#2\\",
+                \\"isVisible\\": true,
+                \\"isInteractive\\": false
               }
             ],
-            \\"id\\": 2
+            \\"id\\": 2,
+            \\"selector\\": \\"v1.0: html :: html\\",
+            \\"isVisible\\": true,
+            \\"isInteractive\\": false
           }
         ],
         \\"compatMode\\": \\"BackCompat\\",
@@ -450,6 +558,14 @@ exports[`dialog > switch to showModal dialog 1`] = `
   {
     \\"type\\": 3,
     \\"data\\": {
+      \\"source\\": 2,
+      \\"type\\": 5,
+      \\"id\\": 8
+    }
+  },
+  {
+    \\"type\\": 3,
+    \\"data\\": {
       \\"source\\": 0,
       \\"texts\\": [],
       \\"attributes\\": [
@@ -458,7 +574,8 @@ exports[`dialog > switch to showModal dialog 1`] = `
           \\"attributes\\": {
             \\"open\\": \\"\\",
             \\"rr_open_mode\\": \\"non-modal\\"
-          }
+          },
+          \\"selector\\": \\"v1.0: body :: dialog#1\\"
         }
       ],
       \\"removes\\": [],
@@ -476,7 +593,8 @@ exports[`dialog > switch to showModal dialog 1`] = `
           \\"attributes\\": {
             \\"open\\": \\"\\",
             \\"rr_open_mode\\": \\"modal\\"
-          }
+          },
+          \\"selector\\": \\"v1.0: body :: dialog#1\\"
         }
       ],
       \\"removes\\": [],

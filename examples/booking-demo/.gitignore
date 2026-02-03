@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 /node_modules/
+/test-results/cypress/junit/test-output-1c2dcbc517caaca21701439f8f8d45d7.xml
+/test-results/cypress/junit/test-output-3fb2f5f7eab56890983e28f8830de1f3.xml
+/test-results/cypress/junit/test-output-6e9463cc2e60e53cae99d782ba2cba25.xml
+/test-results/cypress/junit/test-output-7e1cb4fa0deb25a74ed7b3da54a1097c.xml
+/test-results/cypress/junit/test-output-2107425ae5d8e3441e4d607d4bb5e35b.xml
+/test-results/cypress/junit/test-output-b083e1a02100354a85357bcdb2c7c10a.xml
+/test-results/cypress/junit/test-output-cb670fa404663650a96e5ba3a5991c1e.xml
+/test-results/cypress/junit/test-output-f874aac09b4afb5ddc4e48fe8310ab2d.xml

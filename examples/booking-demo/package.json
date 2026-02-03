@@ -22,6 +22,10 @@
     "@appsurify-testmap/rrweb-plugin-sequential-id-record": "file:../../packages/plugins/rrweb-plugin-sequential-id-record",
     "@appsurify-testmap/rrweb-snapshot": "file:../../packages/rrweb-snapshot",
     "@appsurify-testmap/rrweb-types": "file:../../packages/types",
+
+    "@appsurify-testmap/rrdom": "file:../../packages/rrdom",
+    "@appsurify-testmap/rrweb-utils": "file:../../packages/utils",
+
     "@cypress/webpack-preprocessor": "^6.0.4",
     "@playwright/test": "^1.52.0",
     "cypress": "^15.7.0",
@@ -53,5 +57,15 @@
     "typescript-eslint": "^8.26.1",
     "vite": "^6.3.1",
     "wait-on": "^8.0.3"
+  },
+  "resolutions": {
+    "@appsurify-testmap/rrweb": "file:../../packages/rrweb",
+    "@appsurify-testmap/rrweb-cypress-plugin": "file:../../packages/rrweb-cypress-plugin",
+    "@appsurify-testmap/rrweb-playwright-plugin": "file:../../packages/rrweb-playwright-plugin",
+    "@appsurify-testmap/rrweb-plugin-sequential-id-record": "file:../../packages/plugins/rrweb-plugin-sequential-id-record",
+    "@appsurify-testmap/rrweb-snapshot": "file:../../packages/rrweb-snapshot",
+    "@appsurify-testmap/rrweb-types": "file:../../packages/types",
+    "@appsurify-testmap/rrdom": "file:../../packages/rrdom",
+    "@appsurify-testmap/rrweb-utils": "file:../../packages/utils"
   }
 }

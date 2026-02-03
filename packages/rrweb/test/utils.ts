@@ -26,7 +26,14 @@ export async function launchPuppeteer(
       width: 1920,
       height: 1080,
     },
-    args: ['--no-sandbox'],
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--enable-webgl',
+      '--use-gl=swiftshader',
+      '--disable-gpu-sandbox',
+      '--ignore-gpu-blocklist',
+    ],
     ...options,
   });
 }
@@ -289,9 +296,15 @@ function stringifyDomSnapshot(mhtml: string): string {
       const { filename, content } = asset;
       let res: string | undefined;
       if (filename.includes('frame')) {
-        res = format(content, {
-          parser: 'html',
-        });
+        try {
+          res = format(content, {
+            parser: 'html',
+          });
+        } catch (error) {
+          // If prettier fails (e.g., plugin compatibility issues), just use the original content
+          console.warn('Prettier formatting failed, using unformatted content:', error);
+          res = content;
+        }
       }
       return { filename, content: res || content };
     },
@@ -738,6 +751,14 @@ export async function waitForRAF(
   });
 }
 
+/**
+ * Wait for specified milliseconds. Replacement for deprecated page.waitForTimeout()
+ * @param ms - milliseconds to wait
+ */
+export async function waitForTimeout(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function waitForIFrameLoad(
   page: puppeteer.Frame | puppeteer.Page,
   iframeSelector: string,
@@ -793,7 +814,7 @@ export function generateRecordSnippet(options: recordOptions<eventWithTime>) {
     ignoreSelector: ${JSON.stringify(options.ignoreSelector)},
     maskTextSelector: ${JSON.stringify(options.maskTextSelector)},
     maskAllInputs: ${options.maskAllInputs},
-    maskInputOptions: ${JSON.stringify(options.maskAllInputs)},
+    maskInputOptions: ${JSON.stringify(options.maskInputOptions)},
     userTriggeredOnInput: ${options.userTriggeredOnInput},
     maskTextClass: ${options.maskTextClass},
     maskTextFn: ${options.maskTextFn},
@@ -801,6 +822,10 @@ export function generateRecordSnippet(options: recordOptions<eventWithTime>) {
     recordCanvas: ${options.recordCanvas},
     recordAfter: '${options.recordAfter || 'load'}',
     inlineImages: ${options.inlineImages},
+    ${options.sampling !== undefined ? `sampling: ${JSON.stringify(options.sampling)},` : ''}
+    ${options.checkoutEveryNth !== undefined ? `checkoutEveryNth: ${options.checkoutEveryNth},` : ''}
+    ${options.checkoutEveryNms !== undefined ? `checkoutEveryNms: ${options.checkoutEveryNms},` : ''}
+    ${options.checkoutEveryNvm !== undefined ? `checkoutEveryNvm: ${options.checkoutEveryNvm},` : ''}
     plugins: ${options.plugins}
   });
   `;

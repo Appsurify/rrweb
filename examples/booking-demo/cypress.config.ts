@@ -21,7 +21,10 @@ export default defineConfig({
     device: 'desktop',
     testmap: {
       recordingOpts: {
-        checkoutEveryNvm: 10,
+        // Impact-score configuration for visibility-driven checkout
+        // Target: 3-4 FS for the entire booking flow (Solution C+: more aggressive tuning)
+        // First attempt (70/25/800/0.95): 6 FS. Increasing threshold further.
+        checkoutEveryNvm: 80, // Increased threshold to require more accumulation (was 70)
         // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
         maskInputOptions: { password: true },
         sampling: {
@@ -32,8 +35,8 @@ export default defineConfig({
             Click: true,
             ContextMenu: true,
             DblClick: true,
-            Focus: true,
-            Blur: true,
+            Focus: false,
+            Blur: false,
             TouchStart: false,
             TouchEnd: false,
           },
@@ -41,9 +44,11 @@ export default defineConfig({
           media: 100,
           input: 'last',
           canvas: 'all',
+          // Enable visibility tracking with throttle to control frequency
           visibility: {
-            mode: 'none',
+            mode: 'none', // 'throttle',
             debounce: 50,
+            throttle: 100, // Check every 100ms max
             threshold: 0.5,
             sensitivity: 0.05,
             rafThrottle: 100

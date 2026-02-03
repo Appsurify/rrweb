@@ -10,6 +10,7 @@ import type { ShadowDomManager } from './record/shadow-dom-manager';
 import type { Replayer } from './replay';
 import type { RRNode } from '@appsurify-testmap/rrdom';
 import type { CanvasManager } from './record/observers/canvas/canvas-manager';
+import type { VisibilityManager } from './record/observers/visibility/visibility-manager';
 import type { StylesheetManager } from './record/stylesheet-manager';
 import type {
   DataURLOptions,
@@ -30,28 +31,27 @@ import type {
   mouseInteractionCallBack,
   mousemoveCallBack,
   mutationCallBack,
+  navigationCallback,
   RecordPlugin,
   SamplingStrategy,
   scrollCallback,
   selectionCallback,
+  SelectorOptions,
   styleDeclarationCallback,
   styleSheetRuleCallback,
   viewportResizeCallback,
   PackFn,
   UnpackFn,
-  visibilityMutationCallback,
 } from '@appsurify-testmap/rrweb-types';
 import type ProcessedNodeManager from './record/processed-node-manager';
-import type {
-  VisibilityManager
-} from './record/observers/visibility/visibility-manager';
+import type { NormalizedSelectorOptions } from './record/selector';
 
 
 export type recordOptions<T> = {
   emit?: (e: T, isCheckout?: boolean) => void;
   checkoutEveryNth?: number;
   checkoutEveryNms?: number;
-  checkoutEveryNvm?: number; // every N visibility mutations
+  checkoutEveryNvm?: number;
   blockClass?: blockClass;
   blockSelector?: string;
   ignoreClass?: string;
@@ -79,6 +79,7 @@ export type recordOptions<T> = {
   collectFonts?: boolean;
   inlineImages?: boolean;
   plugins?: RecordPlugin[];
+  selector?: boolean | SelectorOptions;
   // departed, please use sampling options
   mousemoveWait?: number;
   keepIframeSrcFn?: KeepIframeSrcFn;
@@ -93,6 +94,7 @@ export type observerParam = {
   mouseInteractionCb: mouseInteractionCallBack;
   scrollCb: scrollCallback;
   viewportResizeCb: viewportResizeCallback;
+  navigationCb: navigationCallback;
   inputCb: inputCallback;
   mediaInteractionCb: mediaInteractionCallback;
   selectionCb: selectionCallback;
@@ -111,7 +113,6 @@ export type observerParam = {
   styleSheetRuleCb: styleSheetRuleCallback;
   styleDeclarationCb: styleDeclarationCallback;
   canvasMutationCb: canvasMutationCallback;
-  visibilityMutationCb: visibilityMutationCallback;
   customElementCb: customElementCallback;
   fontCb: fontCallback;
   sampling: SamplingStrategy;
@@ -122,14 +123,15 @@ export type observerParam = {
   collectFonts: boolean;
   slimDOMOptions: SlimDOMOptions;
   dataURLOptions: DataURLOptions;
+  selectorOptions: NormalizedSelectorOptions | null;
   doc: Document;
   mirror: Mirror;
   iframeManager: IframeManager;
   stylesheetManager: StylesheetManager;
   shadowDomManager: ShadowDomManager;
   canvasManager: CanvasManager;
-  visibilityManager: VisibilityManager;
   processedNodeManager: ProcessedNodeManager;
+  visibilityManager?: VisibilityManager;
   ignoreCSSAttributes: Set<string>;
   plugins: Array<{
     observer: (
@@ -159,13 +161,13 @@ export type MutationBufferParam = Pick<
   | 'inlineImages'
   | 'slimDOMOptions'
   | 'dataURLOptions'
+  | 'selectorOptions'
   | 'doc'
   | 'mirror'
   | 'iframeManager'
   | 'stylesheetManager'
   | 'shadowDomManager'
   | 'canvasManager'
-  | 'visibilityManager'
   | 'processedNodeManager'
 >;
 
@@ -232,8 +234,6 @@ declare global {
 export type CrossOriginIframeMessageEventContent<T = eventWithTime> = {
   type: 'rrweb';
   event: T;
-  // The origin of the iframe which originally emits this message. It is used to check the integrity of message and to filter out the rrweb messages which are forwarded by some sites.
-  origin: string;
   isCheckout?: boolean;
 };
 export type CrossOriginIframeMessageEvent =

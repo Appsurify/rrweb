@@ -29,7 +29,7 @@ import {
   IncrementalSource,
   MouseInteractions,
   PointerTypes,
-  MediaInteractions, type visibilityMutationCallback,
+  MediaInteractions,
 } from "@appsurify-testmap/rrweb-types";
 import type {
   mutationCallBack,
@@ -40,6 +40,7 @@ import type {
   scrollCallback,
   styleSheetRuleCallback,
   viewportResizeCallback,
+  navigationCallback,
   inputValue,
   inputCallback,
   hookResetter,
@@ -379,6 +380,82 @@ function initViewportResizeObserver(
     ),
   );
   return on('resize', updateDimension, win);
+}
+
+function initNavigationObserver({
+  navigationCb,
+  doc,
+  sampling,
+}: Pick<observerParam, 'navigationCb' | 'doc' | 'sampling'>): listenerHandler {
+  // Check sampling configuration
+  if (sampling.navigation === false) {
+    return () => {
+      // no-op
+    };
+  }
+
+  const win = doc.defaultView;
+  if (!win) {
+    return () => {
+      // no-op
+    };
+  }
+
+  let lastHref = win.location.href;
+  const handlers: listenerHandler[] = [];
+
+  // Helper to emit navigation
+  const emitNavigation = callbackWrapper(
+    (navigationType: 'pushState' | 'replaceState' | 'popstate' | 'hashchange') => {
+      const currentHref = win.location.href;
+      if (currentHref !== lastHref) {
+        navigationCb({
+          href: currentHref,
+          oldHref: lastHref,
+          navigationType,
+        });
+        lastHref = currentHref;
+      }
+    },
+  );
+
+  // Patch History.pushState
+  const restorePushState = patch(
+    win.history,
+    'pushState',
+    function (original: History['pushState']) {
+      return function (this: History, ...args: Parameters<History['pushState']>) {
+        const result = original.apply(this, args);
+        emitNavigation('pushState');
+        return result;
+      };
+    },
+  );
+  handlers.push(restorePushState);
+
+  // Patch History.replaceState
+  const restoreReplaceState = patch(
+    win.history,
+    'replaceState',
+    function (original: History['replaceState']) {
+      return function (this: History, ...args: Parameters<History['replaceState']>) {
+        const result = original.apply(this, args);
+        emitNavigation('replaceState');
+        return result;
+      };
+    },
+  );
+  handlers.push(restoreReplaceState);
+
+  // Listen to popstate (browser back/forward buttons)
+  handlers.push(on('popstate', () => emitNavigation('popstate'), win));
+
+  // Listen to hashchange
+  handlers.push(on('hashchange', () => emitNavigation('hashchange'), win));
+
+  return callbackWrapper(() => {
+    handlers.forEach((h) => h());
+  });
 }
 
 export const INPUT_TAGS = ['INPUT', 'TEXTAREA', 'SELECT'];
@@ -1245,7 +1322,7 @@ function initFontObserver({ fontCb, doc }: observerParam): listenerHandler {
   const originalFontFace = win.FontFace;
   win.FontFace = function FontFace(
     family: string,
-    source: string | ArrayBufferLike,
+    source: string | BufferSource,
     descriptors?: FontFaceDescriptors,
   ) {
     const fontFace = new originalFontFace(family, source, descriptors);
@@ -1256,7 +1333,17 @@ function initFontObserver({ fontCb, doc }: observerParam): listenerHandler {
       fontSource:
         typeof source === 'string'
           ? source
-          : JSON.stringify(Array.from(new Uint8Array(source))),
+          : JSON.stringify(
+              Array.from(
+                ArrayBuffer.isView(source)
+                  ? new Uint8Array(
+                      source.buffer,
+                      source.byteOffset,
+                      source.byteLength,
+                    )
+                  : new Uint8Array(source),
+              ),
+            ),
     });
     return fontFace;
   } as unknown as typeof FontFace;
@@ -1377,12 +1464,12 @@ function mergeHooks(o: observerParam, hooks: hooksParam) {
     mouseInteractionCb,
     scrollCb,
     viewportResizeCb,
+    navigationCb,
     inputCb,
     mediaInteractionCb,
     styleSheetRuleCb,
     styleDeclarationCb,
     canvasMutationCb,
-    visibilityMutationCb,
     fontCb,
     selectionCb,
     customElementCb,
@@ -1417,6 +1504,12 @@ function mergeHooks(o: observerParam, hooks: hooksParam) {
     }
     viewportResizeCb(...p);
   };
+  o.navigationCb = (...p: Arguments<navigationCallback>) => {
+    if (hooks.navigation) {
+      hooks.navigation(...p);
+    }
+    navigationCb(...p);
+  };
   o.inputCb = (...p: Arguments<inputCallback>) => {
     if (hooks.input) {
       hooks.input(...p);
@@ -1447,12 +1540,6 @@ function mergeHooks(o: observerParam, hooks: hooksParam) {
     }
     canvasMutationCb(...p);
   };
-  o.visibilityMutationCb = (...p: Arguments<visibilityMutationCallback>) => {
-    if (hooks.visibilityMutation) {
-      hooks.visibilityMutation(...p);
-    }
-    visibilityMutationCb(...p);
-  }
   o.fontCb = (...p: Arguments<fontCallback>) => {
     if (hooks.font) {
       hooks.font(...p);
@@ -1495,6 +1582,7 @@ export function initObservers(
   const viewportResizeHandler = initViewportResizeObserver(o, {
     win: currentWindow,
   });
+  const navigationHandler = initNavigationObserver(o);
   const inputHandler = initInputObserver(o);
   const mediaInteractionHandler = initMediaInteractionObserver(o);
 
@@ -1528,11 +1616,13 @@ export function initObservers(
 
   return callbackWrapper(() => {
     mutationBuffers.forEach((b) => b.reset());
+    o.visibilityManager?.reset();
     mutationObserver?.disconnect();
     mousemoveHandler();
     mouseInteractionHandler();
     scrollHandler();
     viewportResizeHandler();
+    navigationHandler();
     inputHandler();
     mediaInteractionHandler();
     styleSheetObserver();

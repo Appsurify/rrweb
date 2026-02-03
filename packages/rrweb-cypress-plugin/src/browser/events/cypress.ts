@@ -21,21 +21,21 @@ export const registerCypressEventListeners = () => {
 
     Cypress
         .on('test:before:run', onTestBeforeRun)
-        .on('log:added', onLogAdded)
-        .on('log:changed', onLogChanged)
+        // .on('log:added', onLogAdded)
+        // .on('log:changed', onLogChanged)
         .on('window:before:load', onWindowBeforeLoad)
         .on('window:before:unload', onWindowBeforeUnload)
         .on('window:unload', onWindowUnload)
         .on('window:load', onWindowLoad)
-        .on('command:enqueued', onCommandEnqueued)
-        .on('command:start', onCommandStart)
-        .on('command:end', onCommandEnd)
-        .on('command:retry', onCommandRetry)
-        .on('skipped:command:end', onSkippedCommandEnd)
+        // .on('command:enqueued', onCommandEnqueued)
+        // .on('command:start', onCommandStart)
+        // .on('command:end', onCommandEnd)
+        // .on('command:retry', onCommandRetry)
+        // .on('skipped:command:end', onSkippedCommandEnd)
         .on('test:after:run', onTestAfterRun)
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        .on('command:failed', onCommandFailed)
+        // .on('command:failed', onCommandFailed)
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         .on('command:queue:end', onCommandQueueEnd)

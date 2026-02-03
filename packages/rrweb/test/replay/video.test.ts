@@ -9,6 +9,7 @@ import {
   ISuite,
   hideMouseAnimation,
   fakeGoto,
+  waitForTimeout,
 } from '../utils';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { vi } from 'vitest';
@@ -119,7 +120,7 @@ describe('video', () => {
     await waitForVideoTo('canplaythrough', page);
 
     // loading indicator lingers quite often
-    await page.waitForTimeout(1000);
+    await waitForTimeout(1000);
 
     const frameImage = await page!.screenshot();
 

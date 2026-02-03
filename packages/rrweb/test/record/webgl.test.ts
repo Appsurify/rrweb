@@ -15,6 +15,7 @@ import {
   launchPuppeteer,
   stripBase64,
   waitForRAF,
+  waitForTimeout,
 } from '../utils';
 import type { ICanvas } from '@appsurify-testmap/rrweb-snapshot';
 
@@ -43,7 +44,10 @@ const setup = function (
   const ctx = {} as ISuite;
 
   beforeAll(async () => {
-    ctx.browser = await launchPuppeteer();
+    // Use old headless mode for WebGL support
+    ctx.browser = await launchPuppeteer({
+      headless: process.env.PUPPETEER_HEADLESS ? true : false,
+    });
   });
 
   beforeEach(async () => {
@@ -101,7 +105,25 @@ describe('record webgl', function (this: ISuite) {
     `,
   );
 
-  it('will record changes to a canvas element', async () => {
+  // Helper function to check WebGL support and skip test if not available
+  async function checkWebGLSupport(context: any, contextType: 'webgl' | 'webgl2' = 'webgl'): Promise<boolean> {
+    const hasWebGL = await ctx.page.evaluate((type) => {
+      const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+      const gl = canvas.getContext(type as any);
+      return gl !== null;
+    }, contextType);
+
+    if (!hasWebGL) {
+      console.warn(`${contextType} not supported in headless Chrome, skipping test`);
+      context.skip();
+      return false;
+    }
+    return true;
+  }
+
+  it('will record changes to a canvas element', async (context) => {
+    if (!(await checkWebGLSupport(context))) return;
+
     await ctx.page.evaluate(() => {
       var canvas = document.getElementById('canvas') as HTMLCanvasElement;
       var gl = canvas.getContext('webgl')!;
@@ -109,7 +131,7 @@ describe('record webgl', function (this: ISuite) {
       gl.clear(gl.COLOR_BUFFER_BIT);
     });
 
-    await ctx.page.waitForTimeout(50);
+    await waitForTimeout(50);
 
     const lastEvent = ctx.events[ctx.events.length - 1];
     expect(lastEvent).toMatchObject({
@@ -127,7 +149,9 @@ describe('record webgl', function (this: ISuite) {
     await assertSnapshot(ctx.events);
   });
 
-  it('will record changes to a webgl2 canvas element', async () => {
+  it('will record changes to a webgl2 canvas element', async (context) => {
+    if (!(await checkWebGLSupport(context, 'webgl2'))) return;
+
     await ctx.page.evaluate(() => {
       var canvas = document.getElementById('canvas') as HTMLCanvasElement;
       var gl = canvas.getContext('webgl2')!;
@@ -135,7 +159,7 @@ describe('record webgl', function (this: ISuite) {
       gl.clear(gl.COLOR_BUFFER_BIT);
     });
 
-    await ctx.page.waitForTimeout(50);
+    await waitForTimeout(50);
 
     const lastEvent = ctx.events[ctx.events.length - 1];
     expect(lastEvent).toMatchObject({
@@ -153,7 +177,9 @@ describe('record webgl', function (this: ISuite) {
     await assertSnapshot(ctx.events);
   });
 
-  it('will record changes to a canvas element before the canvas gets added', async () => {
+  it('will record changes to a canvas element before the canvas gets added', async (context) => {
+    if (!(await checkWebGLSupport(context))) return;
+
     await ctx.page.evaluate(() => {
       var canvas = document.createElement('canvas');
       var gl = canvas.getContext('webgl')!;
@@ -168,7 +194,9 @@ describe('record webgl', function (this: ISuite) {
     await assertSnapshot(ctx.events);
   });
 
-  it('will record changes to a canvas element before the canvas gets added (webgl2)', async () => {
+  it('will record changes to a canvas element before the canvas gets added (webgl2)', async (context) => {
+    if (!(await checkWebGLSupport(context, 'webgl2'))) return;
+
     await ctx.page.evaluate(() => {
       return new Promise<void>((resolve) => {
         var canvas = document.createElement('canvas');
@@ -191,7 +219,9 @@ describe('record webgl', function (this: ISuite) {
     await assertSnapshot(ctx.events);
   });
 
-  it('will record webgl variables', async () => {
+  it('will record webgl variables', async (context) => {
+    if (!(await checkWebGLSupport(context))) return;
+
     await ctx.page.evaluate(() => {
       var canvas = document.getElementById('canvas') as HTMLCanvasElement;
       var gl = canvas.getContext('webgl')!;
@@ -201,12 +231,14 @@ describe('record webgl', function (this: ISuite) {
       gl.linkProgram(program1);
     });
 
-    await ctx.page.waitForTimeout(50);
+    await waitForTimeout(50);
 
     await assertSnapshot(ctx.events);
   });
 
-  it('will record webgl variables in reverse order', async () => {
+  it('will record webgl variables in reverse order', async (context) => {
+    if (!(await checkWebGLSupport(context))) return;
+
     await ctx.page.evaluate(() => {
       var canvas = document.getElementById('canvas') as HTMLCanvasElement;
       var gl = canvas.getContext('webgl')!;
@@ -217,33 +249,39 @@ describe('record webgl', function (this: ISuite) {
       gl.linkProgram(program0);
     });
 
-    await ctx.page.waitForTimeout(50);
+    await waitForTimeout(50);
 
     await assertSnapshot(ctx.events);
   });
 
-  it('sets _context on canvas.getContext()', async () => {
-    const context = await ctx.page.evaluate(() => {
+  it('sets _context on canvas.getContext()', async (context) => {
+    if (!(await checkWebGLSupport(context))) return;
+
+    const result = await ctx.page.evaluate(() => {
       var canvas = document.getElementById('canvas') as HTMLCanvasElement;
       canvas.getContext('webgl')!;
       return (canvas as ICanvas).__context;
     });
 
-    expect(context).toBe('webgl');
+    expect(result).toBe('webgl');
   });
 
-  it('only sets _context on first canvas.getContext() call', async () => {
-    const context = await ctx.page.evaluate(() => {
+  it('only sets _context on first canvas.getContext() call', async (context) => {
+    if (!(await checkWebGLSupport(context))) return;
+
+    const result = await ctx.page.evaluate(() => {
       var canvas = document.getElementById('canvas') as HTMLCanvasElement;
       canvas.getContext('webgl');
       canvas.getContext('2d'); // returns null
       return (canvas as ICanvas).__context;
     });
 
-    expect(context).toBe('webgl');
+    expect(result).toBe('webgl');
   });
 
-  it('should batch events by RAF', async () => {
+  it('should batch events by RAF', async (context) => {
+    if (!(await checkWebGLSupport(context))) return;
+
     await ctx.page.evaluate(() => {
       return new Promise<void>((resolve) => {
         const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -262,7 +300,7 @@ describe('record webgl', function (this: ISuite) {
       });
     });
 
-    await ctx.page.waitForTimeout(50);
+    await waitForTimeout(50);
 
     await assertSnapshot(ctx.events);
     expect(ctx.events.length).toEqual(5);
@@ -286,7 +324,19 @@ describe('record webgl', function (this: ISuite) {
       maxFPS,
     );
 
-    it('should record snapshots', async () => {
+    it('should record snapshots', async (context) => {
+      const hasWebGL = await ctx.page.evaluate(() => {
+        const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+        const gl = canvas.getContext('webgl');
+        return gl !== null;
+      });
+
+      if (!hasWebGL) {
+        console.warn('webgl not supported in headless Chrome, skipping test');
+        context.skip();
+        return;
+      }
+
       await ctx.page.evaluate(() => {
         const canvas = document.getElementById('canvas') as HTMLCanvasElement;
         const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true })!;
@@ -297,7 +347,7 @@ describe('record webgl', function (this: ISuite) {
         gl.clear(gl.COLOR_BUFFER_BIT);
       });
 
-      await ctx.page.waitForTimeout(200); // give it some time buffer
+      await waitForTimeout(200); // give it some time buffer
 
       await ctx.page.evaluate(() => {
         const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -307,7 +357,7 @@ describe('record webgl', function (this: ISuite) {
         gl.clear(gl.COLOR_BUFFER_BIT);
       });
 
-      await ctx.page.waitForTimeout(200);
+      await waitForTimeout(200);
 
       await waitForRAF(ctx.page);
 

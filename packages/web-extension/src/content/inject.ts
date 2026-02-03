@@ -13,6 +13,13 @@ import { getRecordSequentialIdPlugin } from '@appsurify-testmap/rrweb-plugin-seq
 let stopFn: (() => void) | null = null;
 
 function startRecord(config: recordOptions<eventWithTime>) {
+  if (record.isRecording()) {
+    console.warn(
+      '[rrweb] Recording is already in progress, skipping startRecord',
+    );
+    return;
+  }
+
   stopFn =
     record({
       emit: (event, isCheckout) => {

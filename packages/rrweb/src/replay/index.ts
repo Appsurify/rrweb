@@ -1383,6 +1383,20 @@ export class Replayer {
         else this.applyAdoptedStyleSheet(d);
         break;
       }
+      case IncrementalSource.Visibility: {
+        const { mutations } = d;
+        for (const m of mutations) {
+          const node = this.usingVirtualDom
+            ? this.virtualDom.mirror.getNode(m.id)
+            : this.mirror.getNode(m.id);
+          if (node && node instanceof Element) {
+            (node as HTMLElement).style.visibility = m.isVisible
+              ? 'visible'
+              : 'hidden';
+          }
+        }
+        break;
+      }
       default:
     }
   }
