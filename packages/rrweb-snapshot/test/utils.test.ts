@@ -7,6 +7,7 @@ import {
   extractFileExtension,
   fixSafariColons,
   isNodeMetaEqual,
+  createMirror,
 } from '../src/utils';
 import { NodeType } from '@appsurify-testmap/rrweb-types';
 import type { serializedNode, serializedNodeWithId } from '@appsurify-testmap/rrweb-types';
@@ -278,6 +279,214 @@ describe('utils', () => {
 
       const out3 = fixSafariColons('[data-aa\\:other] { color: red; }');
       expect(out3).toEqual('[data-aa\\:other] { color: red; }');
+    });
+  });
+
+  describe('Mirror selector-based lookup', () => {
+    it('should return node by unique selector', () => {
+      const mirror = createMirror();
+      const node = document.createElement('button');
+      mirror.add(node, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'button',
+        attributes: { role: 'submit' },
+        childNodes: [],
+        selector: 'button[role="submit"]'
+      });
+
+      expect(mirror.getNodeBySelector('button[role="submit"]')).toBe(node);
+    });
+
+    it('should return first node when multiple nodes have same selector', () => {
+      const mirror = createMirror();
+      const node1 = document.createElement('div');
+      const node2 = document.createElement('div');
+
+      mirror.add(node1, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: { class: 'card' },
+        childNodes: [],
+        selector: 'div.card'
+      });
+      mirror.add(node2, {
+        id: 2,
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: { class: 'card' },
+        childNodes: [],
+        selector: 'div.card'
+      });
+
+      const result = mirror.getNodeBySelector('div.card');
+      expect([node1, node2]).toContain(result);
+    });
+
+    it('should return all nodes with same selector', () => {
+      const mirror = createMirror();
+      const node1 = document.createElement('button');
+      const node2 = document.createElement('button');
+
+      mirror.add(node1, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'button',
+        attributes: {},
+        childNodes: [],
+        selector: 'button'
+      });
+      mirror.add(node2, {
+        id: 2,
+        type: NodeType.Element,
+        tagName: 'button',
+        attributes: {},
+        childNodes: [],
+        selector: 'button'
+      });
+
+      const results = mirror.getNodesBySelector('button');
+      expect(results).toHaveLength(2);
+      expect(results).toContain(node1);
+      expect(results).toContain(node2);
+    });
+
+    it('should return null for non-existent selector', () => {
+      const mirror = createMirror();
+      expect(mirror.getNodeBySelector('non-existent')).toBeNull();
+    });
+
+    it('should return empty array for non-existent selector', () => {
+      const mirror = createMirror();
+      expect(mirror.getNodesBySelector('non-existent')).toEqual([]);
+    });
+
+    it('should handle removal from selector index', () => {
+      const mirror = createMirror();
+      const node = document.createElement('div');
+      mirror.add(node, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: { class: 'test' },
+        childNodes: [],
+        selector: 'div.test'
+      });
+
+      expect(mirror.hasSelector('div.test')).toBe(true);
+
+      mirror.removeNodeFromMap(node);
+      expect(mirror.hasSelector('div.test')).toBe(false);
+    });
+
+    it('should clean up empty Sets after removal', () => {
+      const mirror = createMirror();
+      const node = document.createElement('div');
+      mirror.add(node, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: { class: 'cleanup' },
+        childNodes: [],
+        selector: 'div.cleanup'
+      });
+      mirror.removeNodeFromMap(node);
+
+      // After removal, selector should not exist
+      expect(mirror.hasSelector('div.cleanup')).toBe(false);
+      expect(mirror.getNodeBySelector('div.cleanup')).toBeNull();
+    });
+
+    it('should update selector index on replace', () => {
+      const mirror = createMirror();
+      const oldNode = document.createElement('div');
+      const newNode = document.createElement('div');
+
+      mirror.add(oldNode, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: { class: 'replace' },
+        childNodes: [],
+        selector: 'div.replace'
+      });
+      mirror.replace(1, newNode);
+
+      expect(mirror.getNodeBySelector('div.replace')).toBe(newNode);
+      expect(mirror.getNodeBySelector('div.replace')).not.toBe(oldNode);
+    });
+
+    it('should reset selector index', () => {
+      const mirror = createMirror();
+      const node = document.createElement('div');
+      mirror.add(node, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: { class: 'reset' },
+        childNodes: [],
+        selector: 'div.reset'
+      });
+
+      mirror.reset();
+      expect(mirror.getNodeBySelector('div.reset')).toBeNull();
+      expect(mirror.hasSelector('div.reset')).toBe(false);
+    });
+
+    it('should handle nodes without selectors', () => {
+      const mirror = createMirror();
+      const node = document.createElement('div');
+      mirror.add(node, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: {},
+        childNodes: []
+        // no selector field
+      });
+
+      expect(mirror.getId(node)).toBe(1);
+      expect(mirror.getNodeBySelector('anything')).toBeNull();
+    });
+
+    it('should handle multiple nodes with different selectors', () => {
+      const mirror = createMirror();
+      const button = document.createElement('button');
+      const input = document.createElement('input');
+      const div = document.createElement('div');
+
+      mirror.add(button, {
+        id: 1,
+        type: NodeType.Element,
+        tagName: 'button',
+        attributes: { id: 'submit-btn' },
+        childNodes: [],
+        selector: 'button#submit-btn'
+      });
+      mirror.add(input, {
+        id: 2,
+        type: NodeType.Element,
+        tagName: 'input',
+        attributes: { type: 'email' },
+        childNodes: [],
+        selector: 'input[type="email"]'
+      });
+      mirror.add(div, {
+        id: 3,
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: { class: 'container' },
+        childNodes: [],
+        selector: 'div.container'
+      });
+
+      expect(mirror.getNodeBySelector('button#submit-btn')).toBe(button);
+      expect(mirror.getNodeBySelector('input[type="email"]')).toBe(input);
+      expect(mirror.getNodeBySelector('div.container')).toBe(div);
+      expect(mirror.hasSelector('button#submit-btn')).toBe(true);
+      expect(mirror.hasSelector('input[type="email"]')).toBe(true);
+      expect(mirror.hasSelector('div.container')).toBe(true);
     });
   });
 });

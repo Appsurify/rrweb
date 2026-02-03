@@ -344,6 +344,7 @@ export function createMirror(): Mirror {
 export class Mirror implements IMirror<RRNode> {
   private idNodeMap: Map<number, RRNode> = new Map();
   private nodeMetaMap: WeakMap<RRNode, serializedNodeWithId> = new WeakMap();
+  private selectorNodeMap: Map<string, Set<RRNode>> = new Map();
 
   getId(n: RRNode | undefined | null): number {
     if (!n) return -1;
@@ -372,6 +373,19 @@ export class Mirror implements IMirror<RRNode> {
     const id = this.getId(n);
     this.idNodeMap.delete(id);
 
+    // Remove from selector index
+    const meta = this.getMeta(n);
+    if (meta?.selector) {
+      const nodes = this.selectorNodeMap.get(meta.selector);
+      if (nodes) {
+        nodes.delete(n);
+        // Clean up empty Sets
+        if (nodes.size === 0) {
+          this.selectorNodeMap.delete(meta.selector);
+        }
+      }
+    }
+
     if (n.childNodes) {
       n.childNodes.forEach((childNode) => this.removeNodeFromMap(childNode));
     }
@@ -388,13 +402,34 @@ export class Mirror implements IMirror<RRNode> {
     const id = meta.id;
     this.idNodeMap.set(id, n);
     this.nodeMetaMap.set(n, meta);
+
+    // Index selector if present
+    if (meta.selector) {
+      let nodes = this.selectorNodeMap.get(meta.selector);
+      if (!nodes) {
+        nodes = new Set();
+        this.selectorNodeMap.set(meta.selector, nodes);
+      }
+      nodes.add(n);
+    }
   }
 
   replace(id: number, n: RRNode) {
     const oldNode = this.getNode(id);
     if (oldNode) {
       const meta = this.nodeMetaMap.get(oldNode);
-      if (meta) this.nodeMetaMap.set(n, meta);
+      if (meta) {
+        this.nodeMetaMap.set(n, meta);
+
+        // Update selector index
+        if (meta.selector) {
+          const nodes = this.selectorNodeMap.get(meta.selector);
+          if (nodes) {
+            nodes.delete(oldNode);
+            nodes.add(n);
+          }
+        }
+      }
     }
     this.idNodeMap.set(id, n);
   }
@@ -402,6 +437,24 @@ export class Mirror implements IMirror<RRNode> {
   reset() {
     this.idNodeMap = new Map();
     this.nodeMetaMap = new WeakMap();
+    this.selectorNodeMap = new Map();
+  }
+
+  getNodeBySelector(selector: string): RRNode | null {
+    const nodes = this.selectorNodeMap.get(selector);
+    if (!nodes || nodes.size === 0) return null;
+    // Return first element from Set
+    return nodes.values().next().value || null;
+  }
+
+  getNodesBySelector(selector: string): RRNode[] {
+    const nodes = this.selectorNodeMap.get(selector);
+    return nodes ? Array.from(nodes) : [];
+  }
+
+  hasSelector(selector: string): boolean {
+    const nodes = this.selectorNodeMap.get(selector);
+    return nodes !== undefined && nodes.size > 0;
   }
 }
 

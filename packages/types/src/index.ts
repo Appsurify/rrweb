@@ -77,7 +77,7 @@ export enum IncrementalSource {
   Selection,
   AdoptedStyleSheet,
   CustomElement,
-  VisibilityMutation,
+  Visibility,
 }
 
 export type mutationData = {
@@ -145,17 +145,18 @@ export type visibilityMutation = {
   id: number;
   isVisible: boolean;
   ratio?: number;
-}
+  selector?: string;
+};
 
-export type visibilityMutationCallbackParam = {
+export type visibilityCallbackParam = {
   mutations: visibilityMutation[];
-}
+};
 
-export type visibilityMutationCallback = (v: visibilityMutationCallbackParam) => void;
+export type visibilityCallBack = (v: visibilityCallbackParam) => void;
 
 export type visibilityMutationData = {
-  source: IncrementalSource.VisibilityMutation;
-} & visibilityMutationCallbackParam;
+  source: IncrementalSource.Visibility;
+} & visibilityCallbackParam;
 
 export type incrementalData =
   | mutationData
@@ -240,8 +241,14 @@ export type SamplingStrategy = Partial<{
    */
   canvas: 'all' | number;
   /**
-   *  false means do not record visibility changes
-   *
+   * false means not to record navigation events
+   * default: true (enabled)
+   */
+  navigation: boolean;
+  /**
+   * Visibility observer: false to disable; object for debounce/throttle/threshold/sensitivity/rafThrottle.
+   * When object: recordVisibility (default false) — if true, record incremental events with source Visibility;
+   * if false/omitted, only notify for checkout (full snapshot by checkoutEveryNvm threshold).
    */
   visibility: boolean | Record<string, boolean | number | string | undefined>;
 }>;
@@ -285,6 +292,7 @@ export type hooksParam = {
   mouseInteraction?: mouseInteractionCallBack;
   scroll?: scrollCallback;
   viewportResize?: viewportResizeCallback;
+  navigation?: navigationCallback;
   input?: inputCallback;
   mediaInteaction?: mediaInteractionCallback;
   styleSheetRule?: styleSheetRuleCallback;
@@ -293,7 +301,6 @@ export type hooksParam = {
   font?: fontCallback;
   selection?: selectionCallback;
   customElement?: customElementCallback;
-  visibilityMutation?: visibilityMutationCallback;
 };
 
 // https://dom.spec.whatwg.org/#interface-mutationrecord
@@ -314,6 +321,7 @@ export type textCursor = {
 export type textMutation = {
   id: number;
   value: string | null;
+  selector?: string;
 };
 
 export type styleOMValue = {
@@ -336,6 +344,7 @@ export type attributeMutation = {
   attributes: {
     [key: string]: string | styleOMValue | null;
   };
+  selector?: string;
 };
 
 export type removedNodeMutation = {
@@ -572,6 +581,12 @@ export type viewportResizeDimension = {
 };
 
 export type viewportResizeCallback = (d: viewportResizeDimension) => void;
+
+export type navigationCallback = (data: {
+  href: string;
+  oldHref: string;
+  navigationType: 'pushState' | 'replaceState' | 'popstate' | 'hashchange';
+}) => void;
 
 export type inputValue = {
   text: string;
@@ -870,6 +885,27 @@ export interface IMirror<TNode> {
   replace(id: number, n: TNode): void;
 
   reset(): void;
+
+  /**
+   * Get the first node with the given SEQL selector.
+   * @param selector - SEQL selector string
+   * @returns First matching node or null if not found
+   */
+  getNodeBySelector(selector: string): TNode | null;
+
+  /**
+   * Get all nodes with the given SEQL selector.
+   * @param selector - SEQL selector string
+   * @returns Array of matching nodes (empty array if none found)
+   */
+  getNodesBySelector(selector: string): TNode[];
+
+  /**
+   * Check if any node with the given SEQL selector exists in the mirror.
+   * @param selector - SEQL selector string
+   * @returns true if at least one node with this selector exists
+   */
+  hasSelector(selector: string): boolean;
 }
 
 export type DataURLOptions = Partial<{
