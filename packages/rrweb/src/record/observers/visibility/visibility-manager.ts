@@ -165,10 +165,13 @@ export class VisibilityManager {
   }
 
   private flushBuffer() {
+    if (this.frozen || this.locked) return;
     if (this.buffer.size === 0) return;
-    this.notifyActivity?.(this.buffer.size);
-    this.mutationCb({ mutations: Array.from(this.buffer.values()) });
+    const mutations = Array.from(this.buffer.values());
+    const count = mutations.length;
     this.buffer.clear();
+    this.mutationCb({ mutations });
+    this.notifyActivity?.(count);
   }
 
   public observe(el: Element) {
@@ -185,6 +188,10 @@ export class VisibilityManager {
 
   public freeze() {
     this.frozen = true;
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
   }
 
   public unfreeze() {
@@ -194,10 +201,39 @@ export class VisibilityManager {
 
   public lock() {
     this.locked = true;
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
   }
 
   public unlock() {
     this.locked = false;
+    // Discard stale visibility data buffered before/during lock
+    this.buffer.clear();
+    // Cancel pending debounce timer from pre-lock state
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+    // Recompute visibility baseline against post-snapshot DOM.
+    // No emission — FullSnapshot already captures complete state.
+    if (!this.disabled && this.elements.size > 0) {
+      this.previousState = computeVisibility(this.elements, new Map(), {
+        root: this.root,
+        threshold: this.threshold,
+        sensitivity: this.sensitivity,
+        rootMargin: this.rootMargin,
+      });
+    }
+  }
+
+  /**
+   * Clear frozen flag without triggering flush.
+   * Used after freeze+debounce checkout — buffer already cleared by unlock().
+   */
+  public unsetFrozen() {
+    this.frozen = false;
   }
 
   public reset() {

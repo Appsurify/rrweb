@@ -193,6 +193,7 @@ export type event = eventWithoutTime;
 export type eventWithTime = eventWithoutTime & {
   timestamp: number;
   delay?: number;
+  checkoutId?: number;
 };
 
 export type canvasEventWithTime = eventWithTime & {

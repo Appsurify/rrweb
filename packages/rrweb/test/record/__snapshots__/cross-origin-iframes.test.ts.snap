@@ -8,7 +8,8 @@ exports[`cross origin iframes > blank.html > should record same-origin iframe in
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -106,7 +107,8 @@ exports[`cross origin iframes > blank.html > should record same-origin iframe in
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -185,7 +187,8 @@ exports[`cross origin iframes > blank.html > should record same-origin iframe in
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -211,7 +214,8 @@ exports[`cross origin iframes > blank.html > should record same-origin iframe in
           }
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -276,7 +280,8 @@ exports[`cross origin iframes > blank.html > should record same-origin iframe in
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -289,7 +294,8 @@ exports[`cross origin iframes > form.html > should map scroll events correctly 1
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -388,7 +394,8 @@ exports[`cross origin iframes > form.html > should map scroll events correctly 1
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -467,7 +474,8 @@ exports[`cross origin iframes > form.html > should map scroll events correctly 1
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -485,7 +493,8 @@ exports[`cross origin iframes > form.html > should map scroll events correctly 1
       ],
       \\"removes\\": [],
       \\"adds\\": []
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -498,7 +507,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -596,7 +606,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -675,7 +686,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -691,7 +703,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
           \\"rules\\": []
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -707,7 +720,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
           \\"rules\\": []
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -715,7 +729,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"source\\": 8,
       \\"styleId\\": 1,
       \\"replace\\": \\"div { color: yellow; }\\"
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -723,7 +738,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"source\\": 8,
       \\"styleId\\": 2,
       \\"replace\\": \\"h1 { color: blue; }\\"
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -731,7 +747,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"source\\": 8,
       \\"styleId\\": 1,
       \\"replaceSync\\": \\"div { display: inline ; }\\"
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -739,7 +756,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"source\\": 8,
       \\"styleId\\": 2,
       \\"replaceSync\\": \\"h1 { font-size: large; }\\"
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -753,7 +771,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"index\\": [
         0
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -766,7 +785,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"index\\": [
         0
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -781,7 +801,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
       \\"index\\": [
         0
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -793,7 +814,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
           \\"rule\\": \\"h2 { color: red; }\\"
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -806,7 +828,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
           \\"index\\": 1
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -818,7 +841,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on adopted s
           \\"index\\": 0
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -831,7 +855,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -929,7 +954,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1008,7 +1034,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1033,7 +1060,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
           }
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1059,7 +1087,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
           }
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1071,7 +1100,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
           \\"rule\\": \\"div { color: yellow; }\\"
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1083,7 +1113,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
           \\"rule\\": \\"h1 { color: blue; }\\"
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1097,7 +1128,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
       \\"index\\": [
         0
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1110,7 +1142,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
       \\"index\\": [
         0
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1125,7 +1158,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
       \\"index\\": [
         0
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1137,7 +1171,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
           \\"rule\\": \\"h2 { color: red; }\\"
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1150,7 +1185,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
           \\"index\\": 1
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1162,7 +1198,8 @@ exports[`cross origin iframes > move-node.html > captures mutations on styleshee
           \\"index\\": 0
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -1175,7 +1212,8 @@ exports[`cross origin iframes > move-node.html > should record custom events 1`]
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -1273,7 +1311,8 @@ exports[`cross origin iframes > move-node.html > should record custom events 1`]
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1352,7 +1391,8 @@ exports[`cross origin iframes > move-node.html > should record custom events 1`]
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 5,
@@ -1363,7 +1403,8 @@ exports[`cross origin iframes > move-node.html > should record custom events 1`]
         \\"parentId\\": 11,
         \\"nextId\\": 12
       }
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -1376,7 +1417,8 @@ exports[`same origin iframes > should emit contents of iframe once 1`] = `
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -1472,7 +1514,8 @@ exports[`same origin iframes > should emit contents of iframe once 1`] = `
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1529,7 +1572,8 @@ exports[`same origin iframes > should emit contents of iframe once 1`] = `
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1568,7 +1612,8 @@ exports[`same origin iframes > should emit contents of iframe once 1`] = `
           }
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -1581,7 +1626,8 @@ exports[`same origin iframes > should record cross-origin iframe in same-origin 
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -1677,7 +1723,8 @@ exports[`same origin iframes > should record cross-origin iframe in same-origin 
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1734,7 +1781,8 @@ exports[`same origin iframes > should record cross-origin iframe in same-origin 
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1773,7 +1821,8 @@ exports[`same origin iframes > should record cross-origin iframe in same-origin 
           }
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1799,7 +1848,8 @@ exports[`same origin iframes > should record cross-origin iframe in same-origin 
           }
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -1878,7 +1928,8 @@ exports[`same origin iframes > should record cross-origin iframe in same-origin 
       \\"texts\\": [],
       \\"attributes\\": [],
       \\"isAttachIframe\\": true
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;

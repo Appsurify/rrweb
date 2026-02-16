@@ -185,6 +185,7 @@ function record<T = eventWithTime>(
     checkoutEveryNms,
     checkoutEveryNth,
     checkoutEveryNvm,
+    checkoutDebounce,
     blockClass = 'rr-block',
     blockSelector = null,
     ignoreClass = 'rr-ignore',
@@ -310,6 +311,10 @@ function record<T = eventWithTime>(
   let lastFullSnapshotEvent: eventWithTime;
   let incrementalSnapshotCount = 0;
   let visibilityMutationCount = 0;
+  let checkoutId = 0;
+  let checkoutPending = false;
+  let checkoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let checkoutFreezeTimestamp: number | null = null;
 
   const eventProcessor = (e: eventWithTime): T => {
     for (const plugin of plugins || []) {
@@ -327,12 +332,38 @@ function record<T = eventWithTime>(
     return e as unknown as T;
   };
 
+  const executeCheckout = () => {
+    checkoutDebounceTimer = null;
+    checkoutPending = false;
+    checkoutFreezeTimestamp = null;
+    // takeFullSnapshot will:
+    //   1. lock() buffers (already frozen — lock takes precedence)
+    //   2. snapshot() captures stable DOM
+    //   3. emit FullSnapshot
+    //   4. unlock() — clears VisibilityManager buffers + resets baseline
+    //   5. MutationBuffer.unlock() calls emit() — but frozen=true → returns
+    takeFullSnapshot(true);
+    // Clear frozen state. Do NOT call unfreeze() — it would emit stale data.
+    // Instead: clear buffers and set frozen=false directly.
+    mutationBuffers.forEach((buf) => {
+      buf.resetBuffers();
+      buf.unsetFrozen();
+    });
+    if (visibilityManager) {
+      // unlock() already cleared visibility buffer
+      // Just clear frozen flag
+      visibilityManager.unsetFrozen();
+    }
+  };
+
   wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
     const e = r as eventWithTime;
     e.timestamp = nowTimestamp();
+    e.checkoutId = checkoutId;
 
     if (
       mutationBuffers[0]?.isFrozen() &&
+      !checkoutPending &&
       e.type !== EventType.FullSnapshot &&
       !(
         e.type === EventType.IncrementalSnapshot &&
@@ -378,7 +409,34 @@ function record<T = eventWithTime>(
           e.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
 
         if (exceedCount || exceedTime) {
-          takeFullSnapshot(true);
+          if (checkoutDebounce) {
+            // Freeze + Debounce path
+            if (!checkoutPending) {
+              checkoutPending = true;
+              checkoutFreezeTimestamp = nowTimestamp();
+              mutationBuffers.forEach((buf) => buf.freeze());
+              visibilityManager?.freeze();
+            }
+            // Reset debounce timer on each new event
+            if (checkoutDebounceTimer) {
+              clearTimeout(checkoutDebounceTimer);
+            }
+            // Emergency threshold: force checkout if frozen too long
+            const frozenDuration = nowTimestamp() - checkoutFreezeTimestamp!;
+            const maxFreeze = checkoutDebounce * 3;
+
+            if (frozenDuration >= maxFreeze) {
+              executeCheckout();
+            } else {
+              checkoutDebounceTimer = setTimeout(
+                () => executeCheckout(),
+                checkoutDebounce,
+              );
+            }
+          } else {
+            // Current behavior: immediate checkout
+            takeFullSnapshot(true);
+          }
         }
       }
     }
@@ -519,8 +577,30 @@ function record<T = eventWithTime>(
           ? (count) => {
               visibilityMutationCount += count;
               if (visibilityMutationCount >= checkoutEveryNvm!) {
-                takeFullSnapshot(true);
                 visibilityMutationCount = 0;
+                if (checkoutDebounce) {
+                  if (!checkoutPending) {
+                    checkoutPending = true;
+                    checkoutFreezeTimestamp = nowTimestamp();
+                    mutationBuffers.forEach((buf) => buf.freeze());
+                    visibilityManager?.freeze();
+                  }
+                  if (checkoutDebounceTimer) {
+                    clearTimeout(checkoutDebounceTimer);
+                  }
+                  const frozenDuration = nowTimestamp() - checkoutFreezeTimestamp!;
+                  const maxFreeze = checkoutDebounce * 3;
+                  if (frozenDuration >= maxFreeze) {
+                    executeCheckout();
+                  } else {
+                    checkoutDebounceTimer = setTimeout(
+                      () => executeCheckout(),
+                      checkoutDebounce,
+                    );
+                  }
+                } else {
+                  takeFullSnapshot(true);
+                }
               }
             }
           : undefined,
@@ -531,6 +611,7 @@ function record<T = eventWithTime>(
     if (!recordDOM) {
       return;
     }
+    checkoutId++;
     wrappedEmit(
       {
         type: EventType.Meta,
@@ -861,6 +942,10 @@ function record<T = eventWithTime>(
       );
     }
     return () => {
+      if (checkoutDebounceTimer) {
+        clearTimeout(checkoutDebounceTimer);
+        checkoutDebounceTimer = null;
+      }
       flushCustomEventQueue();
       handlers.forEach((h) => h());
       processedNodeManager.destroy();

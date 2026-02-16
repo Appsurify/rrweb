@@ -52,6 +52,7 @@ export type recordOptions<T> = {
   checkoutEveryNth?: number;
   checkoutEveryNms?: number;
   checkoutEveryNvm?: number;
+  checkoutDebounce?: number;
   blockClass?: blockClass;
   blockSelector?: string;
   ignoreClass?: string;

@@ -6,6 +6,70 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 rrweb (record and replay the web) is a TypeScript monorepo for recording and replaying user interactions on the web. This is a fork customized for Appsurify TestMap with enhanced selector generation using SEQL.
 
+## Working with Claude Code
+
+### Context Files (`.claude/context/`)
+
+This repository includes pre-built architectural context documents that provide deep insights into the codebase structure:
+
+- **`packages.md`**: Comprehensive analysis of all 20 packages in the monorepo
+  - 7 architectural layers with strict dependency hierarchy
+  - Full public API surfaces with signatures and line numbers
+  - Dependency maps and data flow diagrams
+  - SEQL integration details
+  - Manager pattern usage across packages
+
+**When to use context files:**
+- Before making changes that affect multiple packages
+- When understanding cross-package dependencies
+- For architectural decisions that span layers
+- When planning refactorings or new features
+
+**Priority:** Always consult relevant context files BEFORE making significant changes. They provide the "big picture" that's hard to reconstruct from individual files.
+
+### Knowledge Base (`.kb/`)
+
+The `.kb/` directory contains 117 standardized coding conventions and guidelines organized by scope:
+
+- **`typescript/`** (17 entries): Naming conventions, type patterns, code organization
+- **`claude-code/`** (18 entries): Agent teams, hooks, plugins, skills, subagents patterns
+- **`chakra-ui/`** (12 entries): Component usage, styling, theming guidelines
+- **`radix-ui/`** (70 entries): Component patterns, accessibility, design principles
+
+**When to use the knowledge base:**
+- Before writing new TypeScript code (check naming conventions)
+- When implementing UI components (check component guidelines)
+- When creating Claude Code plugins or agents (check claude-code patterns)
+- For consistent code style across the project
+
+**Priority:** Consult the knowledge base FIRST when:
+1. Creating new files or components
+2. Unsure about naming conventions
+3. Implementing patterns that should follow project standards
+
+**Exploring the knowledge base:**
+```bash
+# View the catalog
+cat .kb/README.md
+
+# Browse specific scope
+ls .kb/typescript/naming/
+
+# Read a specific convention
+cat .kb/typescript/naming/classes.md
+```
+
+### Resource Priority Order
+
+When working on tasks, consult resources in this order:
+
+1. **Knowledge Base** (`.kb/`) - For conventions, patterns, and naming
+2. **Context Files** (`.claude/context/`) - For architectural understanding
+3. **This CLAUDE.md** - For build commands and workflow
+4. **Source Code** - For implementation details
+
+This approach ensures consistency with project standards while maintaining architectural awareness.
+
 ## Build System
 
 ### Package Manager

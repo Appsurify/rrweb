@@ -8,7 +8,8 @@ exports[`dialog > add dialog and show 1`] = `
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -105,7 +106,8 @@ exports[`dialog > add dialog and show 1`] = `
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -113,7 +115,8 @@ exports[`dialog > add dialog and show 1`] = `
       \\"source\\": 2,
       \\"type\\": 5,
       \\"id\\": -1
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -141,7 +144,8 @@ exports[`dialog > add dialog and show 1`] = `
           }
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -154,7 +158,8 @@ exports[`dialog > add dialog and showModal 1`] = `
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -251,7 +256,8 @@ exports[`dialog > add dialog and showModal 1`] = `
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -259,7 +265,8 @@ exports[`dialog > add dialog and showModal 1`] = `
       \\"source\\": 2,
       \\"type\\": 5,
       \\"id\\": -1
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -287,7 +294,8 @@ exports[`dialog > add dialog and showModal 1`] = `
           }
         }
       ]
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -300,7 +308,8 @@ exports[`dialog > switch to show dialog 1`] = `
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -397,7 +406,8 @@ exports[`dialog > switch to show dialog 1`] = `
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -405,7 +415,8 @@ exports[`dialog > switch to show dialog 1`] = `
       \\"source\\": 2,
       \\"type\\": 5,
       \\"id\\": 8
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -424,7 +435,8 @@ exports[`dialog > switch to show dialog 1`] = `
       ],
       \\"removes\\": [],
       \\"adds\\": []
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -443,7 +455,8 @@ exports[`dialog > switch to show dialog 1`] = `
       ],
       \\"removes\\": [],
       \\"adds\\": []
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;
@@ -456,7 +469,8 @@ exports[`dialog > switch to showModal dialog 1`] = `
       \\"href\\": \\"about:blank\\",
       \\"width\\": 1920,
       \\"height\\": 1080
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 2,
@@ -553,7 +567,8 @@ exports[`dialog > switch to showModal dialog 1`] = `
         \\"left\\": 0,
         \\"top\\": 0
       }
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -561,7 +576,8 @@ exports[`dialog > switch to showModal dialog 1`] = `
       \\"source\\": 2,
       \\"type\\": 5,
       \\"id\\": 8
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -580,7 +596,8 @@ exports[`dialog > switch to showModal dialog 1`] = `
       ],
       \\"removes\\": [],
       \\"adds\\": []
-    }
+    },
+    \\"checkoutId\\": 1
   },
   {
     \\"type\\": 3,
@@ -599,7 +616,8 @@ exports[`dialog > switch to showModal dialog 1`] = `
       ],
       \\"removes\\": [],
       \\"adds\\": []
-    }
+    },
+    \\"checkoutId\\": 1
   }
 ]"
 `;

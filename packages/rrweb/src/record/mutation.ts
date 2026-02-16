@@ -288,6 +288,32 @@ export default class MutationBuffer {
     this.canvasManager.reset();
   }
 
+  /**
+   * Clear all accumulated mutation data without emitting.
+   * Used after freeze+debounce checkout — FullSnapshot already captured the state.
+   */
+  public resetBuffers() {
+    this.addedSet = new Set();
+    this.movedSet = new Set();
+    this.droppedSet = new Set();
+    this.removesSubTreeCache = new Set();
+    this.mapRemoves = [];
+    this.movedMap = {};
+    this.attributes = [];
+    this.texts = [];
+    this.attributeMap = new WeakMap();
+    this.removes = [];
+  }
+
+  /**
+   * Clear frozen flag without triggering emit.
+   * Used after freeze+debounce checkout — buffers already cleared by resetBuffers().
+   */
+  public unsetFrozen() {
+    this.frozen = false;
+    this.canvasManager.unfreeze();
+  }
+
   public processMutations = (mutations: mutationRecord[]) => {
     mutations.forEach(this.processMutation); // adds mutations to the buffer
     this.emit(); // clears buffer if not locked/frozen
