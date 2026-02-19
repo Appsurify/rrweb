@@ -6,6 +6,14 @@ import record from '../../src/record';
 import { EventType } from '@appsurify-testmap/rrweb-types';
 import type { eventWithTime } from '@appsurify-testmap/rrweb-types';
 
+// NavigationManager pipeline: debounce (100ms) + settle (150ms) + double rAF
+// In jsdom rAF is ~0ms, so total ~250ms. Use 500ms for safety.
+const NAV_SETTLE_WAIT = 500;
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 describe('navigation observer', () => {
   let stopRecording: (() => void) | undefined;
   let events: eventWithTime[];
@@ -24,7 +32,7 @@ describe('navigation observer', () => {
     vi.restoreAllMocks();
   });
 
-  it('should detect pushState navigation', () => {
+  it('should detect pushState navigation', async () => {
     stopRecording = record({
       emit: (event) => {
         events.push(event as eventWithTime);
@@ -35,6 +43,9 @@ describe('navigation observer', () => {
 
     // Trigger pushState navigation
     window.history.pushState({}, '', '/test-page-1');
+
+    // Wait for NavigationManager debounce + settle + rAF pipeline
+    await wait(NAV_SETTLE_WAIT);
 
     // Should emit Meta + FullSnapshot events
     const newEvents = events.slice(initialEventCount);
@@ -50,7 +61,7 @@ describe('navigation observer', () => {
     expect(fullSnapshotEvent).toBeDefined();
   });
 
-  it('should detect replaceState navigation', () => {
+  it('should detect replaceState navigation', async () => {
     stopRecording = record({
       emit: (event) => {
         events.push(event as eventWithTime);
@@ -62,6 +73,9 @@ describe('navigation observer', () => {
     // Trigger replaceState navigation
     window.history.replaceState({}, '', '/test-page-2');
 
+    // Wait for NavigationManager pipeline
+    await wait(NAV_SETTLE_WAIT);
+
     // Should emit Meta + FullSnapshot events
     const newEvents = events.slice(initialEventCount);
     expect(newEvents.length).toBeGreaterThanOrEqual(2);
@@ -71,7 +85,7 @@ describe('navigation observer', () => {
     expect(metaEvent?.data.href).toContain('/test-page-2');
   });
 
-  it('should detect popstate navigation', () => {
+  it('should detect popstate navigation', async () => {
     stopRecording = record({
       emit: (event) => {
         events.push(event as eventWithTime);
@@ -80,28 +94,25 @@ describe('navigation observer', () => {
 
     // Setup: push a state first
     window.history.pushState({}, '', '/initial');
+    await wait(NAV_SETTLE_WAIT);
     const eventsAfterPush = events.length;
 
     // Trigger popstate by going back
     window.history.back();
 
-    // Wait a bit for the popstate event to fire
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const newEvents = events.slice(eventsAfterPush);
+    // Wait for popstate event + NavigationManager pipeline
+    await wait(NAV_SETTLE_WAIT);
 
-        // Should have new events from popstate
-        if (newEvents.length > 0) {
-          const metaEvent = newEvents.find(e => e.type === EventType.Meta);
-          expect(metaEvent).toBeDefined();
-        }
+    const newEvents = events.slice(eventsAfterPush);
 
-        resolve();
-      }, 100);
-    });
+    // Should have new events from popstate
+    if (newEvents.length > 0) {
+      const metaEvent = newEvents.find(e => e.type === EventType.Meta);
+      expect(metaEvent).toBeDefined();
+    }
   });
 
-  it('should detect hashchange navigation', () => {
+  it('should detect hashchange navigation', async () => {
     stopRecording = record({
       emit: (event) => {
         events.push(event as eventWithTime);
@@ -113,19 +124,15 @@ describe('navigation observer', () => {
     // Trigger hashchange
     window.location.hash = '#section1';
 
-    // Wait for hashchange event to fire
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const newEvents = events.slice(initialEventCount);
-        expect(newEvents.length).toBeGreaterThanOrEqual(2);
+    // Wait for hashchange event + NavigationManager pipeline
+    await wait(NAV_SETTLE_WAIT);
 
-        const metaEvent = newEvents.find(e => e.type === EventType.Meta);
-        expect(metaEvent).toBeDefined();
-        expect(metaEvent?.data.href).toContain('#section1');
+    const newEvents = events.slice(initialEventCount);
+    expect(newEvents.length).toBeGreaterThanOrEqual(2);
 
-        resolve();
-      }, 100);
-    });
+    const metaEvent = newEvents.find(e => e.type === EventType.Meta);
+    expect(metaEvent).toBeDefined();
+    expect(metaEvent?.data.href).toContain('#section1');
   });
 
   it('should not emit duplicate events for same URL', () => {
@@ -202,7 +209,7 @@ describe('navigation observer', () => {
     expect(window.history.replaceState).toBe(originalReplaceState);
   });
 
-  it('should track lastHref correctly across multiple navigations', () => {
+  it('should track lastHref correctly across multiple navigations', async () => {
     stopRecording = record({
       emit: (event) => {
         events.push(event as eventWithTime);
@@ -211,10 +218,12 @@ describe('navigation observer', () => {
 
     // Navigate to page 1
     window.history.pushState({}, '', '/page-1');
+    await wait(NAV_SETTLE_WAIT);
     const eventsAfterPage1 = events.length;
 
     // Navigate to page 2
     window.history.pushState({}, '', '/page-2');
+    await wait(NAV_SETTLE_WAIT);
     const eventsAfterPage2 = events.length;
 
     // Both navigations should emit events

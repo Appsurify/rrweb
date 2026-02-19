@@ -406,7 +406,7 @@ function initNavigationObserver({
 
   // Helper to emit navigation
   const emitNavigation = callbackWrapper(
-    (navigationType: 'pushState' | 'replaceState' | 'popstate' | 'hashchange') => {
+    (navigationType: 'pushState' | 'replaceState' | 'popstate' | 'hashchange' | 'navigate') => {
       const currentHref = win.location.href;
       if (currentHref !== lastHref) {
         navigationCb({
@@ -452,6 +452,38 @@ function initNavigationObserver({
 
   // Listen to hashchange
   handlers.push(on('hashchange', () => emitNavigation('hashchange'), win));
+
+  // Modern Navigation API — catches navigations that don't go through History API
+  const useNavigationAPI = typeof sampling.navigation === 'object'
+    ? (sampling.navigation.useNavigationAPI ?? true)
+    : true;
+
+  if (useNavigationAPI && 'navigation' in win) {
+    try {
+      const nav = (win as Record<string, unknown>).navigation as EventTarget;
+      const handler = (event: Event) => {
+        const navEvent = event as Event & {
+          navigationType?: string;
+          destination?: { url?: string };
+        };
+        if (navEvent.navigationType === 'push' || navEvent.navigationType === 'replace') {
+          const destUrl = navEvent.destination?.url;
+          if (destUrl && destUrl !== lastHref) {
+            navigationCb({
+              href: destUrl,
+              oldHref: lastHref,
+              navigationType: 'navigate',
+            });
+            lastHref = destUrl;
+          }
+        }
+      };
+      nav.addEventListener('navigate', handler);
+      handlers.push(() => nav.removeEventListener('navigate', handler));
+    } catch {
+      /* Navigation API not supported */
+    }
+  }
 
   return callbackWrapper(() => {
     handlers.forEach((h) => h());

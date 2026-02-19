@@ -34,6 +34,7 @@ import { IframeManager } from './iframe-manager';
 import { ShadowDomManager } from './shadow-dom-manager';
 import { CanvasManager } from './observers/canvas/canvas-manager';
 import { VisibilityManager } from './observers/visibility/visibility-manager';
+import { NavigationManager } from './observers/navigation/navigation-manager';
 import { StylesheetManager } from './stylesheet-manager';
 import ProcessedNodeManager from './processed-node-manager';
 import { normalizeSelectorOptions } from './selector';
@@ -57,108 +58,6 @@ let recording = false;
 const customEventQueue: eventWithoutTime[] = [];
 let flushCustomEventQueue!: () => void;
 
-// function waitForDOMStabilization(win: Window, idleMs = 150) {
-//   const root = win.document;
-//   return new Promise<void>((resolve) => {
-//     let last = nowTimestamp();
-//     const ob = new MutationObserver(() => (last = nowTimestamp()));
-//     ob.observe(root, { childList: true, subtree: true, attributes: true });
-//
-//     (function check() {
-//       if (nowTimestamp() - last > idleMs) {
-//         ob.disconnect();
-//         resolve();
-//       } else {
-//         requestAnimationFrame(check);
-//       }
-//     })();
-//   });
-// }
-
-
-function waitForDOMStabilization(win: Window): Promise<void> {
-  const maxWaitMs = 5000;
-
-  return new Promise((resolve) => {
-    const captureAfterPaint = () => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          resolve();
-        });
-      });
-    };
-
-    const safeResolve = (() => {
-      let called = false;
-      return () => {
-        if (!called) {
-          called = true;
-          captureAfterPaint();
-        }
-      };
-    })();
-
-    if (['interactive', 'complete'].includes(win.document.readyState)) {
-      safeResolve();
-    } else {
-      win.addEventListener('DOMContentLoaded', safeResolve, { once: true });
-      win.addEventListener('load', safeResolve, { once: true });
-      setTimeout(() => {
-        safeResolve();
-      }, maxWaitMs);
-    }
-  });
-}
-
-
-// function waitForDOMStabilization(win: Window): Promise<void> {
-//   const maxWaitMs = 5000;
-//   const stableDuration = 150;
-//
-//   return new Promise((resolve) => {
-//     let lastMutationTime = performance.now();
-//     let timeoutId: number;
-//
-//     const checkStability = () => {
-//       const elapsed = performance.now() - lastMutationTime;
-//       if (elapsed >= stableDuration) {
-//         cleanup();
-//         resolve();
-//       } else {
-//         timeoutId = win.setTimeout(checkStability, stableDuration - elapsed);
-//       }
-//     };
-//
-//     const cleanup = () => {
-//       observer.disconnect();
-//       clearTimeout(timeoutId);
-//     };
-//
-//     // ✅ Получаем чистый конструктор MutationObserver
-//     const ObserverCtor = mutationObserverCtor() as typeof MutationObserver;
-//     const observer = new ObserverCtor(() => {
-//       lastMutationTime = performance.now();
-//       clearTimeout(timeoutId);
-//       timeoutId = win.setTimeout(checkStability, stableDuration);
-//     });
-//
-//     observer.observe(win.document, {
-//       attributes: true,
-//       childList: true,
-//       characterData: true,
-//       subtree: true,
-//     });
-//
-//     // На случай, если мутаций не будет — запускаем таймер проверки
-//     timeoutId = win.setTimeout(checkStability, stableDuration);
-//
-//     // Safety fallback
-//     win.setTimeout(() => {
-//       cleanup();
-//       resolve();
-//     }, maxWaitMs);
-//   });
-// }
 
 
 // Multiple tools (i.e. MooTools, Prototype.js) override Array.from and drop support for the 2nd parameter
@@ -336,12 +235,8 @@ function record<T = eventWithTime>(
     checkoutDebounceTimer = null;
     checkoutPending = false;
     checkoutFreezeTimestamp = null;
-    // takeFullSnapshot will:
-    //   1. lock() buffers (already frozen — lock takes precedence)
-    //   2. snapshot() captures stable DOM
-    //   3. emit FullSnapshot
-    //   4. unlock() — clears VisibilityManager buffers + resets baseline
-    //   5. MutationBuffer.unlock() calls emit() — but frozen=true → returns
+    // Cancel pending navigation settling — threshold snapshot supersedes it
+    navigationManager?.cancelPending();
     takeFullSnapshot(true);
     // Clear frozen state. Do NOT call unfreeze() — it would emit stale data.
     // Instead: clear buffers and set frozen=false directly.
@@ -350,9 +245,10 @@ function record<T = eventWithTime>(
       buf.unsetFrozen();
     });
     if (visibilityManager) {
-      // unlock() already cleared visibility buffer
-      // Just clear frozen flag
       visibilityManager.unsetFrozen();
+    }
+    if (navigationManager) {
+      navigationManager.unsetFrozen();
     }
   };
 
@@ -374,6 +270,7 @@ function record<T = eventWithTime>(
       // all DOM changes that have been buffering during paused state
       mutationBuffers.forEach((buf) => buf.unfreeze());
       visibilityManager?.unfreeze();
+      navigationManager?.unfreeze();
     }
 
     if (inEmittingFrame) {
@@ -631,6 +528,7 @@ function record<T = eventWithTime>(
 
     mutationBuffers.forEach((buf) => buf.lock()); // don't allow any mirror modifications during snapshotting
     visibilityManager?.lock();
+    navigationManager?.lock();
     const node = snapshot(document, {
       mirror,
       blockClass,
@@ -685,6 +583,7 @@ function record<T = eventWithTime>(
     );
     mutationBuffers.forEach((buf) => buf.unlock()); // generate & emit any mutations that happened during snapshotting, as can now apply against the newly built mirror
     visibilityManager?.unlock();
+    navigationManager?.unlock();
 
     // Some old browsers don't support adoptedStyleSheets.
     if (document.adoptedStyleSheets && document.adoptedStyleSheets.length > 0)
@@ -699,6 +598,34 @@ function record<T = eventWithTime>(
       wrappedEmit(e);
     }
     customEventQueue.length = 0;
+  }
+
+  let navigationManager: NavigationManager | undefined;
+  const navigationSampling = sampling.navigation;
+  if (navigationSampling !== false) {
+    const navConfig = typeof navigationSampling === 'object' ? navigationSampling : {};
+    navigationManager = new NavigationManager({
+      doc: document,
+      config: navConfig,
+      onSnapshot: (isCheckout) => {
+        // Cancel any pending threshold checkout to prevent duplicate snapshots
+        if (checkoutPending) {
+          if (checkoutDebounceTimer) {
+            clearTimeout(checkoutDebounceTimer);
+            checkoutDebounceTimer = null;
+          }
+          checkoutPending = false;
+          checkoutFreezeTimestamp = null;
+          // Unfreeze mutation buffers frozen by checkout debounce
+          mutationBuffers.forEach((buf) => {
+            buf.resetBuffers();
+            buf.unsetFrozen();
+          });
+          visibilityManager?.unsetFrozen();
+        }
+        takeFullSnapshot(isCheckout);
+      },
+    });
   }
 
   try {
@@ -734,16 +661,11 @@ function record<T = eventWithTime>(
               },
             }),
           navigationCb: (navData) => {
-            console.debug(
-              `[${nowTimestamp()}] [rrweb:record/navigation] 🧭 Navigation detected:`,
-              navData.navigationType,
-              navData.oldHref,
-              '→',
-              navData.href,
-            );
-            // Call full snapshot with isCheckout = true
-            // This automatically resets exceedCount and exceedTime through wrappedEmit (lines 354-356)
-            takeFullSnapshot(true);
+            if (navigationManager) {
+              navigationManager.handleNavigation(navData);
+            } else {
+              takeFullSnapshot(true);
+            }
           },
           inputCb: (v) =>
             wrappedEmit({
@@ -879,40 +801,11 @@ function record<T = eventWithTime>(
       }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const runInit = async () => {
-      if (flushCustomEvent === 'before') {
-        flushCustomEventQueue();
-      }
-
-      if (recordAfter === 'DOMContentStabilized') {
-        console.debug(`[${nowTimestamp()}] [rrweb:record] 🟢 Waiting for DOM stabilization...`);
-        await waitForDOMStabilization(window);
-        console.debug(`[${nowTimestamp()}] [rrweb:record] ✅ DOM stabilized, starting recording`);
-      }
-
-      console.debug(`[${nowTimestamp()}] [rrweb:record] ✅ Init dom and takeFullSnapshot `);
-      takeFullSnapshot();
-      handlers.push(observe(document));
-      recording = true;
-
-      if (flushCustomEvent === 'after') {
-        flushCustomEventQueue();
-      }
-    };
-
     if (
       document.readyState === 'interactive' ||
       document.readyState === 'complete'
     ) {
       init();
-      // void runInit();
-      // if (recordAfter === 'DOMContentStabilized') {
-      //   void runInit(); // ждет paint
-      // } else {
-      //   init(); // немедленно
-      // }
     } else {
       handlers.push(
         on('DOMContentLoaded', () => {
@@ -921,9 +814,6 @@ function record<T = eventWithTime>(
             data: {},
           });
           if (recordAfter === 'DOMContentLoaded') init();
-          // if (recordAfter === 'DOMContentLoaded' || recordAfter === 'DOMContentStabilized') {
-          //   void runInit();
-          // }
         }),
       );
       handlers.push(
@@ -935,7 +825,6 @@ function record<T = eventWithTime>(
               data: {},
             });
             if (recordAfter === 'load') init();
-            // if (recordAfter === 'load') void runInit();
           },
           window,
         ),
@@ -948,6 +837,7 @@ function record<T = eventWithTime>(
       }
       flushCustomEventQueue();
       handlers.forEach((h) => h());
+      navigationManager?.destroy();
       processedNodeManager.destroy();
       recording = false;
       unregisterErrorHandler();

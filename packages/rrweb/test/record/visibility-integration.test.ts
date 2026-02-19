@@ -276,7 +276,8 @@ describe('visibility integration', () => {
 
     const initialMeta = events.filter((e) => e.type === EventType.Meta).length;
     window.history.pushState({}, '', '/visibility-test-nav');
-    await wait(50);
+    // NavigationManager pipeline: debounce (100ms) + settle (150ms) + double rAF
+    await wait(500);
 
     const metaEvents = events.filter((e) => e.type === EventType.Meta);
     expect(metaEvents.length).toBeGreaterThanOrEqual(initialMeta + 1);

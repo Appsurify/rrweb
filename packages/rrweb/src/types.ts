@@ -11,6 +11,7 @@ import type { Replayer } from './replay';
 import type { RRNode } from '@appsurify-testmap/rrdom';
 import type { CanvasManager } from './record/observers/canvas/canvas-manager';
 import type { VisibilityManager } from './record/observers/visibility/visibility-manager';
+import type { NavigationManager } from './record/observers/navigation/navigation-manager';
 import type { StylesheetManager } from './record/stylesheet-manager';
 import type {
   DataURLOptions,
@@ -133,6 +134,7 @@ export type observerParam = {
   canvasManager: CanvasManager;
   processedNodeManager: ProcessedNodeManager;
   visibilityManager?: VisibilityManager;
+  navigationManager?: NavigationManager;
   ignoreCSSAttributes: Set<string>;
   plugins: Array<{
     observer: (

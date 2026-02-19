@@ -207,6 +207,17 @@ export type maskTextClass = string | RegExp;
 
 export type excludeAttribute = string | RegExp;
 
+export type NavigationSamplingConfig = {
+  /** ms of DOM quiet = settled (default: 150) */
+  settleTimeout?: number;
+  /** max wait before forcing snapshot (default: 5000) */
+  maxWait?: number;
+  /** debounce rapid navigations in ms (default: 100) */
+  debounce?: number;
+  /** use Navigation API when available (default: true) */
+  useNavigationAPI?: boolean;
+};
+
 export type SamplingStrategy = Partial<{
   /**
    * false means not to record mouse/touch move events
@@ -243,9 +254,11 @@ export type SamplingStrategy = Partial<{
   canvas: 'all' | number;
   /**
    * false means not to record navigation events
+   * true uses default NavigationSamplingConfig
+   * object provides custom config
    * default: true (enabled)
    */
-  navigation: boolean;
+  navigation: boolean | NavigationSamplingConfig;
   /**
    * Visibility observer: false to disable; object for debounce/throttle/threshold/sensitivity/rafThrottle.
    * When object: recordVisibility (default false) — if true, record incremental events with source Visibility;
@@ -583,11 +596,13 @@ export type viewportResizeDimension = {
 
 export type viewportResizeCallback = (d: viewportResizeDimension) => void;
 
-export type navigationCallback = (data: {
+export type NavigationData = {
   href: string;
   oldHref: string;
-  navigationType: 'pushState' | 'replaceState' | 'popstate' | 'hashchange';
-}) => void;
+  navigationType: 'pushState' | 'replaceState' | 'popstate' | 'hashchange' | 'navigate';
+};
+
+export type navigationCallback = (data: NavigationData) => void;
 
 export type inputValue = {
   text: string;
