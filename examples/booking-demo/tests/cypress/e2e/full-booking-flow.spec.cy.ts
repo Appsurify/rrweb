@@ -1,4 +1,3 @@
-// cypress/e2e/book_deluxe_sea_view_suite.cy.js
 
 describe('Book Deluxe Sea View Suite', () => {
   it('completes the full booking flow', () => {
