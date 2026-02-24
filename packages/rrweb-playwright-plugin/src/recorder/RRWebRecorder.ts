@@ -21,6 +21,7 @@ export const defaultRecordOptions: recordOptions<RecorderEvent> = {
     recordCanvas: true,
     collectFonts: true,
     inlineImages: true,
+    checkoutEveryNvm: 80,
     maskInputOptions: { password: true },
     sampling: {
       mousemove: false,
@@ -30,8 +31,8 @@ export const defaultRecordOptions: recordOptions<RecorderEvent> = {
         Click: true,
         ContextMenu: true,
         DblClick: true,
-        Focus: true,
-        Blur: true,
+        Focus: false,
+        Blur: false,
         TouchStart: false,
         TouchEnd: false,
       },
@@ -41,10 +42,11 @@ export const defaultRecordOptions: recordOptions<RecorderEvent> = {
       canvas: 'all',
       visibility: {
         mode: 'none',
-        debounce: 0,
+        debounce: 50,
+        throttle: 100,
         threshold: 0.5,
         sensitivity: 0.05,
-        rafThrottle: 10
+        rafThrottle: 100
       }
     },
     flushCustomEvent: 'after',

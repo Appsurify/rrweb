@@ -24,7 +24,7 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
     recordCanvas: true,
     collectFonts: true,
     inlineImages: true,
-    // checkoutEveryNvm: 80,
+    checkoutEveryNvm: 80,
     // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
     maskInputOptions: { password: true },
     sampling: {
@@ -35,8 +35,8 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
         Click: true,
         ContextMenu: true,
         DblClick: true,
-        Focus: true,
-        Blur: true,
+        Focus: false,
+        Blur: false,
         TouchStart: false,
         TouchEnd: false,
       },
@@ -47,9 +47,10 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
       visibility: {
         mode: 'none',
         debounce: 50,
+        throttle: 100,
         threshold: 0.5,
         sensitivity: 0.05,
-        rafThrottle: 50
+        rafThrottle: 100
       }
     },
     flushCustomEvent: 'after',
