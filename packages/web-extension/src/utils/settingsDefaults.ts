@@ -7,7 +7,7 @@ import {
 
 
 export const defaultRecordSettings: RecordSettings = {
-  checkoutType: { type: 'checkoutEveryNvm', value: 50 },
+  checkoutType: { type: 'checkoutEveryNvm', value: 80 },
   excludeAttribute: 'rr-ignore',
   maskInputOptions: {
     password: true,

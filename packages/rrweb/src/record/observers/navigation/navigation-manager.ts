@@ -144,8 +144,6 @@ export class NavigationManager {
     this.settlingObserver.observe(this.doc, {
       childList: true,
       subtree: true,
-      attributes: true,
-      characterData: true,
     });
 
     // Start initial settle check timer

@@ -10,7 +10,7 @@ export default defineConfig({
   env: {
     testmap: {
       recordingOpts: {
-        checkoutEveryNvm: 5,
+        checkoutEveryNvm: 80,
         // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
         maskInputOptions: { password: true },
         sampling: {
