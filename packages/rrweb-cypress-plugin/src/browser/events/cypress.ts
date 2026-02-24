@@ -43,7 +43,9 @@ export const registerCypressEventListeners = () => {
 
 
     afterEach(() => {
-        // console.debug(`[${Date.now()}] [cypress] afterEach:`);
+        // Stop recording before collecting events so that any pending
+        // navigation snapshots are flushed into the events array.
+        recorder.stop();
 
         const currentTest = Cypress.currentTest;
         if (!currentTest) return;

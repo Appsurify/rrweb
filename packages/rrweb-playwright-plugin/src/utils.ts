@@ -8,6 +8,10 @@ import RRWebRecorder from "./recorder";
 
 const defaultOutputReportDir = 'test-results/playwright/ui';
 
+// Tracks whether the aggregate report has been cleared in this process.
+// Ensures the file is reset once per test run (process lifetime).
+let aggregateCleared = false;
+
 function writeFileAtomic(filePath: string, data: string) {
   const dir = path.dirname(filePath);
   const tmp = path.join(dir, `.${path.basename(filePath)}.tmp-${process.pid}-${Date.now()}`);
@@ -55,7 +59,10 @@ export function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: 
 
   try {
     const aggregatePath = path.join(reportDir, "ui-coverage-aggregated.json");
-    const current = readJsonArraySafe(aggregatePath);
+    // On first call in this process, start a fresh aggregate file so it
+    // only contains results from the current run.
+    const current = aggregateCleared ? readJsonArraySafe(aggregatePath) : [];
+    aggregateCleared = true;
     current.push(reportRaw);
     writeFileAtomic(aggregatePath, JSON.stringify(current, null, 2));
     console.log(`[ui-coverage] Updated aggregate: ${aggregatePath}`);

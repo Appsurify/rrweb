@@ -103,8 +103,16 @@ export class NavigationManager {
   }
 
   destroy(): void {
+    // Flush pending navigation snapshot synchronously before teardown.
+    // This handles the case where continuous DOM mutations (e.g. typing into
+    // form fields) prevent the settle timer from completing before the
+    // recording is stopped.
+    const hadPending = this.pendingNavigation !== null;
     this.reset();
     this.disabled = true;
+    if (hadPending) {
+      this.onSnapshot(true);
+    }
   }
 
   private startDebounce(): void {
@@ -176,14 +184,12 @@ export class NavigationManager {
     this.disconnectSettlingObserver();
     this.pendingNavigation = null;
 
-    // Double rAF for browser paint, then trigger snapshot
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!this.frozen && !this.locked && !this.disabled) {
-          this.onSnapshot(true);
-        }
-      });
-    });
+    // Take snapshot synchronously — the settle timer already ensured DOM
+    // stability (no mutations for settleTimeout ms) and rrweb's snapshot()
+    // reads the DOM tree synchronously. Deferring via rAF creates a race
+    // condition with destroy() where pendingNavigation is already null but
+    // the snapshot hasn't been taken yet.
+    this.onSnapshot(true);
   }
 
   private cancelTimers(): void {
