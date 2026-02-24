@@ -21,7 +21,7 @@ export const defaultRecordOptions: recordOptions<RecorderEvent> = {
     recordCanvas: true,
     collectFonts: true,
     inlineImages: true,
-    checkoutEveryNvm: 80,
+    checkoutEveryNvm: 60,
     maskInputOptions: { password: true },
     sampling: {
       mousemove: false,

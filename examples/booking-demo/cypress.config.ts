@@ -24,7 +24,7 @@ export default defineConfig({
         // Impact-score configuration for visibility-driven checkout
         // Target: 3-4 FS for the entire booking flow (Solution C+: more aggressive tuning)
         // First attempt (70/25/800/0.95): 6 FS. Increasing threshold further.
-        checkoutEveryNvm: 80, // Increased threshold to require more accumulation (was 70)
+        checkoutEveryNvm: 60, // Increased threshold to require more accumulation (was 70)
         // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
         maskInputOptions: { password: true },
         sampling: {

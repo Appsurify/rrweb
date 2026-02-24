@@ -24,7 +24,7 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
     recordCanvas: true,
     collectFonts: true,
     inlineImages: true,
-    checkoutEveryNvm: 80,
+    checkoutEveryNvm: 60,
     // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
     maskInputOptions: { password: true },
     sampling: {
