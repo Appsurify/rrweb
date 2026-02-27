@@ -214,6 +214,8 @@ function record<T = eventWithTime>(
   let checkoutPending = false;
   let checkoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let checkoutFreezeTimestamp: number | null = null;
+  let lastScrollEmitTime = 0;
+  const scrollSettleTime = (sampling.scroll || 100) * 2;
 
   const eventProcessor = (e: eventWithTime): T => {
     for (const plugin of plugins || []) {
@@ -359,7 +361,8 @@ function record<T = eventWithTime>(
     });
   };
 
-  const wrappedScrollEmit: scrollCallback = (p) =>
+  const wrappedScrollEmit: scrollCallback = (p) => {
+    lastScrollEmitTime = nowTimestamp();
     wrappedEmit({
       type: EventType.IncrementalSnapshot,
       data: {
@@ -367,6 +370,7 @@ function record<T = eventWithTime>(
         ...p,
       },
     });
+  };
   const wrappedCanvasMutationEmit = (p: canvasMutationParam) =>
     wrappedEmit({
       type: EventType.IncrementalSnapshot,
@@ -472,6 +476,9 @@ function record<T = eventWithTime>(
       notifyActivity:
         checkoutEveryNvm != null
           ? (count) => {
+              if (nowTimestamp() - lastScrollEmitTime < scrollSettleTime) {
+                return;
+              }
               visibilityMutationCount += count;
               if (visibilityMutationCount >= checkoutEveryNvm!) {
                 visibilityMutationCount = 0;
