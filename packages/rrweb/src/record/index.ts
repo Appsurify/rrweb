@@ -216,6 +216,9 @@ function record<T = eventWithTime>(
   let checkoutFreezeTimestamp: number | null = null;
   let lastScrollEmitTime = 0;
   const scrollSettleTime = (sampling.scroll || 100) * 2;
+  let lastSignificantMutationTime = 0;
+  const mutationGracePeriod = 500;
+  let hadVisibilityCheckoutInGrace = false;
 
   const eventProcessor = (e: eventWithTime): T => {
     for (const plugin of plugins || []) {
@@ -342,6 +345,11 @@ function record<T = eventWithTime>(
   };
 
   const wrappedMutationEmit = (m: mutationCallbackParam) => {
+    const totalChanges = (m.adds?.length ?? 0) + (m.removes?.length ?? 0);
+    if (totalChanges > 10) {
+      lastSignificantMutationTime = nowTimestamp();
+      hadVisibilityCheckoutInGrace = false;
+    }
     wrappedEmit({
       type: EventType.IncrementalSnapshot,
       data: {
@@ -476,12 +484,19 @@ function record<T = eventWithTime>(
       notifyActivity:
         checkoutEveryNvm != null
           ? (count) => {
-              if (nowTimestamp() - lastScrollEmitTime < scrollSettleTime) {
+              const now = nowTimestamp();
+              const scrollRecent = now - lastScrollEmitTime < scrollSettleTime;
+              const mutationRecent = now - lastSignificantMutationTime < mutationGracePeriod;
+              if (scrollRecent && !mutationRecent) {
+                return;
+              }
+              if (mutationRecent && hadVisibilityCheckoutInGrace) {
                 return;
               }
               visibilityMutationCount += count;
               if (visibilityMutationCount >= checkoutEveryNvm!) {
                 visibilityMutationCount = 0;
+                hadVisibilityCheckoutInGrace = true;
                 if (checkoutDebounce) {
                   if (!checkoutPending) {
                     checkoutPending = true;
