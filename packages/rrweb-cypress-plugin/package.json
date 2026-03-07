@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-cypress-plugin",
-  "version": "3.6.0-alpha.1",
+  "version": "3.10.0-alpha.1",
   "publishConfig": {
     "access": "public"
   },
@@ -48,9 +48,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb": "^3.6.0-alpha.1",
-    "@appsurify-testmap/rrweb-plugin-sequential-id-record": "^3.6.0-alpha.1",
-    "@appsurify-testmap/rrweb-snapshot": "^3.6.0-alpha.1",
-    "@appsurify-testmap/rrweb-types": "^3.6.0-alpha.1"
+    "@appsurify-testmap/rrweb": "^3.10.0-alpha.1",
+    "@appsurify-testmap/rrweb-plugin-sequential-id-record": "^3.10.0-alpha.1",
+    "@appsurify-testmap/rrweb-snapshot": "^3.10.0-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^3.10.0-alpha.1"
   }
 }

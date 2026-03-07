@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-playwright-plugin",
-  "version": "3.6.0-alpha.1",
+  "version": "3.10.0-alpha.1",
   "publishConfig": {
     "access": "public"
   },
@@ -40,9 +40,9 @@
     "@playwright/test": ">=1.50.0"
   },
   "devDependencies": {
-    "@appsurify-testmap/rrweb": "^3.6.0-alpha.1",
-    "@appsurify-testmap/rrweb-snapshot": "^3.6.0-alpha.1",
-    "@appsurify-testmap/rrweb-types": "^3.6.0-alpha.1",
+    "@appsurify-testmap/rrweb": "^3.10.0-alpha.1",
+    "@appsurify-testmap/rrweb-snapshot": "^3.10.0-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^3.10.0-alpha.1",
     "@playwright/test": "^1.52.0",
     "@types/node": "^24.10.0",
     "puppeteer": "^24.9.0",
