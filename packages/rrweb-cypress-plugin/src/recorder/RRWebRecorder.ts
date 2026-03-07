@@ -57,6 +57,7 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
     // recordAfter: 'DOMContentStabilized',
     recordAfter: 'DOMContentLoaded',
     userTriggeredOnInput: true,
+    trustSyntheticInput: true,
 }
 
 function deepMerge<T>(target: T, source: Partial<T>): T {

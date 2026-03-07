@@ -491,7 +491,7 @@ function initNavigationObserver({
 }
 
 export const INPUT_TAGS = ['INPUT', 'TEXTAREA', 'SELECT'];
-const lastInputValueMap: WeakMap<EventTarget, inputValue> = new WeakMap();
+export const lastInputValueMap: WeakMap<EventTarget, inputValue> = new WeakMap();
 
 const FINALIZING_KEYS = ['Enter', 'Tab', 'Escape', 'ArrowDown', 'ArrowUp', 'Delete'];
 const lastKeyInputValueMap: WeakMap<EventTarget, string> = new WeakMap();
@@ -508,6 +508,7 @@ function initInputObserver({
   maskInputFn,
   sampling,
   userTriggeredOnInput,
+  trustSyntheticInput,
 }: observerParam): listenerHandler {
 
   function eventHandler(event: Event) {
@@ -597,77 +598,105 @@ function initInputObserver({
 
     const el = target as HTMLInputElement;
 
-    const hasPlaceholder = el.hasAttribute('placeholder');
-    const isEmpty = el.value === '';
-    const isDefaultEmpty = typeof el.defaultValue === 'string'
-      ? el.defaultValue === ''
-      : true;
-    const isNonUser = !v.userTriggered;
-    const isRepeatEmpty = !lastInputValue || lastInputValue.text === '';
+    if (trustSyntheticInput) {
+      // Minimal guard: only suppress empty+unchecked on first encounter (React mount phantom)
+      const isInitialEmpty = !v.userTriggered && el.value === '' && !v.isChecked && !lastInputValue;
 
-    const isLikelyPhantom =
-      hasPlaceholder &&
-      isEmpty &&
-      isDefaultEmpty &&
-      isRepeatEmpty &&
-      isNonUser &&
-      !v.isChecked &&
-      el.type !== 'hidden' &&
-      INPUT_TAGS.includes(el.tagName);
+      // Guard for <select> elements: suppress default selection (selectedIndex === 0)
+      // on first encounter when not user-triggered (mount-time phantom)
+      const isSelectDefaultSelection =
+        el.tagName === 'SELECT' &&
+        !v.userTriggered &&
+        !lastInputValue &&
+        (el as unknown as HTMLSelectElement).selectedIndex === 0;
 
-    const isRenderDrivenTextInput =
-      el.tagName === 'INPUT' &&
-      el.type === 'text' &&
-      !v.userTriggered &&
-      v.text === el.defaultValue &&
-      !lastInputValue &&
-      el.hasAttribute('placeholder');
+      if (isInitialEmpty || isSelectDefaultSelection) {
+        console.debug(
+          `[${nowTimestamp()}] [rrweb:record/observer] phantom input ignored (trust mode)`,
+          {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+            node: dom.describeNode(el),
+            tag: el.tagName,
+            value: el.value,
+            isInitialEmpty,
+            isSelectDefaultSelection,
+          },
+        );
+        return;
+      }
+    } else {
+      const hasPlaceholder = el.hasAttribute('placeholder');
+      const isEmpty = el.value === '';
+      const isDefaultEmpty = typeof el.defaultValue === 'string'
+        ? el.defaultValue === ''
+        : true;
+      const isNonUser = !v.userTriggered;
+      const isRepeatEmpty = !lastInputValue || lastInputValue.text === '';
 
-    const isValueFromDefault =
-      !v.userTriggered &&
-      el.value === el.defaultValue &&
-      !lastInputValue &&
-      el.hasAttribute('placeholder') &&
-      !v.isChecked &&
-      el.type !== 'hidden' &&
-      INPUT_TAGS.includes(el.tagName);
+      const isLikelyPhantom =
+        hasPlaceholder &&
+        isEmpty &&
+        isDefaultEmpty &&
+        isRepeatEmpty &&
+        isNonUser &&
+        !v.isChecked &&
+        el.type !== 'hidden' &&
+        INPUT_TAGS.includes(el.tagName);
 
-    const isPhantomCheckbox =
-      el.type === 'checkbox' &&
-      !v.userTriggered &&
-      !v.isChecked &&
-      !lastInputValue;
+      const isRenderDrivenTextInput =
+        el.tagName === 'INPUT' &&
+        el.type === 'text' &&
+        !v.userTriggered &&
+        v.text === el.defaultValue &&
+        !lastInputValue &&
+        el.hasAttribute('placeholder');
 
-    const isPhantomRadio =
-      el.type === 'radio' &&
-      !v.userTriggered &&
-      !v.isChecked &&
-      !lastInputValue;
+      const isValueFromDefault =
+        !v.userTriggered &&
+        el.value === el.defaultValue &&
+        !lastInputValue &&
+        el.hasAttribute('placeholder') &&
+        !v.isChecked &&
+        el.type !== 'hidden' &&
+        INPUT_TAGS.includes(el.tagName);
 
-    if (
-      isLikelyPhantom ||
-      isRenderDrivenTextInput ||
-      isValueFromDefault ||
-      isPhantomCheckbox ||
-      isPhantomRadio
-    ) {
-      console.debug(
-        `[${nowTimestamp()}] [rrweb:record/observer] ⛔ phantom input ignored`,
-        {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
-          node: dom.describeNode(el),
-          tag: el.tagName,
-          nodeType: el.nodeType,
-          attribute: el.attributes,
-          value: el.value,
-          isLikelyPhantom,
-          isRenderDrivenTextInput,
-          isValueFromDefault,
-          isPhantomCheckbox,
-          isPhantomRadio
-        }
-      );
-      return;
+      const isPhantomCheckbox =
+        el.type === 'checkbox' &&
+        !v.userTriggered &&
+        !v.isChecked &&
+        !lastInputValue;
+
+      const isPhantomRadio =
+        el.type === 'radio' &&
+        !v.userTriggered &&
+        !v.isChecked &&
+        !lastInputValue;
+
+      if (
+        isLikelyPhantom ||
+        isRenderDrivenTextInput ||
+        isValueFromDefault ||
+        isPhantomCheckbox ||
+        isPhantomRadio
+      ) {
+        console.debug(
+          `[${nowTimestamp()}] [rrweb:record/observer] ⛔ phantom input ignored`,
+          {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+            node: dom.describeNode(el),
+            tag: el.tagName,
+            nodeType: el.nodeType,
+            attribute: el.attributes,
+            value: el.value,
+            isLikelyPhantom,
+            isRenderDrivenTextInput,
+            isValueFromDefault,
+            isPhantomCheckbox,
+            isPhantomRadio
+          }
+        );
+        return;
+      }
     }
 
     if (

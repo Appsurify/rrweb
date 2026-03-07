@@ -3,8 +3,10 @@ import {
   type MaskInputOptions,
   type SlimDOMOptions,
   createMirror,
+  maskInputValue,
+  getInputType,
 } from '@appsurify-testmap/rrweb-snapshot';
-import { initObservers, mutationBuffers } from './observer';
+import { initObservers, mutationBuffers, INPUT_TAGS, lastInputValueMap } from './observer';
 import {
   on,
   getWindowWidth,
@@ -111,6 +113,7 @@ function record<T = eventWithTime>(
       : 'load',
     flushCustomEvent = options.flushCustomEvent !== undefined ? options.flushCustomEvent : 'after',
     userTriggeredOnInput = false,
+    trustSyntheticInput = false,
     collectFonts = false,
     inlineImages = false,
     plugins,
@@ -762,6 +765,7 @@ function record<T = eventWithTime>(
           recordCanvas,
           inlineImages,
           userTriggeredOnInput,
+          trustSyntheticInput,
           collectFonts,
           doc,
           maskInputFn,
@@ -853,6 +857,58 @@ function record<T = eventWithTime>(
       );
     }
     return () => {
+      // Flush active input value before tearing down observers.
+      // Read the value directly and emit via wrappedEmit instead of
+      // dispatching a synthetic event (which has isTrusted: false and
+      // could be rejected by phantom filters).
+      if (recording) {
+        const activeEl = document.activeElement;
+        if (activeEl && INPUT_TAGS.includes(activeEl.tagName)) {
+          const inputEl = activeEl as HTMLInputElement;
+          const id = mirror.getId(inputEl);
+          if (id !== -1) {
+            const lastValue = lastInputValueMap.get(inputEl);
+            let text = inputEl.value;
+            let isChecked = false;
+            const type: Lowercase<string> = getInputType(inputEl) || '';
+
+            if (type === 'radio' || type === 'checkbox') {
+              isChecked = inputEl.checked;
+            } else if (
+              maskInputOptions[inputEl.tagName.toLowerCase() as keyof MaskInputOptions] ||
+              maskInputOptions[type as keyof MaskInputOptions]
+            ) {
+              text = maskInputValue({
+                element: inputEl,
+                maskInputOptions,
+                tagName: inputEl.tagName,
+                type,
+                value: text,
+                maskInputFn,
+              });
+            }
+
+            if (
+              !lastValue ||
+              lastValue.text !== text ||
+              lastValue.isChecked !== isChecked
+            ) {
+              const inputData = userTriggeredOnInput
+                ? { text, isChecked, userTriggered: false }
+                : { text, isChecked };
+              lastInputValueMap.set(inputEl, inputData);
+              wrappedEmit({
+                type: EventType.IncrementalSnapshot,
+                data: {
+                  source: IncrementalSource.Input,
+                  ...inputData,
+                  id,
+                },
+              });
+            }
+          }
+        }
+      }
       if (checkoutDebounceTimer) {
         clearTimeout(checkoutDebounceTimer);
         checkoutDebounceTimer = null;

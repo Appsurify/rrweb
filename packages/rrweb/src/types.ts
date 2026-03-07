@@ -82,6 +82,7 @@ export type recordOptions<T> = {
   inlineImages?: boolean;
   plugins?: RecordPlugin[];
   selector?: boolean | SelectorOptions;
+  trustSyntheticInput?: boolean;
   // departed, please use sampling options
   mousemoveWait?: number;
   keepIframeSrcFn?: KeepIframeSrcFn;
@@ -122,6 +123,7 @@ export type observerParam = {
   recordCanvas: boolean;
   inlineImages: boolean;
   userTriggeredOnInput: boolean;
+  trustSyntheticInput: boolean;
   collectFonts: boolean;
   slimDOMOptions: SlimDOMOptions;
   dataURLOptions: DataURLOptions;
