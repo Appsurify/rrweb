@@ -42,9 +42,16 @@ export class NavigationManager {
     if (this.disabled) return;
     if (this.locked) return;
 
-    // Cancel any in-flight settling/debounce
-    this.cancelTimers();
-    this.disconnectSettlingObserver();
+    if (this.pendingNavigation) {
+      // Flush interrupted navigation immediately before DOM transitions away
+      this.cancelTimers();
+      this.disconnectSettlingObserver();
+      this.pendingNavigation = null;
+      this.onSnapshot(true);
+    } else {
+      this.cancelTimers();
+      this.disconnectSettlingObserver();
+    }
 
     // Store as pending
     this.pendingNavigation = data;

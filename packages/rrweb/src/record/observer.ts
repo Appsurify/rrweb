@@ -508,6 +508,7 @@ function initInputObserver({
   maskInputFn,
   sampling,
   userTriggeredOnInput,
+  trustSyntheticInput,
 }: observerParam): listenerHandler {
 
   function eventHandler(event: Event) {
@@ -597,77 +598,83 @@ function initInputObserver({
 
     const el = target as HTMLInputElement;
 
-    const hasPlaceholder = el.hasAttribute('placeholder');
-    const isEmpty = el.value === '';
-    const isDefaultEmpty = typeof el.defaultValue === 'string'
-      ? el.defaultValue === ''
-      : true;
-    const isNonUser = !v.userTriggered;
-    const isRepeatEmpty = !lastInputValue || lastInputValue.text === '';
+    if (trustSyntheticInput) {
+      // Minimal guard: only suppress empty+unchecked on first encounter (React mount phantom)
+      const isInitialEmpty = !v.userTriggered && el.value === '' && !v.isChecked && !lastInputValue;
+      if (isInitialEmpty) return;
+    } else {
+      const hasPlaceholder = el.hasAttribute('placeholder');
+      const isEmpty = el.value === '';
+      const isDefaultEmpty = typeof el.defaultValue === 'string'
+        ? el.defaultValue === ''
+        : true;
+      const isNonUser = !v.userTriggered;
+      const isRepeatEmpty = !lastInputValue || lastInputValue.text === '';
 
-    const isLikelyPhantom =
-      hasPlaceholder &&
-      isEmpty &&
-      isDefaultEmpty &&
-      isRepeatEmpty &&
-      isNonUser &&
-      !v.isChecked &&
-      el.type !== 'hidden' &&
-      INPUT_TAGS.includes(el.tagName);
+      const isLikelyPhantom =
+        hasPlaceholder &&
+        isEmpty &&
+        isDefaultEmpty &&
+        isRepeatEmpty &&
+        isNonUser &&
+        !v.isChecked &&
+        el.type !== 'hidden' &&
+        INPUT_TAGS.includes(el.tagName);
 
-    const isRenderDrivenTextInput =
-      el.tagName === 'INPUT' &&
-      el.type === 'text' &&
-      !v.userTriggered &&
-      v.text === el.defaultValue &&
-      !lastInputValue &&
-      el.hasAttribute('placeholder');
+      const isRenderDrivenTextInput =
+        el.tagName === 'INPUT' &&
+        el.type === 'text' &&
+        !v.userTriggered &&
+        v.text === el.defaultValue &&
+        !lastInputValue &&
+        el.hasAttribute('placeholder');
 
-    const isValueFromDefault =
-      !v.userTriggered &&
-      el.value === el.defaultValue &&
-      !lastInputValue &&
-      el.hasAttribute('placeholder') &&
-      !v.isChecked &&
-      el.type !== 'hidden' &&
-      INPUT_TAGS.includes(el.tagName);
+      const isValueFromDefault =
+        !v.userTriggered &&
+        el.value === el.defaultValue &&
+        !lastInputValue &&
+        el.hasAttribute('placeholder') &&
+        !v.isChecked &&
+        el.type !== 'hidden' &&
+        INPUT_TAGS.includes(el.tagName);
 
-    const isPhantomCheckbox =
-      el.type === 'checkbox' &&
-      !v.userTriggered &&
-      !v.isChecked &&
-      !lastInputValue;
+      const isPhantomCheckbox =
+        el.type === 'checkbox' &&
+        !v.userTriggered &&
+        !v.isChecked &&
+        !lastInputValue;
 
-    const isPhantomRadio =
-      el.type === 'radio' &&
-      !v.userTriggered &&
-      !v.isChecked &&
-      !lastInputValue;
+      const isPhantomRadio =
+        el.type === 'radio' &&
+        !v.userTriggered &&
+        !v.isChecked &&
+        !lastInputValue;
 
-    if (
-      isLikelyPhantom ||
-      isRenderDrivenTextInput ||
-      isValueFromDefault ||
-      isPhantomCheckbox ||
-      isPhantomRadio
-    ) {
-      console.debug(
-        `[${nowTimestamp()}] [rrweb:record/observer] ⛔ phantom input ignored`,
-        {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
-          node: dom.describeNode(el),
-          tag: el.tagName,
-          nodeType: el.nodeType,
-          attribute: el.attributes,
-          value: el.value,
-          isLikelyPhantom,
-          isRenderDrivenTextInput,
-          isValueFromDefault,
-          isPhantomCheckbox,
-          isPhantomRadio
-        }
-      );
-      return;
+      if (
+        isLikelyPhantom ||
+        isRenderDrivenTextInput ||
+        isValueFromDefault ||
+        isPhantomCheckbox ||
+        isPhantomRadio
+      ) {
+        console.debug(
+          `[${nowTimestamp()}] [rrweb:record/observer] ⛔ phantom input ignored`,
+          {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+            node: dom.describeNode(el),
+            tag: el.tagName,
+            nodeType: el.nodeType,
+            attribute: el.attributes,
+            value: el.value,
+            isLikelyPhantom,
+            isRenderDrivenTextInput,
+            isValueFromDefault,
+            isPhantomCheckbox,
+            isPhantomRadio
+          }
+        );
+        return;
+      }
     }
 
     if (
