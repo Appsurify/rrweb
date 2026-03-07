@@ -5,11 +5,15 @@
 (страницы, снапшоты, элементы, действия), выявляет расхождения.
 
 Использование:
-    PYTHONPATH=/Users/whenessel/Development/PycharmProjects/appsurify-testmap-backend/src \
-    python scripts/analyze_all_tests.py
+    TESTMAP_BACKEND_PATH=/path/to/backend/src python scripts/analyze_all_tests.py
+
+    Environment variables:
+        TESTMAP_BACKEND_PATH  Path to testmap backend src directory
+                              (default: /Users/whenessel/Development/PycharmProjects/appsurify-testmap-backend/src)
 """
 
 import json
+import os
 import sys
 from collections import Counter
 from pathlib import Path
@@ -24,7 +28,10 @@ from rich.text import Text
 # Backend import
 # ---------------------------------------------------------------------------
 BACKEND_PATH = Path(
-    "/Users/whenessel/Development/PycharmProjects/appsurify-testmap-backend/src"
+    os.environ.get(
+        "TESTMAP_BACKEND_PATH",
+        "/Users/whenessel/Development/PycharmProjects/appsurify-testmap-backend/src",
+    )
 )
 if str(BACKEND_PATH) not in sys.path:
     sys.path.insert(0, str(BACKEND_PATH))

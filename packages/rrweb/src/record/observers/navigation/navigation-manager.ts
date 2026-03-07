@@ -46,6 +46,8 @@ export class NavigationManager {
       // Flush interrupted navigation immediately before DOM transitions away
       this.cancelTimers();
       this.disconnectSettlingObserver();
+      // Safe to null before onSnapshot: the callback only receives isCheckout boolean
+      // and reads the current URL from document.location, not from pendingNavigation.
       this.pendingNavigation = null;
       this.onSnapshot(true);
     } else {

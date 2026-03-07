@@ -105,7 +105,6 @@ export function hookSetter<T>(
   d: PropertyDescriptor,
   isRevoked?: boolean,
   win = window,
-  sync = false,
 ): hookResetter {
   const original = win.Object.getOwnPropertyDescriptor(target, key);
   win.Object.defineProperty(
@@ -115,14 +114,10 @@ export function hookSetter<T>(
       ? d
       : {
           set(value) {
-            if (sync) {
+            // put hooked setter into event loop to avoid of set latency
+            setTimeout(() => {
               d.set!.call(this, value);
-            } else {
-              // put hooked setter into event loop to avoid of set latency
-              setTimeout(() => {
-                d.set!.call(this, value);
-              }, 0);
-            }
+            }, 0);
             if (original && original.set) {
               original.set.call(this, value);
             }

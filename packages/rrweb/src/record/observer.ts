@@ -491,7 +491,7 @@ function initNavigationObserver({
 }
 
 export const INPUT_TAGS = ['INPUT', 'TEXTAREA', 'SELECT'];
-const lastInputValueMap: WeakMap<EventTarget, inputValue> = new WeakMap();
+export const lastInputValueMap: WeakMap<EventTarget, inputValue> = new WeakMap();
 
 const FINALIZING_KEYS = ['Enter', 'Tab', 'Escape', 'ArrowDown', 'ArrowUp', 'Delete'];
 const lastKeyInputValueMap: WeakMap<EventTarget, string> = new WeakMap();
@@ -601,7 +601,29 @@ function initInputObserver({
     if (trustSyntheticInput) {
       // Minimal guard: only suppress empty+unchecked on first encounter (React mount phantom)
       const isInitialEmpty = !v.userTriggered && el.value === '' && !v.isChecked && !lastInputValue;
-      if (isInitialEmpty) return;
+
+      // Guard for <select> elements: suppress default selection (selectedIndex === 0)
+      // on first encounter when not user-triggered (mount-time phantom)
+      const isSelectDefaultSelection =
+        el.tagName === 'SELECT' &&
+        !v.userTriggered &&
+        !lastInputValue &&
+        (el as unknown as HTMLSelectElement).selectedIndex === 0;
+
+      if (isInitialEmpty || isSelectDefaultSelection) {
+        console.debug(
+          `[${nowTimestamp()}] [rrweb:record/observer] phantom input ignored (trust mode)`,
+          {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+            node: dom.describeNode(el),
+            tag: el.tagName,
+            value: el.value,
+            isInitialEmpty,
+            isSelectDefaultSelection,
+          },
+        );
+        return;
+      }
     } else {
       const hasPlaceholder = el.hasAttribute('placeholder');
       const isEmpty = el.value === '';
