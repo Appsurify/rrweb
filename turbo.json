@@ -17,6 +17,7 @@
         "es/**",
         "dist/**",
         "typings/**",
+        "build/",
         ".svelte-kit/**",
         "types/**"
       ]
