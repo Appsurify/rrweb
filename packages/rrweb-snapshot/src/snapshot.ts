@@ -1084,12 +1084,16 @@ export function serializeNodeWithId(
 
 
 
-    // Существующий код для isVisible и isInteractive
+    // Visibility and interactivity fields
     if (n.nodeType === Node.TEXT_NODE) {
       serializedNode.isVisible = isTextVisible(n as Text);
     }
     if (n.nodeType === Node.ELEMENT_NODE) {
-      serializedNode.isVisible = isElementVisible(n as Element);
+      const vis = isElementVisible(n as Element);
+      serializedNode.isVisible = vis.isVisible;
+      serializedNode.isCSSVisible = vis.isCSSVisible;
+      serializedNode.isViewportVisible = vis.isViewportVisible;
+      serializedNode.hasSize = vis.hasSize;
       serializedNode.isInteractive = isElementInteractive(n as Element);
     }
   }

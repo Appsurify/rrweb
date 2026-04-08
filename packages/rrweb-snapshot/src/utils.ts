@@ -754,25 +754,21 @@ export function markCssSplits(
 // }
 
 export function isTextVisible(n: Text): boolean {
-  // const parentElement = n.parentElement;
-  // The parent node may not be a html element which has a tagName attribute.
-  // So just let it be undefined which is ok in this use case.
   const parent = dom.parentNode(n);
   const parentElement = parent && (parent as Element);
-  if (!parentElement) {
+  if (!parentElement || parentElement.nodeType !== Node.ELEMENT_NODE) {
     return false;
   }
-  const isParentVisible = isElementVisible(parentElement);
-  if (!isParentVisible) {
+  const parentVis = isElementVisible(parentElement);
+  if (!parentVis.isVisible) {
     return false;
   }
   const textContent = n.textContent?.trim();
   return textContent !== '';
 }
 
-export function isElementVisible(el: Element): boolean {
-  const visibility = dom.getElementVisibility(el);
-  return visibility.isVisible;
+export function isElementVisible(el: Element): ReturnType<typeof dom.getElementVisibility> {
+  return dom.getElementVisibility(el);
 }
 
 

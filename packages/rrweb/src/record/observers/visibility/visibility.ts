@@ -3,7 +3,9 @@ type Rect = Pick<DOMRect, 'top' | 'left' | 'right' | 'bottom' | 'width' | 'heigh
 export type VisibilityCheckEntry = {
   target: Element;
   isVisible: boolean;
-  isStyleVisible: boolean;
+  isCSSVisible: boolean;
+  isViewportVisible: boolean;
+  hasSize: boolean;
   intersectionRatio: number;
   intersectionRect: Rect;
   oldValue: VisibilityCheckEntry | null;
@@ -27,41 +29,46 @@ export function computeVisibility(
   const current: Map<Element, VisibilityCheckEntry> = new Map();
   const rootRect = getRootRect(root);
   const expandedRoot = expandRootRect(rootRect, rootMarginFn);
+  const opacityCache = new Map<Element, boolean>();
 
   for (const el of elements) {
     const elRect = el.getBoundingClientRect();
+    const elHasSize = elRect.width > 0 && elRect.height > 0;
 
     let intersectionRect: Rect = emptyRect();
     let intersectionRatio = 0;
 
-    if (elRect.width > 0 && elRect.height > 0) {
+    if (elHasSize) {
       intersectionRect = computeIntersectionRect(elRect, expandedRoot);
       intersectionRatio = computeIntersectionRatio(elRect, intersectionRect);
       intersectionRatio = Math.round(intersectionRatio * 100) / 100;
     }
 
-    const isStyle = isStyleVisible(el);
-    const old = previous.get(el) ?? null;
+    const ownStyleVis = isOwnStyleVisible(el);
+    // Gate: only walk ancestors when own style passes
+    const isCSSVisible = ownStyleVis && isAncestorOpacityVisible(el, opacityCache);
+    const isViewportVisible = elHasSize && intersectionRatio > 0;
+    const isVisible = isCSSVisible && isViewportVisible && intersectionRatio > threshold;
 
+    const old = previous.get(el) ?? null;
     const prevRatio = old?.intersectionRatio ?? 0;
-    const currRatio = intersectionRatio;
-    const wasVisible = old?.isStyleVisible && prevRatio > threshold;
-    const nowVisible = isStyle && currRatio > threshold;
+    const wasVisible = old?.isCSSVisible && prevRatio > threshold;
 
     const changed =
       !old ||
-      wasVisible !== nowVisible ||
-      (
-        wasVisible !== nowVisible &&
-        Math.abs(currRatio - prevRatio) > sensitivity
-      );
+      wasVisible !== isVisible ||
+      old.isCSSVisible !== isCSSVisible ||
+      old.hasSize !== elHasSize ||
+      Math.abs(intersectionRatio - prevRatio) > sensitivity;
 
     if (changed) {
       current.set(el, {
         target: el,
-        isVisible: nowVisible,
-        isStyleVisible: isStyle,
-        intersectionRatio: currRatio,
+        isVisible,
+        isCSSVisible,
+        isViewportVisible,
+        hasSize: elHasSize,
+        intersectionRatio,
         intersectionRect,
         oldValue: old,
       });
@@ -123,10 +130,34 @@ function emptyRect(): Rect {
   return { top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0 };
 }
 
-function isStyleVisible(el: Element): boolean {
+function isOwnStyleVisible(el: Element): boolean {
   const style = getComputedStyle(el);
   return style &&
     style.display !== 'none' &&
     style.visibility !== 'hidden' &&
-    parseFloat(style.opacity || '1') > 0;
+    (parseFloat(style.opacity) || 0) > 0;
+}
+
+function isAncestorOpacityVisible(el: Element, cache: Map<Element, boolean>): boolean {
+  const visited: Element[] = [];
+  let node: Element | null = el.parentElement;
+  while (node) {
+    const cached = cache.get(node);
+    if (cached !== undefined) {
+      // Backfill all visited nodes with the cached result
+      for (const v of visited) cache.set(v, cached);
+      return cached;
+    }
+    const s = getComputedStyle(node);
+    if ((parseFloat(s.opacity) || 0) <= 0) {
+      cache.set(node, false);
+      for (const v of visited) cache.set(v, false);
+      return false;
+    }
+    visited.push(node);
+    node = node.parentElement;
+  }
+  // Full chain confirmed visible — safe to cache true
+  for (const v of visited) cache.set(v, true);
+  return true;
 }

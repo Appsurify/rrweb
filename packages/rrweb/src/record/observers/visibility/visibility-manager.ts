@@ -122,6 +122,9 @@ export class VisibilityManager {
       const changed =
         !old ||
         old.isVisible !== entry.isVisible ||
+        old.isCSSVisible !== entry.isCSSVisible ||
+        old.isViewportVisible !== entry.isViewportVisible ||
+        old.hasSize !== entry.hasSize ||
         Math.abs(old.intersectionRatio - entry.intersectionRatio) > this.sensitivity;
 
       if (changed) {
@@ -130,6 +133,9 @@ export class VisibilityManager {
           this.buffer.set(el, {
             id,
             isVisible: entry.isVisible,
+            isCSSVisible: entry.isCSSVisible,
+            isViewportVisible: entry.isViewportVisible,
+            hasSize: entry.hasSize,
             ratio: entry.intersectionRatio,
           });
         }

@@ -144,6 +144,9 @@ export type customElementData = {
 export type visibilityMutation = {
   id: number;
   isVisible: boolean;
+  isCSSVisible?: boolean;
+  isViewportVisible?: boolean;
+  hasSize?: boolean;
   ratio?: number;
   selector?: string;
 };
@@ -870,6 +873,9 @@ export type serializedNode = (
   isShadowHost?: boolean;
   isShadow?: boolean;
   isVisible?: boolean;
+  isCSSVisible?: boolean;
+  isViewportVisible?: boolean;
+  hasSize?: boolean;
   isInteractive?: boolean;
   selector?: string;
 };

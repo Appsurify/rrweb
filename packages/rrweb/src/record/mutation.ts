@@ -660,7 +660,7 @@ export default class MutationBuffer {
 
         const isBooleanAttr = typeof propValue === 'boolean';
         const inDOM = document.contains(target);
-        const isVisible = isElementVisible(target);
+        const elVis = isElementVisible(target);
         const isExcludeAttributeName = isExcludeAttribute(attributeName, this.excludeAttribute);
 
         const isPhantomAttributeMutation =
@@ -689,7 +689,10 @@ export default class MutationBuffer {
               propValue,
               isBooleanAttr,
               inDOM,
-              isVisible,
+              isVisible: elVis.isVisible,
+              isCSSVisible: elVis.isCSSVisible,
+              isViewportVisible: elVis.isViewportVisible,
+              hasSize: elVis.hasSize,
               isExcludeAttributeName
             }
           );
@@ -712,7 +715,10 @@ export default class MutationBuffer {
               propValue,
               isBooleanAttr,
               inDOM,
-              isVisible,
+              isVisible: elVis.isVisible,
+              isCSSVisible: elVis.isCSSVisible,
+              isViewportVisible: elVis.isViewportVisible,
+              hasSize: elVis.hasSize,
               isExcludeAttributeName
             }
           );
@@ -813,7 +819,10 @@ export default class MutationBuffer {
                 propValue,
                 isBooleanAttr,
                 inDOM,
-                isVisible,
+                isVisible: elVis.isVisible,
+                isCSSVisible: elVis.isCSSVisible,
+                isViewportVisible: elVis.isViewportVisible,
+                hasSize: elVis.hasSize,
                 isExcludeAttributeName
               }
             );

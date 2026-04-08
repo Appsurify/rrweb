@@ -274,10 +274,27 @@ export function describeNode(el: Element): string {
   return `${tag}${id}${classes}`;
 }
 
-export function getElementVisibility(el: Element): {
+export type ElementVisibilityResult = {
   isVisible: boolean;
+  isCSSVisible: boolean;
+  isViewportVisible: boolean;
+  hasSize: boolean;
   ratio: number;
-} {
+};
+
+function isAncestorOpacityVisible(el: Element, win: Window & typeof globalThis): boolean {
+  let node: Element | null = el.parentElement;
+  while (node) {
+    const s = win.getComputedStyle?.(node);
+    if (s && (parseFloat(s.opacity) || 0) <= 0) {
+      return false;
+    }
+    node = node.parentElement;
+  }
+  return true;
+}
+
+export function getElementVisibility(el: Element): ElementVisibilityResult {
   const win = el.ownerDocument?.defaultView ?? window;
   const rect = el.getBoundingClientRect();
 
@@ -286,22 +303,25 @@ export function getElementVisibility(el: Element): {
   const viewportHeight =
     win.innerHeight || win.document.documentElement.clientHeight || 0;
 
-  const isRectVisible =
-    rect.width > 0 &&
-    rect.height > 0 &&
+  const elHasSize = rect.width > 0 && rect.height > 0;
+
+  const isViewportVisible =
+    elHasSize &&
     rect.bottom > 0 &&
     rect.right > 0 &&
     rect.top < viewportHeight &&
     rect.left < viewportWidth;
 
   const style = win.getComputedStyle?.(el);
-  const isStyleVisible =
+  const isOwnStyleVisible =
     !!style &&
     style.display !== 'none' &&
     style.visibility !== 'hidden' &&
     (parseFloat(style.opacity) || 0) > 0;
 
-  const isVisible = isStyleVisible && isRectVisible;
+  const isCSSVisible = isOwnStyleVisible && isAncestorOpacityVisible(el, win);
+
+  const isVisible = isCSSVisible && isViewportVisible;
 
   let ratio = 0;
   if (isVisible) {
@@ -320,6 +340,9 @@ export function getElementVisibility(el: Element): {
 
   return {
     isVisible,
+    isCSSVisible,
+    isViewportVisible,
+    hasSize: elHasSize,
     ratio,
   };
 }
