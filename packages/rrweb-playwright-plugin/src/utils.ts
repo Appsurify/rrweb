@@ -8,9 +8,10 @@ import RRWebRecorder from "./recorder";
 
 const defaultOutputReportDir = 'test-results/playwright/ui';
 
-// Tracks whether the aggregate report has been cleared in this process.
-// Ensures the file is reset once per test run (process lifetime).
-let aggregateCleared = false;
+const CLEANUP_MARKER = '.run-marker';
+
+// In-memory cache so we only hit the filesystem once per worker process.
+let cleanupVerified = false;
 
 function writeFileAtomic(filePath: string, data: string) {
   const dir = path.dirname(filePath);
@@ -33,8 +34,86 @@ function readJsonArraySafe(filePath: string): unknown[] {
   }
 }
 
+/**
+ * Acquire a file-based lock, execute `fn`, then release.
+ * Uses exclusive-create (`wx`) for atomic acquisition.
+ */
+function withFileLock(lockPath: string, fn: () => void) {
+  const start = Date.now();
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const fd = fs.openSync(lockPath, 'wx');
+      fs.closeSync(fd);
+      try {
+        fn();
+      } finally {
+        try { fs.unlinkSync(lockPath); } catch { /* ignore */ }
+      }
+      return;
+    } catch {
+      if (Date.now() - start > 5000) {
+        // Timeout — stale lock, force acquire
+        try { fs.unlinkSync(lockPath); } catch { /* ignore */ }
+        fn();
+        return;
+      }
+      // Busy-wait briefly before retry
+      const waitUntil = Date.now() + 10 + Math.random() * 20;
+      while (Date.now() < waitUntil) { /* spin */ }
+    }
+  }
+}
+
+/**
+ * Clean the output directory once per test run, coordinated across
+ * Playwright worker processes using `process.ppid` as a run identifier.
+ */
+function ensureRunCleanup(reportDir: string) {
+  if (cleanupVerified) return;
+
+  const markerPath = path.join(reportDir, CLEANUP_MARKER);
+  const runId = String(process.ppid);
+
+  // Fast path: already cleaned by another worker in this run
+  try {
+    if (fs.readFileSync(markerPath, 'utf-8').trim() === runId) {
+      cleanupVerified = true;
+      return;
+    }
+  } catch { /* marker missing or unreadable — need cleanup */ }
+
+  // Place lock in parent dir so it survives the rmSync below
+  const parentDir = path.dirname(reportDir);
+  fs.mkdirSync(parentDir, { recursive: true });
+  const lockPath = path.join(parentDir, `.${path.basename(reportDir)}.cleanup.lock`);
+
+  withFileLock(lockPath, () => {
+    // Double-check after acquiring lock
+    try {
+      if (fs.readFileSync(markerPath, 'utf-8').trim() === runId) {
+        cleanupVerified = true;
+        return;
+      }
+    } catch { /* proceed with cleanup */ }
+
+    // Remove stale results from previous run
+    if (fs.existsSync(reportDir)) {
+      fs.rmSync(reportDir, { recursive: true, force: true });
+    }
+    fs.mkdirSync(reportDir, { recursive: true });
+    fs.writeFileSync(markerPath, runId, 'utf-8');
+  });
+
+  cleanupVerified = true;
+}
+
 export function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: string) {
   const reportDir = outputReportDir !== undefined ? outputReportDir : defaultOutputReportDir;
+
+  // Clean output directory once per run (coordinated across workers)
+  ensureRunCleanup(reportDir);
+
   const specName = sanitizeFileNamePart(testRunResult.spec.name);
   const suiteTitle = sanitizeFileNamePart(testRunResult.test.suite?.title);
   const testTitle = sanitizeFileNamePart(testRunResult.test.title);
@@ -57,14 +136,15 @@ export function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: 
   fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw, null, 2), 'utf-8');
   console.log(`[ui-coverage] Saved report to ${jsonFilePathRaw}`);
 
+  // Aggregate: locked read-modify-write to prevent data loss between workers
   try {
     const aggregatePath = path.join(reportDir, "ui-coverage-aggregated.json");
-    // On first call in this process, start a fresh aggregate file so it
-    // only contains results from the current run.
-    const current = aggregateCleared ? readJsonArraySafe(aggregatePath) : [];
-    aggregateCleared = true;
-    current.push(reportRaw);
-    writeFileAtomic(aggregatePath, JSON.stringify(current, null, 2));
+    const lockPath = path.join(reportDir, '.aggregate.lock');
+    withFileLock(lockPath, () => {
+      const current = readJsonArraySafe(aggregatePath);
+      current.push(reportRaw);
+      writeFileAtomic(aggregatePath, JSON.stringify(current, null, 2));
+    });
     console.log(`[ui-coverage] Updated aggregate: ${aggregatePath}`);
   } catch (e) {
     console.warn('[ui-coverage] Failed to update aggregate report:', e);

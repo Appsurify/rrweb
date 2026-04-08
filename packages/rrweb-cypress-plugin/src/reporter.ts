@@ -41,12 +41,12 @@ function readJsonArraySafe(filePath: string): unknown[] {
 export default function registerRRWebReportTasks(on: Cypress.PluginEvents, config?: Partial<typeof pluginConfig>) {
   pluginConfig = { ...pluginConfig, ...config };
 
-  // Clear aggregate report from previous run so it only contains
-  // results from the current run.
-  const aggregatePath = path.join(pluginConfig.outputReportDir, "ui-coverage-aggregated.json");
-  if (fs.existsSync(aggregatePath)) {
-    fs.unlinkSync(aggregatePath);
+  // Clean output directory from previous run so it only contains
+  // results from the current run (removes stale individual files too).
+  if (fs.existsSync(pluginConfig.outputReportDir)) {
+    fs.rmSync(pluginConfig.outputReportDir, { recursive: true, force: true });
   }
+  fs.mkdirSync(pluginConfig.outputReportDir, { recursive: true });
 
   on('task', {
     saveRRWebReport(reportData: {testRunResult: TestRunResult}) {
