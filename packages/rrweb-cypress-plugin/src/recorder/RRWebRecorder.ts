@@ -58,8 +58,11 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
       },
       navigation: {
         debounce: 300,        // coalesce URL bouncing during SPA hydration (was 100)
-        settleTimeout: 800,   // wait longer for data-load mutations to settle (was 150)
-        maxWait: 5000,        // hard cap unchanged
+        settleTimeout: 2000,  // long enough that data-load bursts keep resetting it; pending typically
+                              // survives until recorder teardown — destroy() then flushes a single FS
+                              // capturing the FINAL view of the page (was 150)
+        maxWait: 10000,       // hard cap raised so genuinely long data loads also reach destroy() flush
+                              // before being force-cut at the cap (was 5000)
       },
     },
     flushCustomEvent: 'after',
