@@ -29,7 +29,7 @@ export default defineConfig({
 
   e2e: {
     // baseUrl: 'http://localhost:5180',
-    specPattern: 'tests/cypress/**/*.cy.ts',
+    specPattern: 'tests/cypress/**/*.cy.{ts,js}',
     supportFile: 'cypress/support/e2e.ts',
     setupNodeEvents(on, config) {
       registerRRWebReportTasks(on, {...config, outputReportDir: 'test-results/cypress/ui'});

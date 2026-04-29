@@ -51,7 +51,12 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
         threshold: 0.5,
         sensitivity: 0.05,
         rafThrottle: 100
-      }
+      },
+      navigation: {
+        debounce: 300,        // coalesce URL bouncing during SPA hydration (was 100)
+        settleTimeout: 800,   // wait longer for data-load mutations to settle (was 150)
+        maxWait: 5000,        // hard cap unchanged
+      },
     },
     flushCustomEvent: 'after',
     // recordAfter: 'DOMContentStabilized',
