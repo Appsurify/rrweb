@@ -21,22 +21,13 @@ export const registerCypressEventListeners = () => {
 
     Cypress
         .on('test:before:run', onTestBeforeRun)
-        // .on('log:added', onLogAdded)
-        // .on('log:changed', onLogChanged)
         .on('window:before:load', onWindowBeforeLoad)
         .on('window:before:unload', onWindowBeforeUnload)
         .on('window:unload', onWindowUnload)
         .on('window:load', onWindowLoad)
-        // .on('command:enqueued', onCommandEnqueued)
-        // .on('command:start', onCommandStart)
-        // .on('command:end', onCommandEnd)
-        // .on('command:retry', onCommandRetry)
-        // .on('skipped:command:end', onSkippedCommandEnd)
+        .on('command:end', onCommandEnd)
         .on('test:after:run', onTestAfterRun)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        // .on('command:failed', onCommandFailed)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         .on('command:queue:end', onCommandQueueEnd)
         .on('fail', onFail);
@@ -54,111 +45,21 @@ export const registerCypressEventListeners = () => {
         const ctx = getCurrentTestContext(testKey);
         if (!ctx) return;
 
-        // console.debug(`[${Date.now()}] [cypress] afterEach:`, ctx);
-        ctx.recorderEvents.map((event) => {
-            if (event.type !== 5 ) return event;
-
+        // Safety pass: fill defaults for type=5 events that were not enriched
+        // in command:end (e.g. aborted mid-command, uncaught exception).
+        for (const event of ctx.recorderEvents) {
+            if (event.type !== 5) continue;
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            const liveCommand = ctx.commandLiveRefs.get(event.data.payload.id) as Cypress.CommandQueue;
-
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // event.data.payload.element = element;
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            event.data.payload.state = liveCommand?.state ?? 'unknown';
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // event.data.payload.args = liveCommand?.get('args');
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call
-            event.data.payload.args = safeSerializeArray(liveCommand?.get('args'));
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
-            event.data.payload.query = liveCommand?.get('query');
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
-            event.data.payload.timeout = liveCommand?.get('timeout');
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
-            event.data.payload.name = liveCommand?.get('name');
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
-            event.data.payload.type = liveCommand?.get('type');
-
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            if (liveCommand?.get('prev')) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                event.data.payload.prev = {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
-                    state: liveCommand?.get('prev').state,
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
-                    name: liveCommand?.get('prev').get('name'),
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    args: safeSerializeArray(liveCommand?.get('prev').get('args')),
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    type: liveCommand?.get('prev').get('type'),
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    query: liveCommand?.get('prev').get('query'),
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    id: liveCommand?.get('prev').get('id'),
-                };
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            if (liveCommand?.get('next')) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                event.data.payload.next = {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    state: liveCommand?.get('next').state,
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    name: liveCommand?.get('next').get('name'),
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    args: safeSerializeArray(liveCommand?.get('next').get('args')),
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    type: liveCommand?.get('next').get('type'),
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    query: liveCommand?.get('next').get('query'),
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument
-                    id: liveCommand?.get('next').get('id'),
-                };
-            }
-            return event;
-        })
-        console.debug(`[${Date.now()}] [cypress] afterEach:`, ctx.recorderEvents);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const payload = event.data?.payload as Record<string, unknown> | undefined;
+            if (!payload) continue;
+            if (payload.name === undefined) payload.name = 'unknown';
+            if (payload.state === undefined) payload.state = 'unknown';
+            if (payload.type === undefined) payload.type = 'unknown';
+            if (payload.args === undefined) payload.args = [];
+            if (payload.element === undefined) payload.element = { selector: undefined, childNodes: [] };
+        }
 
         // const testRunResult: TestRunResult = {
         //     spec: ctx.spec as unknown as SpecInfo,
@@ -212,7 +113,10 @@ export const registerCypressEventListeners = () => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 // @ts-ignore
 const onTestBeforeRun = (attributes: Cypress.ObjectLike, test: Mocha.Test) => {
-    // console.debug(`[${Date.now()}] [cypress] onTestBeforeRun`, attributes, test);
+    // Each test is a fresh data set: clear internal events array and reset
+    // the sequential-id counter so per-test reports start with id=1.
+    recorder.reset();
+
     const testKey = getTestKey(test);
     const testRunContext: TestRunContext = {
         runner: {
@@ -234,38 +138,13 @@ const onTestBeforeRun = (attributes: Cypress.ObjectLike, test: Mocha.Test) => {
         waitForPaint: () => Promise.resolve(undefined),
         paintComplete: false,
         recorderEvents: [] as RecorderEvent[],
-        commandLiveRefs: new Map<string, Cypress.CommandQueue>()
     };
 
     setCurrentTestContext(testKey, testRunContext);
 
     recorder.bind({
         pushEvent: (event) => {
-            console.debug(`[${Date.now()}] [cypress] pushEvent`, event);
-            testRunContext.recorderEvents.push(event)
-            if (event.type === 5) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                const liveCommand = testRunContext.commandLiveRefs.get(event.data.payload.id) as Cypress.CommandQueue;
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
-                const subject = liveCommand?.get('subject')
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-                const selector = subject?.selector;
-
-                const mirror = recorder.getMirror();
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
-                const element = mirror?.getMeta(subject?.[0]);
-
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                event.data.payload.element = {
-                    ...element,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    selector,
-                    childNodes: []
-                };
-            }
+            testRunContext.recorderEvents.push(event);
         },
     });
 
@@ -384,54 +263,8 @@ const onWindowLoad = (win: Cypress.AUTWindow) => {
     // console.debug(`[${Date.now()}] [cypress] onWindowLoad after waitForPaint`);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
-// @ts-ignore
-const onCommandEnqueued = (command: Cypress.EnqueuedCommandAttributes) => {
-    // console.debug(`[${Date.now()}] [cypress] onCommandEnqueued`, command);
-
-    const currentTest = Cypress.currentTest;
-    if (!currentTest) return;
-
-    const testKey = getTestKey({ titlePath: () => currentTest.titlePath });
-    const ctx = getCurrentTestContext(testKey);
-    if (!ctx) return;
-
-    // Control and store live object
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
-    ctx.commandLiveRefs.set(command.id, command);
-
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
-// @ts-ignore
-const onCommandRetry = (command: Cypress.CommandQueue) => {
-    // console.debug(`[${Date.now()}] [cypress] onCommandRetry`, command);
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const onCommandStart = (command: Cypress.CommandQueue) => {
-    // console.debug(`[${Date.now()}] [cypress] onCommandStart`, command);
-    const currentTest = Cypress.currentTest;
-    if (!currentTest) return;
-
-    const testKey = getTestKey({ titlePath: () => currentTest.titlePath });
-    const ctx = getCurrentTestContext(testKey);
-    if (!ctx) return;
-
-    // Control and store live object
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
-    ctx.commandLiveRefs.set(command.attributes.id, command);
-
-    // If need before state
-    // recorder.addCustomEvent(`${command.attributes.name}`, {
-    //     id: command.attributes.id,
-    // });
-}
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onCommandEnd = (command: Cypress.CommandQueue) => {
-    console.debug(`[${Date.now()}] [cypress] onCommandEnd`, command);
-
     const currentTest = Cypress.currentTest;
     if (!currentTest) return;
 
@@ -439,55 +272,73 @@ const onCommandEnd = (command: Cypress.CommandQueue) => {
     const ctx = getCurrentTestContext(testKey);
     if (!ctx) return;
 
-    const waitWindowLoaded = async () => {
-      if (!ctx.paintComplete && typeof ctx.waitForPaint === 'function') {
-        await ctx.waitForPaint();
-        ctx.paintComplete = true;
-      }
+    // Trigger a paint settle in the background (existing behavior).
+    if (!ctx.paintComplete && typeof ctx.waitForPaint === 'function') {
+        void ctx.waitForPaint().then(() => {
+            ctx.paintComplete = true;
+        });
     }
-    void waitWindowLoaded();
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
-    recorder.addCustomEvent(`${command.attributes.name}`, {
+    // Snapshot the live command's data BEFORE emitting the custom event,
+    // because liveCommand state can shift on the next tick.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const commandId = command.attributes.id as string;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const commandName = command.attributes.name as string;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+    const subject = command.get('subject');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+    const selector = subject?.selector;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+    const rawArgs = command.get('args');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+    const commandType = command.get('type');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+    const commandState = command.state ?? 'unknown';
+
+    // Emit the custom event — synchronously pushes a type=5 event into
+    // ctx.recorderEvents via the bound pushEvent callback.
+    recorder.addCustomEvent(commandName, { id: commandId });
+
+    // Find the just-emitted event (latest type=5 with this id) and enrich it
+    // in place. Only fields actually consumed by the backend are populated:
+    // name, args, element (consumed); state, type (kept by user request).
+    for (let i = ctx.recorderEvents.length - 1; i >= 0; i--) {
+        const event = ctx.recorderEvents[i];
+        if (event.type !== 5) continue;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        id: command.attributes.id,
-    });
-    // void waitWindowLoaded();
+        const payload = event.data?.payload as { id?: string } | undefined;
+        if (!payload || payload.id !== commandId) continue;
 
-};
+        const mirror = recorder.getMirror();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
+        const elementMeta = mirror?.getMeta(subject?.[0]);
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
-// @ts-ignore
-const onCommandFailed = (command: Cypress.CommandQueue, err: unknown) => {
-    console.debug(`[${Date.now()}] [cypress] onCommandFailed`, command);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
-    recorder.addCustomEvent(`${command.attributes.name}`, {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        id: command.attributes.id,
-    });
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
-// @ts-ignore
-const onSkippedCommandEnd = (command: Cypress.CommandQueue) => {
-    console.debug(`[${Date.now()}] [cypress] onSkippedCommandEnd`, command);
-
-    const currentTest = Cypress.currentTest;
-    if (!currentTest) return;
-
-    const testKey = getTestKey({ titlePath: () => currentTest.titlePath });
-    const ctx = getCurrentTestContext(testKey);
-    if (!ctx) return;
-
-    // Control and store live object
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
-    ctx.commandLiveRefs.set(command.attributes.id, command);
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
-    recorder.addCustomEvent(`${command.attributes.name}`, {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        id: command.attributes.id,
-    });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        event.data.payload.name = commandName;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        event.data.payload.args = Array.isArray(rawArgs) ? safeSerializeArray(rawArgs) : [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        event.data.payload.state = commandState;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        event.data.payload.type = commandType;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        event.data.payload.element = {
+            ...elementMeta,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            selector,
+            childNodes: [],
+        };
+        break;
+    }
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

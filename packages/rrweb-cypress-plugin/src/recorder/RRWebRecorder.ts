@@ -171,8 +171,9 @@ export class RRWebRecorder {
   }
 
   public stop() {
+    if (!this.stopFn) return;
     this.flush();
-    this.stopFn?.();
+    this.stopFn();
     this.stopFn = null;
   }
 
