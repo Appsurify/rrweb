@@ -296,6 +296,10 @@ function record<T = eventWithTime>(
       lastFullSnapshotEvent = e;
       incrementalSnapshotCount = 0;
       visibilityMutationCount = 0;
+      // Inform NavigationManager that a FS was just taken (regardless of
+      // which path triggered it: init, executeCheckout, or NavigationManager
+      // itself). Keeps same-URL coalescing accurate across all snapshot paths.
+      navigationManager?.markSnapshotTaken();
     } else if (e.type === EventType.IncrementalSnapshot) {
       // attach iframe should be considered as full snapshot
       if (

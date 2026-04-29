@@ -24,7 +24,11 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
     recordCanvas: true,
     collectFonts: true,
     inlineImages: true,
-    checkoutEveryNvm: 60,
+    // checkoutEveryNvm intentionally unset: with visibility.mode='none' it
+    // would still count IntersectionObserver activity via notifyActivity and
+    // trigger spurious FullSnapshots during data hydration on SPA pages,
+    // bypassing NavigationManager's same-URL coalescing. NavigationManager
+    // alone handles route-change snapshots.
     // excludeAttribute: /data-(cy|test(id)?|cypress|highlight-el|cypress-el)/i,
     maskInputOptions: { password: true },
     sampling: {

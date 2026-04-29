@@ -219,6 +219,13 @@ export type NavigationSamplingConfig = {
   debounce?: number;
   /** use Navigation API when available (default: true) */
   useNavigationAPI?: boolean;
+  /**
+   * Window (ms) within which a navigation to the SAME URL as the last snapshot
+   * is suppressed (no new FullSnapshot). 0 disables the guard. Default: 2000.
+   * Useful for SPAs that re-fire history.replaceState with the same URL during
+   * data hydration — prevents duplicate snapshots of the same page.
+   */
+  sameUrlCoalesceMs?: number;
 };
 
 export type SamplingStrategy = Partial<{
