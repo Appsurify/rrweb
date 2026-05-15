@@ -13,7 +13,7 @@ export default defineConfig({
 
   reporter: [
     ['junit', { outputFile: 'test-results/playwright/junit/results.xml' }],
-    // ['./playwright/playwright-ui-coverage/reporter.ts', {outputFile: 'test-results/playwright/ui/result.json'}],
+    ['@appsurify-testmap/rrweb-playwright-plugin/reporter'],
   ],
 
   use: {

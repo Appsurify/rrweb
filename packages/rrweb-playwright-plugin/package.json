@@ -30,6 +30,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./reporter": {
+      "import": "./dist/reporter.mjs",
+      "require": "./dist/reporter.js",
+      "types": "./dist/reporter.d.ts"
     }
   },
   "files": [

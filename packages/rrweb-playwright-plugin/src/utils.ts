@@ -4,35 +4,12 @@ import fs from 'fs';
 import { Browser, Page, Frame, TestInfo } from '@playwright/test';
 import type { RecorderEvent } from './recorder/types';
 import type { TestRunContext, TestRunResult, SerializedValue } from './types';
-import RRWebRecorder from "./recorder";
-
-const defaultOutputReportDir = 'test-results/playwright/ui';
+export const defaultOutputReportDir = 'test-results/playwright/ui';
 
 const CLEANUP_MARKER = '.run-marker';
 
 // In-memory cache so we only hit the filesystem once per worker process.
 let cleanupVerified = false;
-
-function writeFileAtomic(filePath: string, data: string) {
-  const dir = path.dirname(filePath);
-  const tmp = path.join(dir, `.${path.basename(filePath)}.tmp-${process.pid}-${Date.now()}`);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(tmp, data, 'utf-8');
-  fs.renameSync(tmp, filePath);
-}
-
-function readJsonArraySafe(filePath: string): unknown[] {
-  try {
-    if (!fs.existsSync(filePath)) return [];
-    const text = fs.readFileSync(filePath, 'utf-8').trim();
-    if (!text) return [];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const parsed = JSON.parse(text);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
 /**
  * Acquire a file-based lock, execute `fn`, then release.
@@ -135,20 +112,6 @@ export function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: 
   fs.mkdirSync(path.dirname(jsonFilePathRaw), { recursive: true });
   fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw, null, 2), 'utf-8');
   console.log(`[ui-coverage] Saved report to ${jsonFilePathRaw}`);
-
-  // Aggregate: locked read-modify-write to prevent data loss between workers
-  try {
-    const aggregatePath = path.join(reportDir, "ui-coverage-aggregated.json");
-    const lockPath = path.join(reportDir, '.aggregate.lock');
-    withFileLock(lockPath, () => {
-      const current = readJsonArraySafe(aggregatePath);
-      current.push(reportRaw);
-      writeFileAtomic(aggregatePath, JSON.stringify(current, null, 2));
-    });
-    console.log(`[ui-coverage] Updated aggregate: ${aggregatePath}`);
-  } catch (e) {
-    console.warn('[ui-coverage] Failed to update aggregate report:', e);
-  }
 }
 
 export function sanitizeFileNamePart(name: string | undefined): string {
@@ -268,22 +231,6 @@ export function deepMerge<T>(target: T, source: Partial<T>): T {
   }
 
   return result;
-}
-
-export async function waitForRecorderStabilization(recorder: RRWebRecorder, timeout = 500) {
-  const start = Date.now();
-  let lastCount = recorder.getEvents().length;
-
-  return new Promise<void>((resolve) => {
-    const interval = setInterval(() => {
-      const currentCount = recorder.getEvents().length;
-      if (currentCount === lastCount || Date.now() - start > timeout) {
-        clearInterval(interval);
-        resolve();
-      }
-      lastCount = currentCount;
-    }, 50);
-  });
 }
 
 export async function waitForNextRAF(page: Page) {

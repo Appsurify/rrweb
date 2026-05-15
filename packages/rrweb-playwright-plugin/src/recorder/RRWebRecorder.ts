@@ -80,6 +80,7 @@ export class RRWebRecorder {
   }[] = [];
   private recorderScriptVersion = 'unknown';
   private recorderLibVersion = 'unknown';
+  private startPromise: Promise<void> | null = null;
   public isRecording = false;
 
   constructor(options?: recordOptions<RecorderEvent>) {
@@ -112,6 +113,11 @@ export class RRWebRecorder {
   }
 
   public async start() {
+    this.startPromise = this._start();
+    return this.startPromise;
+  }
+
+  private async _start() {
     this.recordFn = await this.page?.evaluateHandle(() => {
       return window.rrweb?.record;
     });
@@ -143,6 +149,12 @@ export class RRWebRecorder {
   }
 
   public async stop() {
+    // Wait for any in-flight start() so the queue can be flushed before we
+    // tear down. Without this, fast tests can call stop() while start() is
+    // still mid-evaluate, leaving queued custom events stranded.
+    if (this.startPromise) {
+      try { await this.startPromise; } catch { /* ignore */ }
+    }
     this.isRecording = false;
     if (this.recordFn && this.page && !this.page.isClosed()) {
       await this.flush();

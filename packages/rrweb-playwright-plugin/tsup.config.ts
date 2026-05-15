@@ -14,7 +14,7 @@ export default defineConfig({
   minify: true,
   dts: true,
   noExternal: ['rrweb'],
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/reporter.ts'],
   format: ['cjs', 'esm'],
   esbuildPlugins: [
     {

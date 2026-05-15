@@ -12,7 +12,6 @@ import {
   createTestrunContext,
   saveRRWebReport,
   waitForNextRAF,
-  waitForRecorderStabilization,
 } from './utils';
 import {
   getCurrentTestContext,
@@ -92,21 +91,26 @@ const test = base.extend<{}>({
       await recorder.flush();
     });
 
-    // @ts-ignore
-    const originalonStepEnd = testInfo._onStepEnd.bind(this);
-    // @ts-ignore
-    testInfo._onStepEnd = async (stepEndPayload: {
+    // Playwright >=1.58 moved per-test step callbacks from `testInfo._onStepEnd`
+    // (direct method) into `testInfo._callbacks.onStepEnd` (shared callbacks object).
+    // Older versions still expose the legacy method, so we feature-detect.
+    type StepEndPayload = {
       testId: string;
       stepId: string;
       wallTime: number;
       error?: unknown;
       suggestedRebaseline?: string;
       annotations: { type: string, description?: string }[];
-    }) => {
+    };
+    // @ts-ignore — accessing internal TestInfo fields
+    const callbacks = testInfo._callbacks as { onStepEnd?: (p: StepEndPayload) => void } | undefined;
+    // @ts-ignore — legacy field, may be undefined in newer Playwright
+    const legacyOnStepEnd = testInfo._onStepEnd as ((p: StepEndPayload) => void) | undefined;
 
+    const onStepEndWrapper = async (stepEndPayload: StepEndPayload, originalFn?: (p: StepEndPayload) => void) => {
       // @ts-ignore
       const currentStepInfo = testInfo._stepMap.get(stepEndPayload.stepId);
-      if (currentStepInfo.apiName && currentStepInfo?.location.file === testInfo.file) {
+      if (currentStepInfo?.apiName && currentStepInfo?.location.file === testInfo.file) {
         await recorder.addCustomEvent(currentStepInfo.apiName, {
           stepId: currentStepInfo.stepId,
           category: currentStepInfo.category,
@@ -115,27 +119,58 @@ const test = base.extend<{}>({
           apiName: currentStepInfo.apiName,
           endWallTime: currentStepInfo.endWallTime,
         });
-
       }
       if (!page.isClosed()) {
         try {
           await waitForNextRAF(page);
-        } catch (error) { /* empty */ }
+        } catch { /* empty */ }
       }
-      await originalonStepEnd(stepEndPayload);
+      originalFn?.(stepEndPayload);
     };
 
-    // @ts-ignore
-    const originalonDidFinishTestFunction = testInfo._onDidFinishTestFunction.bind(this);
-    // @ts-ignore
-    testInfo._onDidFinishTestFunction = async () => {
+    if (callbacks && typeof callbacks.onStepEnd === 'function') {
+      const originalOnStepEnd = callbacks.onStepEnd.bind(callbacks);
+      callbacks.onStepEnd = (payload: StepEndPayload) => {
+        void onStepEndWrapper(payload, originalOnStepEnd);
+      };
+    } else if (typeof legacyOnStepEnd === 'function') {
+      // @ts-ignore
+      const originalOnStepEnd = legacyOnStepEnd.bind(testInfo);
+      // @ts-ignore
+      testInfo._onStepEnd = (payload: StepEndPayload) => onStepEndWrapper(payload, originalOnStepEnd);
+    }
 
-      if (recorder && recorder.isRecordingReady()) {
-        await waitForRecorderStabilization(recorder, 500);
-        await recorder.stop();
+    // Playwright >=1.58 introduced `_onDidFinishTestFunctionCallback` (a single
+    // nullable hook called from `_didFinishTestFunction()`). Older versions
+    // expose `_onDidFinishTestFunction` as a method we wrap directly.
+    const stopRecorder = async () => {
+      // Give the browser one rAF tick so the last user interaction's
+      // mutation/scroll events emit before we tear down. Do NOT gate on
+      // isRecordingReady — recorder.stop() awaits any in-flight start()
+      // and drains the queued custom events itself.
+      if (!page.isClosed()) {
+        try { await waitForNextRAF(page); } catch { /* empty */ }
       }
+      await recorder.stop();
+    };
 
-      await originalonDidFinishTestFunction();
+    if ('_onDidFinishTestFunctionCallback' in testInfo) {
+      // @ts-ignore
+      const prev = testInfo._onDidFinishTestFunctionCallback as (() => Promise<void> | void) | undefined;
+      // @ts-ignore
+      testInfo._onDidFinishTestFunctionCallback = async () => {
+        await stopRecorder();
+        await prev?.();
+      };
+      // @ts-ignore — legacy method
+    } else if (typeof testInfo._onDidFinishTestFunction === 'function') {
+      // @ts-ignore
+      const originalDidFinish = testInfo._onDidFinishTestFunction.bind(testInfo);
+      // @ts-ignore
+      testInfo._onDidFinishTestFunction = async () => {
+        await stopRecorder();
+        await originalDidFinish();
+      };
     }
 
     await use(page);
