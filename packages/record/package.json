@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-record",
-  "version": "3.16.0-alpha.1",
+  "version": "3.17.0-alpha.1",
   "publishConfig": {
     "access": "public"
   },
@@ -55,9 +55,9 @@
     "vitest": "^1.4.0"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb": "^3.16.0-alpha.1",
-    "@appsurify-testmap/rrweb-types": "^3.16.0-alpha.1",
-    "@appsurify-testmap/rrweb-utils": "^3.16.0-alpha.1"
+    "@appsurify-testmap/rrweb": "^3.17.0-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^3.17.0-alpha.1",
+    "@appsurify-testmap/rrweb-utils": "^3.17.0-alpha.1"
   },
   "browserslist": [
     "supports es6-class"
