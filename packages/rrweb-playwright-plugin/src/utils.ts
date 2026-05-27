@@ -6,90 +6,14 @@ import type { RecorderEvent } from './recorder/types';
 import type { TestRunContext, TestRunResult, SerializedValue } from './types';
 export const defaultOutputReportDir = 'test-results/playwright/ui';
 
-const CLEANUP_MARKER = '.run-marker';
-
-// In-memory cache so we only hit the filesystem once per worker process.
-let cleanupVerified = false;
-
-/**
- * Acquire a file-based lock, execute `fn`, then release.
- * Uses exclusive-create (`wx`) for atomic acquisition.
- */
-function withFileLock(lockPath: string, fn: () => void) {
-  const start = Date.now();
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    try {
-      const fd = fs.openSync(lockPath, 'wx');
-      fs.closeSync(fd);
-      try {
-        fn();
-      } finally {
-        try { fs.unlinkSync(lockPath); } catch { /* ignore */ }
-      }
-      return;
-    } catch {
-      if (Date.now() - start > 5000) {
-        // Timeout — stale lock, force acquire
-        try { fs.unlinkSync(lockPath); } catch { /* ignore */ }
-        fn();
-        return;
-      }
-      // Busy-wait briefly before retry
-      const waitUntil = Date.now() + 10 + Math.random() * 20;
-      while (Date.now() < waitUntil) { /* spin */ }
-    }
-  }
-}
-
-/**
- * Clean the output directory once per test run, coordinated across
- * Playwright worker processes using `process.ppid` as a run identifier.
- */
-function ensureRunCleanup(reportDir: string) {
-  if (cleanupVerified) return;
-
-  const markerPath = path.join(reportDir, CLEANUP_MARKER);
-  const runId = String(process.ppid);
-
-  // Fast path: already cleaned by another worker in this run
-  try {
-    if (fs.readFileSync(markerPath, 'utf-8').trim() === runId) {
-      cleanupVerified = true;
-      return;
-    }
-  } catch { /* marker missing or unreadable — need cleanup */ }
-
-  // Place lock in parent dir so it survives the rmSync below
-  const parentDir = path.dirname(reportDir);
-  fs.mkdirSync(parentDir, { recursive: true });
-  const lockPath = path.join(parentDir, `.${path.basename(reportDir)}.cleanup.lock`);
-
-  withFileLock(lockPath, () => {
-    // Double-check after acquiring lock
-    try {
-      if (fs.readFileSync(markerPath, 'utf-8').trim() === runId) {
-        cleanupVerified = true;
-        return;
-      }
-    } catch { /* proceed with cleanup */ }
-
-    // Remove stale results from previous run
-    if (fs.existsSync(reportDir)) {
-      fs.rmSync(reportDir, { recursive: true, force: true });
-    }
-    fs.mkdirSync(reportDir, { recursive: true });
-    fs.writeFileSync(markerPath, runId, 'utf-8');
-  });
-
-  cleanupVerified = true;
-}
-
 export function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: string) {
   const reportDir = outputReportDir !== undefined ? outputReportDir : defaultOutputReportDir;
 
-  // Clean output directory once per run (coordinated across workers)
-  ensureRunCleanup(reportDir);
+  // Note: per-run cleanup of `reportDir` is owned by RRWebReporter.onBegin,
+  // which runs once in the main process before any worker spawns. Doing it
+  // here per-test was racy (cleanupVerified is per-process, so it re-fired
+  // whenever Playwright restarted a worker between spec files, deleting all
+  // earlier specs' reports).
 
   const specName = sanitizeFileNamePart(testRunResult.spec.name);
   const suiteTitle = sanitizeFileNamePart(testRunResult.test.suite?.title);

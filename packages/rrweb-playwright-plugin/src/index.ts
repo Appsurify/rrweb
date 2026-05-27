@@ -173,38 +173,34 @@ const test = base.extend<{}>({
       };
     }
 
+    console.log(`[${Date.now()}] [🟢 TEST START] ${testInfo.title}`);
+
     await use(page);
 
-
+    // Teardown: save the per-test rrweb report. This is intentionally inside
+    // the page fixture (not in test.afterEach) because top-level
+    // `test.beforeEach`/`test.afterEach` declared in a shared plugin module
+    // only register for the spec file whose first import loaded the plugin
+    // — Playwright scopes module-top-level hooks to the loading file, and
+    // subsequent specs get the cached module without re-registration. A
+    // fixture-scoped teardown runs for every test that uses the fixture,
+    // regardless of spec file.
+    console.log(`[${Date.now()}] [🔴 TEST END] ${testInfo.title}`);
+    if (testRunContext) {
+      testRunContext.test.duration = testInfo.duration;
+      const testRunResult = {
+        runner: testRunContext.runner,
+        spec: testRunContext.spec,
+        browser: testRunContext.browser,
+        test: testRunContext.test,
+        suite: testRunContext.test.suite,
+        recorderEvents: Array.isArray(testRunContext.recorderEvents)
+          ? testRunContext.recorderEvents
+          : [],
+      };
+      saveRRWebReport(testRunResult, testmapConfig.outputReportDir);
+    }
   },
-});
-
-test.beforeEach(async ({}, testInfo) => {
-  console.log(`[${Date.now()}] [🟢 TEST START] ${testInfo.title}`);
-
-});
-
-test.afterEach(async ({}, testInfo) => {
-  console.log(`[${Date.now()}] [🔴 TEST END] ${testInfo.title}`);
-  const testRunContext = getCurrentTestContext(testInfo.testId);
-  if (!testRunContext) return;
-
-  testRunContext.test.duration = testInfo.duration;
-  const testRunResult = {
-      runner: testRunContext?.runner,
-      spec: testRunContext?.spec,
-      browser: testRunContext?.browser,
-      test: testRunContext?.test,
-      suite: testRunContext?.test.suite,
-      recorderEvents: Array.isArray(testRunContext?.recorderEvents) ? testRunContext?.recorderEvents : []
-  }
-
-  type ExtendedUse = typeof testInfo.project.use & { testmap?: TestmapConfig };
-  const pwConfig = testInfo.project.use as ExtendedUse;
-  const testmapConfig = pwConfig.testmap ?? {};
-
-  saveRRWebReport(testRunResult, testmapConfig.outputReportDir)
-
 });
 
 export { test, expect };

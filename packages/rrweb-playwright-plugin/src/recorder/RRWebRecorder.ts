@@ -158,9 +158,20 @@ export class RRWebRecorder {
     this.isRecording = false;
     if (this.recordFn && this.page && !this.page.isClosed()) {
       await this.flush();
-      await this.page.evaluate(() => {
-        window.stopFn = null;
-      });
+      // Graceful stop: invoke the function returned by record({...}) so rrweb
+      // synchronously flushes active input values, the custom-event queue, and
+      // — most importantly — NavigationManager.destroy() which emits any
+      // pending post-navigation FullSnapshot. Without this call, the last
+      // page state after page.goBack() (or any tail-end navigation) is lost
+      // because the recorder is torn down with the snapshot still queued.
+      try {
+        await this.page.evaluate(() => {
+          if (typeof window.stopFn === 'function') {
+            try { window.stopFn(); } catch { /* ignore inner errors */ }
+          }
+          window.stopFn = null;
+        });
+      } catch { /* page may have navigated/closed mid-eval */ }
     }
   }
 

@@ -157,6 +157,15 @@ export default class RRWebReporter implements Reporter {
     if (this.reportDirs.size === 0) {
       this.reportDirs.add(this.resolveDir(defaultOutputReportDir));
     }
+
+    // Wipe stale per-test reports from the previous run. The Reporter runs
+    // exactly once in the main process before any worker spawns, so this is
+    // the only safe place — no cross-worker race, no in-memory-flag gymnastics,
+    // and (unlike the previous per-test ensureRunCleanup) immune to worker
+    // process restarts between spec files.
+    for (const dir of this.reportDirs) {
+      this.cleanDir(dir);
+    }
   }
 
   async onEnd(_result: FullResult): Promise<void> {
@@ -167,6 +176,18 @@ export default class RRWebReporter implements Reporter {
 
   private resolveDir(dir: string): string {
     return path.isAbsolute(dir) ? dir : path.resolve(this.baseDir, dir);
+  }
+
+  private cleanDir(dir: string): void {
+    try {
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`[ui-coverage] Cleaned report dir ${dir}`);
+    } catch (e) {
+      console.warn(`[ui-coverage] Failed to clean ${dir}:`, e);
+    }
   }
 
   private bundleDir(dir: string): void {
