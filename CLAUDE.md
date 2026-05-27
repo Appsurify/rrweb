@@ -171,6 +171,18 @@ The monorepo follows a layered architecture:
    - Svelte-based GUI player with timeline, controls
    - Built with SvelteKit
 
+7. **@appsurify-testmap/rrweb-playwright-plugin** (`packages/rrweb-playwright-plugin/`)
+   - Drop-in `test`/`expect` re-export from `@playwright/test` that auto-records each test
+   - Inlines `rrweb-record.umd.cjs` at build time (see `tsup.config.ts`) and injects via `page.addInitScript`
+   - Bridges browser → Node via `page.exposeFunction('handleEmit', ...)`
+   - Save logic lives in the **page fixture's teardown** (NOT `test.afterEach`) — see Gotchas
+   - Reporter owns run-level cleanup (`onBegin`) and ZIP packing (`onEnd`)
+
+8. **@appsurify-testmap/rrweb-cypress-plugin** (`packages/rrweb-cypress-plugin/`)
+   - Same contract as the Playwright plugin, but for Cypress
+   - Uses `cy.window()` + `<script>` injection and `cy.task` bridge for Node-side file writes
+   - Save logic in `afterEach` BEFORE `test:after:run` (events lost otherwise)
+
 ### Recording Flow
 
 1. **Full Snapshot**: On initialization, `rrweb.record()` calls `snapshot()` to serialize the entire DOM tree into a tree structure with unique IDs (stored in a `Mirror`)
@@ -268,6 +280,30 @@ yarn format       # Prettier
 yarn test         # Full test suite
 ```
 
+### Testing Plugin Changes in the Demo
+
+`examples/booking-demo` is **not** part of the yarn workspaces — it has its own
+`node_modules` with `file:../../packages/...` deps. After editing a plugin,
+copy the built dist manually:
+
+```bash
+# Fast iteration for the Playwright plugin (skips upstream rebuild)
+cd packages/rrweb-playwright-plugin && yarn devBuild
+cp -r dist/* ../../examples/booking-demo/node_modules/@appsurify-testmap/rrweb-playwright-plugin/dist/
+
+# Run the demo's e2e suite
+cd ../../examples/booking-demo
+npx playwright test --project=chromium --workers=1
+```
+
+`yarn devBuild` skips the `prebuild` step (which rebuilds `rrweb-record` and
+`rrweb-plugin-sequential-id-record` UMDs). Use full `yarn build` if those
+upstream packages also changed.
+
+The analyzer at `examples/booking-demo/scripts/analyze_goback_capture.py`
+verifies the META→FullSnapshot pairing invariant on any report JSON — useful
+smoke test for navigation-related changes.
+
 ## Important Conventions
 
 ### Serialization Non-Standard Handling
@@ -305,3 +341,26 @@ PUPPETEER_HEADLESS=false yarn test:headful
 - **Test failures after code changes**: Check if snapshots need updating with `yarn test:update`
 - **Type errors**: Ensure TypeScript project references are up to date with `yarn references:update`
 - **Memory issues**: Build uses `NODE_OPTIONS='--max-old-space-size=4096'` for large builds
+
+## Gotchas
+
+### rrweb-playwright-plugin
+
+- **Top-level `test.beforeEach`/`afterEach` in `src/index.ts` only register for the FIRST spec file** that imports the plugin. Playwright scopes module-top-level hooks to the loading file; subsequent specs get the cached module without re-registration. Put per-test setup/teardown in the **page fixture's `await use(page)` lifecycle** instead.
+- **`RRWebRecorder.stop()` must CALL `window.stopFn()`, not just null it.** The returned function triggers `navigationManager.destroy()` — the only synchronous path that flushes pending post-navigation FullSnapshots. Nulling alone loses the snapshot of the page reached via tail-end navigation (e.g. `page.goBack`).
+- **CLI `--reporter=X` REPLACES `playwright.config.ts` reporters entirely**, it doesn't append. The plugin's `Reporter` (cleanup + ZIP packing) only runs when the config-level entry is preserved — don't pass `--reporter` on the CLI when testing.
+
+### Cypress vs Playwright recorder lifecycle
+
+- **Cypress**: `afterEach` runs BEFORE `test:after:run` — `recorder.stop()` must be called in `afterEach` or flushed events are lost.
+- **Playwright**: stop happens in `_onDidFinishTestFunctionCallback` wrapper; save in fixture teardown. Both run before `context.close()`.
+
+### Demo project (`examples/booking-demo`)
+
+- **NOT in yarn workspaces.** Rebuilt packages must be `cp -r`'d into `node_modules/@appsurify-testmap/...` manually (see "Testing Plugin Changes in the Demo").
+- **Cypress imports resolve to `dist/index.mjs` (ESM)**, not `index.js` — keep both formats in `tsup.config.ts`.
+- **Aggregate report** (`ui-coverage-aggregated.json`) can hit `RangeError: Invalid string length` with large snapshots.
+
+### UMD inline at build time
+
+The Playwright and Cypress plugins inline `rrweb-record.umd.cjs` (and `rrweb-plugin-sequential-id-record.umd.cjs`) as text resources via a custom esbuild plugin in their `tsup.config.ts`. These UMDs must already exist (`yarn workspace @appsurify-testmap/rrweb-record run build`) before plugin builds; `yarn devBuild` skips that step.
