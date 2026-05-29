@@ -83,13 +83,41 @@ const test = base.extend<{}>({
         };
       }
     });
-    page.on('framenavigated', async () => {
-      /* empty */
+    page.on('framenavigated', (frame) => {
+      // New committed document → bump the token so start() treats it as a fresh
+      // page (and the goBack/goForward wrappers can capture it before leaving).
+      if (frame === page.mainFrame()) recorder.markNavigation();
     });
 
     page.on('close', async () => {
       await recorder.flush();
     });
+
+    // Capture the page we are about to LEAVE before a history navigation.
+    // page.goBack/goForward resolve based on the DESTINATION's load state and
+    // do nothing to guarantee the page being abandoned was recorded. With a
+    // commit-time assertion (expect(page).toHaveURL — matches when the url
+    // changes, before DOMContentLoaded) a test can call goBack only a few ms
+    // after navigating in, so the intermediate page never reaches
+    // DOMContentLoaded and the recorder never snapshots it. Waiting for the
+    // current document to load (then ensuring it is recorded) closes that gap
+    // transparently — no per-test waitForLoadState needed.
+    const captureBeforeNavigation = async () => {
+      if (page.isClosed()) return;
+      try {
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await recorder.start();
+        await waitForNextRAF(page);
+      } catch { /* best effort — never block the navigation itself */ }
+    };
+
+    for (const method of ['goBack', 'goForward'] as const) {
+      const original = page[method].bind(page);
+      page[method] = (async (options?: Parameters<typeof original>[0]) => {
+        await captureBeforeNavigation();
+        return original(options);
+      }) as typeof page[typeof method];
+    }
 
     // Playwright >=1.58 moved per-test step callbacks from `testInfo._onStepEnd`
     // (direct method) into `testInfo._callbacks.onStepEnd` (shared callbacks object).

@@ -81,6 +81,12 @@ export class RRWebRecorder {
   private recorderScriptVersion = 'unknown';
   private recorderLibVersion = 'unknown';
   private startPromise: Promise<void> | null = null;
+  // Monotonic per-committed-document counter. markNavigation() bumps it on each
+  // main-frame `framenavigated`; start() records which token it started on so it
+  // can be called from multiple places (the DOMContentLoaded listener AND the
+  // goBack/goForward wrappers) without double-starting the same document.
+  private navToken = 0;
+  private startedToken = -1;
   public isRecording = false;
 
   constructor(options?: recordOptions<RecorderEvent>) {
@@ -112,7 +118,22 @@ export class RRWebRecorder {
 
   }
 
+  /** Bump the navigation token — called on each main-frame `framenavigated`. */
+  public markNavigation() {
+    this.navToken += 1;
+  }
+
   public async start() {
+    // Idempotent per committed document: if we already kicked off a start for
+    // the current navigation token, just await it instead of spawning a second
+    // recorder (which would emit a duplicate FullSnapshot). This lets both the
+    // DOMContentLoaded listener and the goBack/goForward wrappers call start()
+    // freely — whichever runs first does the work, the rest await it.
+    if (this.startedToken === this.navToken && this.startPromise) {
+      try { await this.startPromise; } catch { /* ignore */ }
+      return this.startPromise;
+    }
+    this.startedToken = this.navToken;
     this.startPromise = this._start();
     return this.startPromise;
   }
