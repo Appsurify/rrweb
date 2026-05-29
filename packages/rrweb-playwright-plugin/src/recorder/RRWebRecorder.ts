@@ -118,34 +118,54 @@ export class RRWebRecorder {
   }
 
   private async _start() {
-    this.recordFn = await this.page?.evaluateHandle(() => {
-      return window.rrweb?.record;
-    });
-    await this.recordFn?.evaluate((r: typeof record, optsJson) => {
-      const opts = JSON.parse(optsJson) as recordOptions<RecorderEvent>;
-      const plugins = [];
-      if (window.rrwebPluginSequentialIdRecord) {
-        plugins.push(
-          window.rrwebPluginSequentialIdRecord.getRecordSequentialIdPlugin({
-            key: 'id',
-          })
-        )
-      }
+    if (!this.page) return;
+    try {
+      // Atomic start: acquire window.rrweb.record, begin recording, and take
+      // the initial FullSnapshot in a SINGLE round-trip. record({...}) captures
+      // and emits the snapshot synchronously (via window.handleEmit) before this
+      // evaluate resolves. Doing it in one hop — instead of the old
+      // evaluateHandle + N follow-up evaluates — closes the window where a fast
+      // navigation right after DOMContentLoaded (e.g. page.goBack to a page that
+      // just loaded) destroys the execution context mid-startup and loses the
+      // snapshot of the page being navigated away from.
+      const started = await this.page.evaluate((optsJson) => {
+        const r = window.rrweb?.record;
+        if (!r) return false;
+        const opts = JSON.parse(optsJson) as recordOptions<RecorderEvent>;
+        const plugins = [];
+        if (window.rrwebPluginSequentialIdRecord) {
+          plugins.push(
+            window.rrwebPluginSequentialIdRecord.getRecordSequentialIdPlugin({
+              key: 'id',
+            })
+          );
+        }
+        window.stopFn = r({
+          emit: (event: RecorderEvent) => {
+            window.handleEmit?.(event);
+          },
+          plugins,
+          ...opts,
+        });
+        return true;
+      }, JSON.stringify(this.recordOptions));
 
-      window.stopFn = r({
-        emit: (event: RecorderEvent) => {
-          // console.info(`[${event.timestamp}] [rrweb-recorder] ${event.type} ${event.data?.source} ${event.data?.href}`)
-          window.handleEmit?.(event);
-        },
-        plugins: plugins,
-        ...opts,
-      })
-    }, JSON.stringify(this.recordOptions));
+      if (!started) return;
+      this.isRecording = true;
 
-    this.isRecording = await this.recordFn?.evaluate((r: typeof record) => r.isRecording()) as boolean;
-    this.recorderScriptVersion = await this.recordFn?.evaluate((r: typeof record) => r.getVersion()) as string;
+      // Non-critical follow-ups. The snapshot is already emitted, so if these
+      // throw because the page navigated away, no recorded data is lost — we
+      // keep the optimistic state set above.
+      this.recordFn = await this.page.evaluateHandle(() => window.rrweb?.record);
+      this.recorderScriptVersion = (await this.page.evaluate(
+        () => window.rrweb?.record?.getVersion?.() ?? 'unknown'
+      )) as string;
 
-    await this.flush();
+      await this.flush();
+    } catch {
+      // Execution context destroyed before/during the atomic start — the page
+      // navigated away before recording could begin. Nothing to capture.
+    }
   }
 
   public async stop() {
