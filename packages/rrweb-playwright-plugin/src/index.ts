@@ -83,12 +83,6 @@ const test = base.extend<{}>({
         };
       }
     });
-    page.on('framenavigated', (frame) => {
-      // New committed document → bump the token so start() treats it as a fresh
-      // page (and the goBack/goForward wrappers can capture it before leaving).
-      if (frame === page.mainFrame()) recorder.markNavigation();
-    });
-
     page.on('close', async () => {
       await recorder.flush();
     });
@@ -105,7 +99,17 @@ const test = base.extend<{}>({
     const captureBeforeNavigation = async () => {
       if (page.isClosed()) return;
       try {
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        // Let the page we are leaving reach DOMContentLoaded before we capture
+        // it. No hard cap here: if the page is already loaded this resolves
+        // immediately; only the "navigated in then straight back out" case
+        // actually waits, and only as long as the page needs — bounded by the
+        // project's own navigationTimeout. A short fixed cap (e.g. 5s) dropped
+        // the snapshot of heavy pages under worker contention. The timeout is
+        // still non-fatal: on the rare genuine hang we attempt a best-effort
+        // snapshot of whatever DOM exists rather than losing the page.
+        await page
+          .waitForLoadState('domcontentloaded')
+          .catch(() => { /* slow/hanging page — capture whatever exists */ });
         await recorder.start();
         await waitForNextRAF(page);
       } catch { /* best effort — never block the navigation itself */ }

@@ -80,13 +80,8 @@ export class RRWebRecorder {
   }[] = [];
   private recorderScriptVersion = 'unknown';
   private recorderLibVersion = 'unknown';
+  // Single chain that serializes every start() attempt (see start()).
   private startPromise: Promise<void> | null = null;
-  // Monotonic per-committed-document counter. markNavigation() bumps it on each
-  // main-frame `framenavigated`; start() records which token it started on so it
-  // can be called from multiple places (the DOMContentLoaded listener AND the
-  // goBack/goForward wrappers) without double-starting the same document.
-  private navToken = 0;
-  private startedToken = -1;
   public isRecording = false;
 
   constructor(options?: recordOptions<RecorderEvent>) {
@@ -118,24 +113,23 @@ export class RRWebRecorder {
 
   }
 
-  /** Bump the navigation token — called on each main-frame `framenavigated`. */
-  public markNavigation() {
-    this.navToken += 1;
-  }
-
   public async start() {
-    // Idempotent per committed document: if we already kicked off a start for
-    // the current navigation token, just await it instead of spawning a second
-    // recorder (which would emit a duplicate FullSnapshot). This lets both the
-    // DOMContentLoaded listener and the goBack/goForward wrappers call start()
-    // freely — whichever runs first does the work, the rest await it.
-    if (this.startedToken === this.navToken && this.startPromise) {
-      try { await this.startPromise; } catch { /* ignore */ }
-      return this.startPromise;
-    }
-    this.startedToken = this.navToken;
-    this.startPromise = this._start();
-    return this.startPromise;
+    // Serialize every start() attempt onto one promise chain so two concurrent
+    // callers (the DOMContentLoaded listener and the goBack/goForward wrapper)
+    // can never race a double-start. Each attempt still runs _start(), which
+    // self-guards in-page via window.stopFn — a redundant call on an
+    // already-recording document is a cheap no-op.
+    //
+    // We deliberately do NOT skip based on a navigation counter. Under worker
+    // contention Playwright's `framenavigated` event can lag the actual URL
+    // commit, so a counter-based guard would wrongly treat a freshly-committed
+    // page as "already started" and drop its snapshot — exactly what made the
+    // intermediate page of a click→goBack on a slow site go missing.
+    const attempt = (this.startPromise ?? Promise.resolve())
+      .catch(() => { /* ignore a prior attempt's failure */ })
+      .then(() => this._start());
+    this.startPromise = attempt;
+    return attempt;
   }
 
   private async _start() {
