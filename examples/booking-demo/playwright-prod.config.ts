@@ -16,10 +16,9 @@ export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.{spec,cy}.{js,ts}',
 
-  // Wipe rrweb output directories before every run so each invocation's ZIP
-  // bundle contains only recordings from that invocation — not leftovers from
-  // a prior run with a different test selection.
-  // globalSetup: './global-setup.ts',
+  // No globalSetup needed for rrweb cleanup: the plugin's reporter wipes each
+  // output directory once in onBegin (main process, before any worker), so each
+  // run's ZIP bundle contains only that run's recordings.
 
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
