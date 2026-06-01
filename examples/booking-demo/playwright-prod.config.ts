@@ -23,10 +23,10 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  // One worker per spec file is required by the current plugin version: within a
-  // single worker only the first spec's tests get an rrweb afterEach callback,
-  // so subsequent specs silently skip the JSON write. With one worker per spec
-  // each gets fresh plugin state. Bump this if more spec files are added.
+  // Plain parallelism knob — set to taste. The plugin saves each test's JSON
+  // from its page-fixture teardown, so every test in every spec is recorded
+  // regardless of how specs are distributed across workers (the old
+  // "only the first spec per worker gets saved" limitation is gone).
   workers: 4,
 
   reporter: [
