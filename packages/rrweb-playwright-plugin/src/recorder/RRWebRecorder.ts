@@ -152,6 +152,18 @@ export class RRWebRecorder {
       const started = await this.page.evaluate((optsJson) => {
         const r = window.rrweb?.record;
         if (!r) return false;
+        // Idempotent per LIVE document: if rrweb is already recording here,
+        // do not start a second recorder. window.stopFn persists across
+        // same-document (SPA) route changes but is reset on a fresh document.
+        // Without this guard, a goBack/goForward on an SPA — where
+        // `framenavigated` fires for the client-side route change and bumps
+        // the nav token — would re-enter start() and spin up a SECOND rrweb
+        // recorder on the same document. That double-records the current
+        // route AND corrupts NavigationManager's pending-route state, so the
+        // post-goBack destination route is never snapshotted (the page is
+        // "lost"). Returning early keeps the single original recorder, whose
+        // NavigationManager captures the route change correctly.
+        if (window.stopFn) return true;
         const opts = JSON.parse(optsJson) as recordOptions<RecorderEvent>;
         const plugins = [];
         if (window.rrwebPluginSequentialIdRecord) {

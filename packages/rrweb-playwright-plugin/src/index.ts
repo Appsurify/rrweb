@@ -168,10 +168,14 @@ const test = base.extend<{}>({
       testInfo._onStepEnd = (payload: StepEndPayload) => onStepEndWrapper(payload, originalOnStepEnd);
     }
 
-    // Playwright >=1.58 introduced `_onDidFinishTestFunctionCallback` (a single
-    // nullable hook called from `_didFinishTestFunction()`). Older versions
-    // expose `_onDidFinishTestFunction` as a method we wrap directly.
+    // Stop the recorder exactly once. recorder.stop() invokes window.stopFn(),
+    // which runs rrweb's NavigationManager.destroy() — the synchronous flush of
+    // any pending post-navigation FullSnapshot (e.g. the destination route of a
+    // page.goBack() on an SPA). If stop() never runs, that snapshot is lost.
+    let recorderStopped = false;
     const stopRecorder = async () => {
+      if (recorderStopped) return;
+      recorderStopped = true;
       // Give the browser one rAF tick so the last user interaction's
       // mutation/scroll events emit before we tear down. Do NOT gate on
       // isRecordingReady — recorder.stop() awaits any in-flight start()
@@ -182,6 +186,13 @@ const test = base.extend<{}>({
       await recorder.stop();
     };
 
+    // Best-effort EARLY stop via Playwright internals: when available, this
+    // fires right after the test body, before other teardown. It is purely an
+    // optimization — the authoritative stop happens in the fixture teardown
+    // below, which does not depend on any private API. These internal hooks
+    // have shifted across Playwright versions (the names changed at 1.58 and
+    // the callback silently stopped firing by 1.60), so relying on them alone
+    // is what previously dropped the post-goBack snapshot on newer Playwright.
     if ('_onDidFinishTestFunctionCallback' in testInfo) {
       // @ts-ignore
       const prev = testInfo._onDidFinishTestFunctionCallback as (() => Promise<void> | void) | undefined;
@@ -204,6 +215,13 @@ const test = base.extend<{}>({
     console.log(`[${Date.now()}] [🟢 TEST START] ${testInfo.title}`);
 
     await use(page);
+
+    // Authoritative stop: runs on every test regardless of Playwright version,
+    // while the page is still open (the context fixture closes later, after
+    // this page fixture tears down). This is the reliable replacement for the
+    // private-API hook above — without it, newer Playwright never stops the
+    // recorder and the post-goBack/destination snapshot is dropped.
+    await stopRecorder();
 
     // Teardown: save the per-test rrweb report. This is intentionally inside
     // the page fixture (not in test.afterEach) because top-level
