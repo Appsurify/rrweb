@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-utils",
-  "version": "3.18.0-alpha.1",
+  "version": "3.18.1-alpha.1",
   "publishConfig": {
     "access": "public"
   },
