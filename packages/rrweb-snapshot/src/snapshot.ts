@@ -413,7 +413,7 @@ function serializeNode(
     blockSelector: string | null;
     excludeAttribute?: string | RegExp;
     needsMask: boolean;
-    inlineStylesheet: boolean;
+    inlineStylesheet: boolean | 'all';
     maskInputOptions: MaskInputOptions;
     maskTextFn: MaskTextFn | undefined;
     maskInputFn: MaskInputFn | undefined;
@@ -568,7 +568,7 @@ function serializeElementNode(
     blockClass: string | RegExp;
     blockSelector: string | null;
     excludeAttribute?: string | RegExp;
-    inlineStylesheet: boolean;
+    inlineStylesheet: boolean | 'all';
     maskInputOptions: MaskInputOptions;
     maskInputFn: MaskInputFn | undefined;
     dataURLOptions?: DataURLOptions;
@@ -935,7 +935,7 @@ export function serializeNodeWithId(
     maskTextSelector: string | null;
     excludeAttribute?: string | RegExp;
     skipChild: boolean;
-    inlineStylesheet: boolean;
+    inlineStylesheet: boolean | 'all';
     newlyAddedElement?: boolean;
     maskInputOptions?: MaskInputOptions;
     needsMask?: boolean;
@@ -1313,7 +1313,7 @@ function snapshot(
     maskTextClass?: string | RegExp;
     maskTextSelector?: string | null;
     excludeAttribute?: string | RegExp;
-    inlineStylesheet?: boolean;
+    inlineStylesheet?: boolean | 'all';
     maskAllInputs?: boolean | MaskInputOptions;
     maskTextFn?: MaskTextFn;
     maskInputFn?: MaskInputFn;

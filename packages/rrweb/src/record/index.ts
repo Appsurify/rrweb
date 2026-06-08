@@ -407,6 +407,8 @@ function record<T = eventWithTime>(
   const stylesheetManager = new StylesheetManager({
     mutationCb: wrappedMutationEmit,
     adoptedStyleSheetCb: wrappedAdoptedStyleSheetEmit,
+    inlineStylesheet,
+    mirror,
   });
 
   const iframeManager = new IframeManager({

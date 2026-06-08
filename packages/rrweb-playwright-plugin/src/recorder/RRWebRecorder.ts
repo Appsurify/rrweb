@@ -16,7 +16,9 @@ import rrPluginSrc from './releases/rrweb-plugin-sequential-id-record.umd.cjs.sr
 
 export const defaultRecordOptions: recordOptions<RecorderEvent> = {
     slimDOMOptions: 'all',
-    inlineStylesheet: true,
+    // 'all' also fetches cross-origin stylesheets (CSSOM can't read them) and
+    // inlines them as a post-snapshot _cssText mutation — see StylesheetManager.
+    inlineStylesheet: 'all',
     recordDOM: true,
     recordCanvas: true,
     collectFonts: true,

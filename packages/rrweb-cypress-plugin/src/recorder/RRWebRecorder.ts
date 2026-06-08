@@ -19,7 +19,9 @@ interface WindowWithRRWeb extends Window {
 
 export const defaultRecordOptions: recordOptions<eventWithTime> = {
     slimDOMOptions: 'all',
-    inlineStylesheet: true,
+    // 'all' also fetches cross-origin stylesheets (CSSOM can't read them) and
+    // inlines them as a post-snapshot _cssText mutation — see StylesheetManager.
+    inlineStylesheet: 'all',
     recordDOM: true,
     recordCanvas: true,
     collectFonts: true,

@@ -67,7 +67,7 @@ export type recordOptions<T> = {
   maskTextFn?: MaskTextFn;
   slimDOMOptions?: SlimDOMOptions | 'all' | true;
   ignoreCSSAttributes?: Set<string>;
-  inlineStylesheet?: boolean;
+  inlineStylesheet?: boolean | 'all';
   hooks?: hooksParam;
   packFn?: PackFn;
   sampling?: SamplingStrategy;
@@ -112,7 +112,7 @@ export type observerParam = {
   maskInputFn?: MaskInputFn;
   maskTextFn?: MaskTextFn;
   keepIframeSrcFn: KeepIframeSrcFn;
-  inlineStylesheet: boolean;
+  inlineStylesheet: boolean | 'all';
   styleSheetRuleCb: styleSheetRuleCallback;
   styleDeclarationCb: styleDeclarationCallback;
   canvasMutationCb: canvasMutationCallback;
