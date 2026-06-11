@@ -23,7 +23,13 @@ export const defaultRecordOptions: recordOptions<RecorderEvent> = {
     recordCanvas: true,
     collectFonts: true,
     inlineImages: true,
-    checkoutEveryNvm: 60,
+    // Visibility-mutation threshold for in-page checkout snapshots. Page
+    // SEGMENTATION no longer depends on these (checkoutId is unique across
+    // page loads), so this only controls how often an evolving page gets a
+    // fresh FullSnapshot. 20 fires on meaningful in-page changes without the
+    // report-size blowup of aggressive values (each checkout is a full DOM
+    // snapshot; e.g. 5 produced 3-6 snapshots per page on media-heavy sites).
+    checkoutEveryNvm: 20,
     maskInputOptions: { password: true },
     sampling: {
       mousemove: false,

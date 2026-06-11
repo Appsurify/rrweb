@@ -56,3 +56,6 @@ vite.config.ts.timestamp-*
 /yarn.lock
 /.npmrc
 /examples/booking-demo/test-results/
+/examples/booking-demo/.claude/plans/misty-questing-neumann.md
+/examples/booking-demo/.claude/plans/quirky-inventing-cookie.md
+/examples/booking-demo/.claude/plans/velvet-sniffing-swing.md

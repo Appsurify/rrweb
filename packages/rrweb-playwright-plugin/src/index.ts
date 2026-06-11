@@ -87,20 +87,26 @@ const test = base.extend<{}>({
       await recorder.flush();
     });
 
-    // Capture the page we are about to LEAVE before a history navigation.
-    // page.goBack/goForward resolve based on the DESTINATION's load state and
-    // do nothing to guarantee the page being abandoned was recorded. With a
-    // commit-time assertion (expect(page).toHaveURL — matches when the url
-    // changes, before DOMContentLoaded) a test can call goBack only a few ms
-    // after navigating in, so the intermediate page never reaches
-    // DOMContentLoaded and the recorder never snapshots it. Waiting for the
-    // current document to load (then ensuring it is recorded) closes that gap
-    // transparently — no per-test waitForLoadState needed.
-    const captureBeforeNavigation = async () => {
+    // Ensure the CURRENT document has been captured (META + FullSnapshot).
+    // The recorder starts on a fresh document only from the
+    // page.on('domcontentloaded') hook above, so there are two windows where
+    // a page can slip away unrecorded:
+    //   * before page.goBack/goForward — they resolve on the DESTINATION's
+    //     load state and do nothing to guarantee the page being LEFT was
+    //     recorded. With a commit-time assertion (expect(page).toHaveURL —
+    //     matches when the url changes, before DOMContentLoaded) a test can
+    //     navigate away only a few ms after navigating in.
+    //   * at test end — a click-triggered navigation right before the test
+    //     finishes tears the recorder down before the destination's
+    //     DOMContentLoaded, so the final page never gets a snapshot.
+    // Waiting for the current document to load (then starting the
+    // per-document-idempotent recorder) closes both gaps transparently —
+    // no per-test waitForLoadState needed.
+    const ensureCurrentPageCaptured = async () => {
       if (page.isClosed()) return;
       try {
-        // Let the page we are leaving reach DOMContentLoaded before we capture
-        // it. No hard cap here: if the page is already loaded this resolves
+        // Let the current page reach DOMContentLoaded before we capture it.
+        // No hard cap here: if the page is already loaded this resolves
         // immediately; only the "navigated in then straight back out" case
         // actually waits, and only as long as the page needs — bounded by the
         // project's own navigationTimeout. A short fixed cap (e.g. 5s) dropped
@@ -112,13 +118,13 @@ const test = base.extend<{}>({
           .catch(() => { /* slow/hanging page — capture whatever exists */ });
         await recorder.start();
         await waitForNextRAF(page);
-      } catch { /* best effort — never block the navigation itself */ }
+      } catch { /* best effort — never block the caller */ }
     };
 
     for (const method of ['goBack', 'goForward'] as const) {
       const original = page[method].bind(page);
       page[method] = (async (options?: Parameters<typeof original>[0]) => {
-        await captureBeforeNavigation();
+        await ensureCurrentPageCaptured();
         return original(options);
       }) as typeof page[typeof method];
     }
@@ -180,6 +186,14 @@ const test = base.extend<{}>({
     const stopRecorder = async () => {
       if (recorderStopped) return;
       recorderStopped = true;
+      // The final page of a test has the same blind spot as the goBack case:
+      // when the last action is a click-triggered navigation, commit-time
+      // assertions (expect(page).toHaveURL, body visibility) let the test
+      // finish before the destination's DOMContentLoaded — the only trigger
+      // that starts the recorder on a fresh document. Stopping right away
+      // would save a report that ends at the page the test navigated AWAY
+      // from. Capture the current document first.
+      await ensureCurrentPageCaptured();
       // Give the browser one rAF tick so the last user interaction's
       // mutation/scroll events emit before we tear down. Do NOT gate on
       // isRecordingReady — recorder.stop() awaits any in-flight start()

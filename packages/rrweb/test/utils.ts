@@ -107,12 +107,54 @@ export function getServerURL(server: http.Server): string {
 }
 
 /**
+ * checkoutId is seeded with wall-clock time so it never repeats across
+ * recorder instances (see record/index.ts), which would make snapshots
+ * non-deterministic. Rebase every recorder instance back to the historical
+ * small values: within an instance adjacent checkoutId deltas are only 0
+ * (same session) or +1 (a checkout, always accompanied by its own META +
+ * FullSnapshot), so any other delta marks an instance boundary. Each
+ * instance is anchored on its first FullSnapshot (cid - 1 = seed →
+ * pre-snapshot events normalize to 0, the initial snapshot session to 1,
+ * each later checkout +1), falling back to the instance minimum when a
+ * segment contains no FullSnapshot.
+ */
+function normalizeCheckoutIds(events: eventWithTime[]): void {
+  const segments: eventWithTime[][] = [];
+  let segment: eventWithTime[] = [];
+  let prev: number | null = null;
+  for (const e of events) {
+    const cid = e.checkoutId;
+    if (typeof cid !== 'number') continue;
+    const delta = prev === null ? 0 : cid - prev;
+    if (segment.length && (delta < 0 || delta > 1)) {
+      segments.push(segment);
+      segment = [];
+    }
+    prev = cid;
+    segment.push(e);
+  }
+  if (segment.length) segments.push(segment);
+
+  for (const seg of segments) {
+    const firstFs = seg.find((e) => e.type === EventType.FullSnapshot);
+    const base =
+      typeof firstFs?.checkoutId === 'number'
+        ? firstFs.checkoutId - 1
+        : Math.min(...seg.map((e) => e.checkoutId as number));
+    for (const e of seg) {
+      e.checkoutId = (e.checkoutId as number) - base;
+    }
+  }
+}
+
+/**
  * Puppeteer may cast random mouse move which make our tests flaky.
  * So we only do snapshot test with filtered events.
  * Also remove timestamp from event.
  * @param snapshots incrementalSnapshotEvent[]
  */
 export function stringifySnapshots(snapshots: eventWithTime[]): string {
+  normalizeCheckoutIds(snapshots);
   return JSON.stringify(
     snapshots
       .filter((s) => {

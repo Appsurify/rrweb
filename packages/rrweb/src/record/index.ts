@@ -213,7 +213,15 @@ function record<T = eventWithTime>(
   let lastFullSnapshotEvent: eventWithTime;
   let incrementalSnapshotCount = 0;
   let visibilityMutationCount = 0;
-  let checkoutId = 0;
+  // Seeded with wall-clock time so checkoutIds never repeat across recorder
+  // instances: this module restarts (and a plain counter would restart at 0)
+  // on every full page load. Report consumers group events into sessions by
+  // checkoutId equality between adjacent events, so when page A ends and
+  // page B begins with the same counter value the page boundary becomes
+  // invisible and both pages merge into one session. A time base keeps ids
+  // unique and ascending across instances; relative semantics are unchanged
+  // (pre-snapshot events carry the base, each checkout increments by 1).
+  let checkoutId = nowTimestamp();
   let checkoutPending = false;
   let checkoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let checkoutFreezeTimestamp: number | null = null;
