@@ -1,0 +1,16 @@
+{
+  "name": "@booking-demo/selenium-diagnostics",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Diagnostic Selenium suite that exercises the snapshot/navigation edge cases (segmentation, click-nav, goBack, goto-only, <link> inlining).",
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "@appsurify-testmap/rrweb-selenium-plugin": "file:../../../../packages/rrweb-selenium-plugin"
+  },
+  "devDependencies": {
+    "mocha": "^10.7.0",
+    "selenium-webdriver": "^4.27.0"
+  }
+}

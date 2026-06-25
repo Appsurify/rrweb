@@ -1,0 +1,16 @@
+{
+  "name": "@booking-demo/selenium-mocha",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Consumer demo: Mocha + Selenium v4 + @appsurify-testmap/rrweb-selenium-plugin.",
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "@appsurify-testmap/rrweb-selenium-plugin": "file:../../../../packages/rrweb-selenium-plugin"
+  },
+  "devDependencies": {
+    "mocha": "^10.7.0",
+    "selenium-webdriver": "^4.27.0"
+  }
+}

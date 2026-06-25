@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSources": false,
+    "isolatedModules": true,
+    "moduleResolution": "bundler",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "preserveWatchOutput": true,
+    "noImplicitAny": true,
+    "strictFunctionTypes": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "types": [
+      "node"
+    ],
+    "lib": [
+      "ES2018",
+      "DOM",
+      "es6",
+      "dom",
+      "esnext",
+      "ES2022"
+    ],
+    "target": "ES2022"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "../../node_modules",
+    "test"
+  ],
+  "references": [
+    {
+      "path": "../rrweb"
+    },
+    {
+      "path": "../plugins/rrweb-plugin-sequential-id-record"
+    },
+    {
+      "path": "../rrweb-snapshot"
+    },
+    {
+      "path": "../types"
+    }
+  ]
+}

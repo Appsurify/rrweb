@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>TestMap Selenium Diagnostics — Home</title>
+    <!-- External stylesheet (Problem 2: <link> inlining). -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>Diagnostics Home</h1>
+    <button id="inc">+1</button>
+    <span id="count">0</span>
+    <p class="nav">
+      <!-- Real <a href> links: clicking triggers a FULL-page navigation that
+           Selenium's driver.get/navigate wrappers do NOT intercept. -->
+      <a id="to-page2" href="page2.html">Go to Page 2 (link click)</a>
+      <a id="to-about" href="about.html">Go to About</a>
+    </p>
+    <script>
+      let n = 0;
+      const out = document.getElementById("count");
+      document.getElementById("inc").addEventListener("click", function () {
+        n += 1;
+        out.textContent = String(n);
+      });
+    </script>
+  </body>
+</html>

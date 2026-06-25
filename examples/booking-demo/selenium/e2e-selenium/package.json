@@ -1,0 +1,21 @@
+{
+  "name": "@booking-demo/selenium-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Selenium e2e suites mirroring tests/playwright/e2e — recording real apps at their live addresses.",
+  "scripts": {
+    "test": "mocha",
+    "test:booking": "mocha test/full-booking-flow.test.cjs",
+    "test:ffbc": "mocha test/ffbc-primavera-goback.test.cjs",
+    "test:goback": "mocha test/goback-snapshot.test.cjs",
+    "test:navigation": "mocha test/navigation-snapshots.test.cjs",
+    "test:trekbikes": "mocha test/trekbikes-highload.test.cjs"
+  },
+  "dependencies": {
+    "@appsurify-testmap/rrweb-selenium-plugin": "file:../../../../packages/rrweb-selenium-plugin"
+  },
+  "devDependencies": {
+    "mocha": "^10.7.0",
+    "selenium-webdriver": "^4.27.0"
+  }
+}

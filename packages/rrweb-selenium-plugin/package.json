@@ -1,0 +1,101 @@
+{
+  "name": "@appsurify-testmap/rrweb-selenium-plugin",
+  "version": "3.21.1-alpha.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "rrweb",
+    "selenium",
+    "webdriver"
+  ],
+  "scripts": {
+    "prebuild": "yarn workspace @appsurify-testmap/rrweb-record run build && yarn workspace @appsurify-testmap/rrweb-plugin-sequential-id-record run build",
+    "build": "yarn turbo run prepublish",
+    "prepublish": "yarn prebuild && tsup-node --tsconfig ./tsconfig.json",
+    "devBuild": "tsup-node --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "pack": "npm pack"
+  },
+  "homepage": "https://github.com/rrweb-io/rrweb#readme",
+  "bugs": {
+    "url": "https://github.com/rrweb-io/rrweb/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rrweb-io/rrweb.git"
+  },
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./reporter": {
+      "import": "./dist/reporter.mjs",
+      "require": "./dist/reporter.js",
+      "types": "./dist/reporter.d.ts"
+    },
+    "./mocha": {
+      "import": "./dist/mocha.mjs",
+      "require": "./dist/mocha.js",
+      "types": "./dist/mocha.d.ts"
+    },
+    "./jest": {
+      "import": "./dist/jest.mjs",
+      "require": "./dist/jest.js",
+      "types": "./dist/jest.d.ts"
+    },
+    "./jest-setup": {
+      "import": "./dist/jest-setup.mjs",
+      "require": "./dist/jest-setup.js",
+      "types": "./dist/jest-setup.d.ts"
+    },
+    "./jest-teardown": {
+      "import": "./dist/jest-teardown.mjs",
+      "require": "./dist/jest-teardown.js",
+      "types": "./dist/jest-teardown.d.ts"
+    },
+    "./vitest": {
+      "import": "./dist/vitest.mjs",
+      "require": "./dist/vitest.js",
+      "types": "./dist/vitest.d.ts"
+    },
+    "./vitest-teardown": {
+      "import": "./dist/vitest-teardown.mjs",
+      "require": "./dist/vitest-teardown.js",
+      "types": "./dist/vitest-teardown.d.ts"
+    },
+    "./node-test": {
+      "import": "./dist/node-test.mjs",
+      "require": "./dist/node-test.js",
+      "types": "./dist/node-test.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "Readme.md"
+  ],
+  "peerDependencies": {
+    "selenium-webdriver": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "selenium-webdriver": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@appsurify-testmap/rrweb": "^3.21.1-alpha.1",
+    "@appsurify-testmap/rrweb-plugin-sequential-id-record": "^3.21.1-alpha.1",
+    "@appsurify-testmap/rrweb-snapshot": "^3.21.1-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^3.21.1-alpha.1",
+    "@types/node": "^24.10.0",
+    "tsup": "^6.6.3",
+    "typescript": "^5.8.3",
+    "vitest": "^1.6.1"
+  }
+}

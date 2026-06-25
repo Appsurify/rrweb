@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>TestMap Selenium Demo — About</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; }
+      input { padding: .4rem; }
+      button { padding: .5rem 1rem; cursor: pointer; }
+      #message { color: #16a34a; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <h1>About</h1>
+    <input id="name" placeholder="your name" />
+    <button id="greet">Greet</button>
+    <p id="message"></p>
+    <script>
+      document.getElementById("greet").addEventListener("click", function () {
+        const v = document.getElementById("name").value;
+        document.getElementById("message").textContent = "Hello, " + v + "!";
+      });
+    </script>
+  </body>
+</html>
