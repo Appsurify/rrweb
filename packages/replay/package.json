@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrweb-replay",
-  "version": "3.21.1-alpha.1",
+  "version": "3.30.1-alpha.1",
   "publishConfig": {
     "access": "public"
   },
@@ -56,8 +56,8 @@
     "vitest": "^1.4.0"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb": "^3.21.1-alpha.1",
-    "@appsurify-testmap/rrweb-types": "^3.21.1-alpha.1"
+    "@appsurify-testmap/rrweb": "^3.30.1-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^3.30.1-alpha.1"
   },
   "browserslist": [
     "supports es6-class"

@@ -1,6 +1,6 @@
 {
   "name": "@appsurify-testmap/rrdom",
-  "version": "3.21.1-alpha.1",
+  "version": "3.30.1-alpha.1",
   "homepage": "https://github.com/rrweb-io/rrweb/tree/main/packages/rrdom#readme",
   "license": "MIT",
   "type": "module",
@@ -41,7 +41,7 @@
     "url": "https://github.com/rrweb-io/rrweb/issues"
   },
   "devDependencies": {
-    "@appsurify-testmap/rrweb-types": "^3.21.1-alpha.1",
+    "@appsurify-testmap/rrweb-types": "^3.30.1-alpha.1",
     "@types/puppeteer": "^5.4.4",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
@@ -52,6 +52,6 @@
     "vite-plugin-dts": "^3.9.1"
   },
   "dependencies": {
-    "@appsurify-testmap/rrweb-snapshot": "^3.21.1-alpha.1"
+    "@appsurify-testmap/rrweb-snapshot": "^3.30.1-alpha.1"
   }
 }
