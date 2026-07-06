@@ -943,6 +943,26 @@ export type DataURLOptions = Partial<{
 }>;
 
 /**
+ * Options controlling how `<img>` elements are inlined into the snapshot
+ * (`inlineImages: true` uses the defaults; an object enables fine-tuning).
+ *
+ * - `type`/`quality` are forwarded to `HTMLCanvasElement.toDataURL`.
+ * - `maxDimension` caps the longest image side in pixels before encoding
+ *   (aspect ratio is preserved, images are never upscaled); `0` disables
+ *   the cap.
+ *
+ * When the browser cannot encode `type` (e.g. `image/webp` in Firefox,
+ * where `toDataURL` silently falls back to PNG), fully opaque images are
+ * encoded as `image/jpeg` at the same `quality`, and images with
+ * transparency as lossless PNG (JPEG has no alpha channel).
+ */
+export type InlineImagesOptions = Partial<{
+  type: string;
+  quality: number;
+  maxDimension: number;
+}>;
+
+/**
  * Options for SEQL selector generation.
  * SEQL (Semantic Element Query Language) generates stable selectors based on
  * semantic HTML, ARIA roles, and stable attributes rather than brittle CSS paths.

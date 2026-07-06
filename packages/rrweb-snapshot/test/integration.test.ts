@@ -257,6 +257,105 @@ iframe.contentDocument.querySelector('center').clientHeight
     );
   });
 
+  it('inlines images as webp with the optimized defaults', async () => {
+    const page: puppeteer.Page = await browser.newPage();
+
+    await page.goto(`${serverURL}/html/picture.html`, {
+      waitUntil: 'load',
+    });
+    await page.waitForSelector('img', { timeout: 1000 });
+    await page.evaluate(`${code}
+    var snapshot = rrwebSnapshot.snapshot(document, {
+        inlineImages: true,
+        inlineStylesheet: false
+    })`);
+    const bodyChildren = (await page.evaluate(`
+      snapshot.childNodes[0].childNodes[1].childNodes.filter((cn) => cn.type === 2);
+`)) as any[];
+    expect(bodyChildren[1].attributes.rr_dataURL).toMatch(
+      /^data:image\/webp;base64,/,
+    );
+  });
+
+  it('downscales inlined images to maxDimension preserving aspect ratio', async () => {
+    const page: puppeteer.Page = await browser.newPage();
+
+    await page.goto(`${serverURL}/html/picture.html`, {
+      waitUntil: 'load',
+    });
+    await page.waitForSelector('img', { timeout: 1000 });
+    // robot.png is 76x96, so a 48px cap on the longest side halves it to 38x48
+    await page.evaluate(`${code}
+    var snapshot = rrwebSnapshot.snapshot(document, {
+        inlineImages: { maxDimension: 48 },
+        inlineStylesheet: false
+    })`);
+    const decoded = (await page.evaluate(() => {
+      return new Promise((resolve) => {
+        const dataURL = (window as any).snapshot.childNodes[0].childNodes[1].childNodes.filter(
+          (cn: any) => cn.type === 2,
+        )[1].attributes.rr_dataURL as string;
+        const probe = new Image();
+        probe.onload = () =>
+          resolve({ width: probe.naturalWidth, height: probe.naturalHeight });
+        probe.src = dataURL;
+      });
+    })) as { width: number; height: number };
+    expect(decoded).toEqual({ width: 38, height: 48 });
+  });
+
+  it('falls back to jpeg for opaque images when the requested encoder is unavailable', async () => {
+    const page: puppeteer.Page = await browser.newPage();
+
+    await page.goto(`${serverURL}/html/picture.html`, {
+      waitUntil: 'load',
+    });
+    await page.waitForSelector('img', { timeout: 1000 });
+    // Chromium cannot encode image/avif via toDataURL, and robot.png has no
+    // alpha channel, so the opaque fallback (jpeg) applies.
+    await page.evaluate(`${code}
+    var snapshot = rrwebSnapshot.snapshot(document, {
+        inlineImages: { type: "image/avif", quality: 0.5 },
+        inlineStylesheet: false
+    })`);
+    const bodyChildren = (await page.evaluate(`
+      snapshot.childNodes[0].childNodes[1].childNodes.filter((cn) => cn.type === 2);
+`)) as any[];
+    expect(bodyChildren[1].attributes.rr_dataURL).toMatch(
+      /^data:image\/jpeg;base64,/,
+    );
+  });
+
+  it('falls back to png for transparent images when the requested encoder is unavailable', async () => {
+    const page: puppeteer.Page = await browser.newPage();
+
+    await page.goto(`${serverURL}/html/picture.html`, {
+      waitUntil: 'load',
+    });
+    // setContent keeps the page origin, so the semi-transparent favicon loads
+    // same-origin and can be inlined synchronously. No doctype, mirroring
+    // picture.html, so snapshot.childNodes[0] stays the <html> element.
+    await page.setContent(`
+      <html>
+        <body>
+          <img src="/images/rrweb-favicon-20x20.png" alt="semi-transparent" />
+        </body>
+      </html>
+    `);
+    await page.waitForSelector('img', { timeout: 1000 });
+    await page.evaluate(`${code}
+    var snapshot = rrwebSnapshot.snapshot(document, {
+        inlineImages: { type: "image/avif", quality: 0.5 },
+        inlineStylesheet: false
+    })`);
+    const bodyChildren = (await page.evaluate(`
+      snapshot.childNodes[0].childNodes[1].childNodes.filter((cn) => cn.type === 2);
+`)) as any[];
+    expect(bodyChildren[0].attributes.rr_dataURL).toMatch(
+      /^data:image\/png;base64,/,
+    );
+  });
+
   it('correctly saves cross-origin images offline', async () => {
     const page: puppeteer.Page = await browser.newPage();
     await page.goto('about:blank', {

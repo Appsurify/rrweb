@@ -6,6 +6,7 @@ import type {
   Engine,
 } from '../core/types';
 import type { BrowserInfo, RecorderInfo, RecordingSession } from '../types';
+import { NAVIGATION_CUSTOM_EVENT_TAG } from '../core/AbstractRecorder';
 import { WebDriverClassicRecorder } from '../recorder/WebDriverClassicRecorder';
 import type { SeleniumDriver, SeleniumEngineOptions } from './types';
 import { readBrowserInfo } from './browserInfo';
@@ -80,10 +81,14 @@ export class SeleniumEngine
       this._recordOptions ? { recordOptions: this._recordOptions } : undefined,
     );
     await this._recorder.bind(this._driver);
-    // Eager-start when already on a real page (e.g. navigated in a before hook).
+    // Eager-start when already on a real page (e.g. navigated in a before
+    // hook). The page may equally be a leftover from the previous test —
+    // unknowable here — so the start is marked eagerHead: if the test's first
+    // wrapped navigation arrives before any interaction, the head segment is
+    // dropped there (see aroundNavigation).
     if (isRealUrl(href)) {
       await this._recorder.inject().catch(noop);
-      await this._recorder.start().catch(noop);
+      await this._recorder.start({ eagerHead: true }).catch(noop);
       this._captureRecorderInfo();
     }
   }
@@ -150,6 +155,10 @@ export class SeleniumEngine
       if (outermost && recorder && recorder.status === 'recording') {
         await recorder.waitForRecorderStabilization(this._stabilizeMs).catch(noop);
         await recorder.stop().catch(noop);
+        // First wrapped navigation: if the buffer is still just the eager
+        // test-begin segment with no interactions, it captured the previous
+        // test's page — drop it so the report starts at this destination.
+        recorder.discardEagerIdleHead();
       }
 
       const result = await thunk(); // real navigation — its errors propagate
@@ -160,7 +169,7 @@ export class SeleniumEngine
         this._captureRecorderInfo();
         const url = (await this._safeCurrentUrl()) || info;
         await recorder
-          .addCustomEvent('testmap:navigation', { type: kind, url })
+          .addCustomEvent(NAVIGATION_CUSTOM_EVENT_TAG, { type: kind, url })
           .catch(noop);
       }
       return result;

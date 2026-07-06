@@ -76,6 +76,22 @@ export type RecorderWindow = Window & {
 };
 
 /**
+ * Options for {@link Recorder.start}.
+ * @public
+ */
+export type RecorderStartOptions = {
+  /**
+   * Marks this start as the test-begin eager start on whatever page the
+   * browser currently shows (usually the page inherited from the previous
+   * test). If the test's first wrapped navigation happens before any user
+   * interaction is recorded, the buffered head segment is a phantom of a page
+   * this test never used and is dropped via
+   * {@link Recorder.discardEagerIdleHead}.
+   */
+  eagerHead?: boolean;
+};
+
+/**
  * Core interface implemented by every recorder, coordinating the rrweb lifecycle
  * across different execution contexts (Window, WebDriver, CDP, …).
  * @public
@@ -86,9 +102,10 @@ export type RecorderWindow = Window & {
 export interface Recorder<TTarget = unknown> {
   bind(target: TTarget): Promise<void>;
   inject(): Promise<void>;
-  start(): Promise<void>;
+  start(options?: RecorderStartOptions): Promise<void>;
   stop(): Promise<void>;
   addCustomEvent(tag: string, payload: customEventPayload): Promise<void>;
+  discardEagerIdleHead(): boolean;
 
   readonly target: TTarget | undefined | null;
   readonly status: RecorderStatus;

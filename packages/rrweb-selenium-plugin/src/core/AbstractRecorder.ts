@@ -5,8 +5,37 @@ import type {
   customEventPayload,
   recordOptions,
   Recorder,
+  RecorderStartOptions,
 } from './types';
 import { recorderHooks } from './hooks';
+
+/**
+ * Tag of the custom event the engine emits around wrapped navigations. Not a
+ * user interaction — excluded from eager-head interaction detection.
+ * @public
+ */
+export const NAVIGATION_CUSTOM_EVENT_TAG = 'testmap:navigation';
+
+// rrweb protocol discriminators used for interaction detection. Numeric
+// mirrors of EventType/IncrementalSource from rrweb-types — the values are
+// frozen by the recorded-data format.
+const EVENT_TYPE_INCREMENTAL = 3;
+const EVENT_TYPE_CUSTOM = 5;
+/**
+ * IncrementalSource values that represent USER activity on the page. Passive
+ * sources (Mutation, StyleSheetRule, AdoptedStyleSheet, Visibility, …) are
+ * deliberately excluded: a page left over from the previous test keeps
+ * emitting those on its own.
+ */
+const INTERACTIVE_INCREMENTAL_SOURCES: ReadonlySet<number> = new Set([
+  2, // MouseInteraction
+  3, // Scroll
+  5, // Input
+  6, // TouchMove
+  7, // MediaInteraction
+  12, // Drag
+  14, // Selection
+]);
 
 /**
  * Baseline rrweb record options.
@@ -92,6 +121,16 @@ export abstract class AbstractRecorder<TTarget, TRecordFn, TStopFn>
   /** Event buffer segmented by checkout boundaries. */
   protected _eventsMatrix: RecorderEvent[][] = [[]];
   protected _currentSegmentIndex = 0;
+
+  /**
+   * True while the buffer holds nothing but the test-begin eager segment (see
+   * {@link RecorderStartOptions.eagerHead}). Invalidated by any subsequent
+   * recording (re)start — including the self-heal path — so a discard can
+   * never drop more than that head.
+   */
+  protected _bufferIsEagerHead = false;
+  /** True once any user interaction has been recorded (never reset — the recorder lives one test). */
+  private _interactionRecorded = false;
 
   protected _queue: QueuedEvent[] = [];
   protected readonly _retries = 5;
@@ -205,11 +244,16 @@ export abstract class AbstractRecorder<TTarget, TRecordFn, TStopFn>
     this.transitionState('injected');
   }
 
-  public async start(): Promise<void> {
+  public async start(options?: RecorderStartOptions): Promise<void> {
     if (this._status === 'recording') {
       return;
     }
     this.validateStatus(['injected', 'stopped'], 'start');
+
+    // The eager marker only holds while the buffer will contain nothing but
+    // this start's own segment; any restart clears it.
+    this._bufferIsEagerHead =
+      options?.eagerHead === true && this.events.length === 0;
 
     await this.onBeforeStart();
     recorderHooks.emit('recorder:hook:before:start', { recorder: this });
@@ -248,6 +292,30 @@ export abstract class AbstractRecorder<TTarget, TRecordFn, TStopFn>
     this._queue.push({ tag, payload });
     recorderHooks.emit('recorder:event:enqueue', { recorder: this, tag, payload });
     await this.flushEventQueue();
+  }
+
+  /**
+   * Drops the buffered events when they are only the test-begin eager segment
+   * with no recorded user interaction — i.e. the snapshot of a page inherited
+   * from the previous test that this test immediately navigated away from.
+   * Keeping it would put a phantom page-session (zero interactions) into the
+   * report and double its weight on heavy pages.
+   *
+   * The engine calls this right after the recorder is stopped for the test's
+   * FIRST wrapped navigation (the tail is fully drained, the destination
+   * segment not yet started). The decision is consumed either way: later
+   * navigations never re-evaluate it.
+   *
+   * @returns true when the head was discarded.
+   */
+  public discardEagerIdleHead(): boolean {
+    if (!this._bufferIsEagerHead) return false;
+    this._bufferIsEagerHead = false;
+    if (this._interactionRecorded) return false;
+
+    this._eventsMatrix = [[]];
+    this._currentSegmentIndex = 0;
+    return true;
   }
 
   // ============================================
@@ -316,6 +384,10 @@ export abstract class AbstractRecorder<TTarget, TRecordFn, TStopFn>
     try {
       const recEvent: RecorderEvent = { ...event };
 
+      if (!this._interactionRecorded && this.isInteractionEvent(event)) {
+        this._interactionRecorded = true;
+      }
+
       if (isCheckout) {
         this._eventsMatrix.push([]);
         this._currentSegmentIndex++;
@@ -333,6 +405,22 @@ export abstract class AbstractRecorder<TTarget, TRecordFn, TStopFn>
     } catch (error) {
       this.onError(error as Error, { event, isCheckout, method: 'handleEvent' });
     }
+  }
+
+  /**
+   * Whether the event represents user activity: an interactive incremental
+   * source, or any custom event except the engine's own navigation marker.
+   */
+  private isInteractionEvent(event: eventWithTime): boolean {
+    if (event.type === EVENT_TYPE_INCREMENTAL) {
+      const source = (event.data as { source?: number } | undefined)?.source;
+      return source !== undefined && INTERACTIVE_INCREMENTAL_SOURCES.has(source);
+    }
+    if (event.type === EVENT_TYPE_CUSTOM) {
+      const tag = (event.data as { tag?: string } | undefined)?.tag;
+      return tag !== undefined && tag !== NAVIGATION_CUSTOM_EVENT_TAG;
+    }
+    return false;
   }
 
   // ============================================

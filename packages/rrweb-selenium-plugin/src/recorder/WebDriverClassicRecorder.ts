@@ -4,7 +4,10 @@ import type {
   customEventPayload,
   RecorderWindow,
 } from '../core/types';
-import { AbstractRecorder } from '../core/AbstractRecorder';
+import {
+  AbstractRecorder,
+  NAVIGATION_CUSTOM_EVENT_TAG,
+} from '../core/AbstractRecorder';
 import type {
   W3CWindow,
   WebDriver,
@@ -451,10 +454,14 @@ export class WebDriverClassicRecorder extends AbstractRecorder<
    */
   private async _reestablish(): Promise<void> {
     this._healing = true;
+    // The buffer now spans more than the test-begin head (a new page's
+    // segment follows), so the eager-head marker must not survive — a later
+    // wrapped navigation would otherwise discard both segments.
+    this._bufferIsEagerHead = false;
     try {
       await this.invokeInjectFn(this._rrwebUmdSource);
       await this.invokeRecordFn(this._recordOptions);
-      await this.addCustomEvent('testmap:navigation', {
+      await this.addCustomEvent(NAVIGATION_CUSTOM_EVENT_TAG, {
         type: 'auto',
         url: this._cachedHref,
       });

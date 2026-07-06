@@ -9,6 +9,9 @@ import snapshot, {
   IGNORED_NODE,
   genId,
   isExcludeAttribute,
+  resolveInlineImagesOptions,
+  scaledImageSize,
+  DEFAULT_INLINE_IMAGES_OPTIONS,
 } from './snapshot';
 import rebuild, {
   buildNodeWithSN,
@@ -34,4 +37,7 @@ export {
   classMatchesRegex,
   IGNORED_NODE,
   genId,
+  resolveInlineImagesOptions,
+  scaledImageSize,
+  DEFAULT_INLINE_IMAGES_OPTIONS,
 };

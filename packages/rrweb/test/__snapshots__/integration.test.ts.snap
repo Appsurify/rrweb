@@ -14098,8 +14098,11 @@ exports[`record integration tests > should record images inside iframe with blob
                     },
                     \\"childNodes\\": [],
                     \\"id\\": 6,
-                    \\"selector\\": \\"v1.0: html :: head#1 > meta#1\\",
+                    \\"selector\\": \\"v1:html::head>meta#1\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14117,8 +14120,11 @@ exports[`record integration tests > should record images inside iframe with blob
                     },
                     \\"childNodes\\": [],
                     \\"id\\": 8,
-                    \\"selector\\": \\"v1.0: html :: head#1 > meta[name=\\\\\\"viewport\\\\\\"]#2\\",
+                    \\"selector\\": \\"v1:html::head>meta[n=\\\\\\"viewport\\\\\\"]\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14140,8 +14146,11 @@ exports[`record integration tests > should record images inside iframe with blob
                       }
                     ],
                     \\"id\\": 10,
-                    \\"selector\\": \\"v1.0: html :: head#1 > title#3\\",
+                    \\"selector\\": \\"v1:html::head>title\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14152,8 +14161,11 @@ exports[`record integration tests > should record images inside iframe with blob
                   }
                 ],
                 \\"id\\": 4,
-                \\"selector\\": \\"v1.0: html :: head#1\\",
+                \\"selector\\": \\"v1:html::head\\",
                 \\"isVisible\\": false,
+                \\"isCSSVisible\\": false,
+                \\"isViewportVisible\\": false,
+                \\"hasSize\\": false,
                 \\"isInteractive\\": false
               },
               {
@@ -14182,8 +14194,11 @@ exports[`record integration tests > should record images inside iframe with blob
                     },
                     \\"childNodes\\": [],
                     \\"id\\": 16,
-                    \\"selector\\": \\"v1.0: body :: iframe[id=\\\\\\"four\\\\\\"]\\",
+                    \\"selector\\": \\"v1:body::iframe[i=\\\\\\"four\\\\\\"]\\",
                     \\"isVisible\\": true,
+                    \\"isCSSVisible\\": true,
+                    \\"isViewportVisible\\": true,
+                    \\"hasSize\\": true,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14205,8 +14220,11 @@ exports[`record integration tests > should record images inside iframe with blob
                       }
                     ],
                     \\"id\\": 18,
-                    \\"selector\\": \\"v1.0: body :: script#2\\",
+                    \\"selector\\": \\"v1:body::script\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14217,14 +14235,20 @@ exports[`record integration tests > should record images inside iframe with blob
                   }
                 ],
                 \\"id\\": 14,
-                \\"selector\\": \\"v1.0: html :: body#2\\",
+                \\"selector\\": \\"v1:html::body\\",
                 \\"isVisible\\": true,
+                \\"isCSSVisible\\": true,
+                \\"isViewportVisible\\": true,
+                \\"hasSize\\": true,
                 \\"isInteractive\\": false
               }
             ],
             \\"id\\": 3,
-            \\"selector\\": \\"v1.0: html :: html\\",
+            \\"selector\\": \\"v1:html::html\\",
             \\"isVisible\\": true,
+            \\"isCSSVisible\\": true,
+            \\"isViewportVisible\\": true,
+            \\"hasSize\\": true,
             \\"isInteractive\\": false
           }
         ],
@@ -14284,8 +14308,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         \\"childNodes\\": [],
                         \\"rootId\\": 21,
                         \\"id\\": 26,
-                        \\"selector\\": \\"v1.0: html :: head#1 > meta#1\\",
+                        \\"selector\\": \\"v1:html::head>meta#1\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14305,8 +14332,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         \\"childNodes\\": [],
                         \\"rootId\\": 21,
                         \\"id\\": 28,
-                        \\"selector\\": \\"v1.0: html :: head#1 > meta#2\\",
+                        \\"selector\\": \\"v1:html::head>meta#2\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14326,8 +14356,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         \\"childNodes\\": [],
                         \\"rootId\\": 21,
                         \\"id\\": 30,
-                        \\"selector\\": \\"v1.0: html :: head#1 > meta[name=\\\\\\"viewport\\\\\\"]#3\\",
+                        \\"selector\\": \\"v1:html::head>meta[n=\\\\\\"viewport\\\\\\"]\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14352,8 +14385,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         ],
                         \\"rootId\\": 21,
                         \\"id\\": 32,
-                        \\"selector\\": \\"v1.0: html :: head#1 > title#4\\",
+                        \\"selector\\": \\"v1:html::head>title\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14366,8 +14402,11 @@ exports[`record integration tests > should record images inside iframe with blob
                     ],
                     \\"rootId\\": 21,
                     \\"id\\": 24,
-                    \\"selector\\": \\"v1.0: html :: head#1\\",
+                    \\"selector\\": \\"v1:html::head\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14404,8 +14443,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         ],
                         \\"rootId\\": 21,
                         \\"id\\": 38,
-                        \\"selector\\": \\"v1.0: body :: script#1\\",
+                        \\"selector\\": \\"v1:body::script\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14418,15 +14460,21 @@ exports[`record integration tests > should record images inside iframe with blob
                     ],
                     \\"rootId\\": 21,
                     \\"id\\": 36,
-                    \\"selector\\": \\"v1.0: html :: body#2\\",
+                    \\"selector\\": \\"v1:html::body\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": true,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   }
                 ],
                 \\"rootId\\": 21,
                 \\"id\\": 23,
-                \\"selector\\": \\"v1.0: html :: html\\",
+                \\"selector\\": \\"v1:html::html\\",
                 \\"isVisible\\": true,
+                \\"isCSSVisible\\": true,
+                \\"isViewportVisible\\": true,
+                \\"hasSize\\": true,
                 \\"isInteractive\\": false
               }
             ],
@@ -14457,13 +14505,16 @@ exports[`record integration tests > should record images inside iframe with blob
             \\"tagName\\": \\"img\\",
             \\"attributes\\": {
               \\"src\\": \\"blob:http://localhost:xxxx/...\\",
-              \\"rr_dataURL\\": \\"data:image/png;base64,...\\"
+              \\"rr_dataURL\\": \\"data:image/webp;base64,...\\"
             },
             \\"childNodes\\": [],
             \\"rootId\\": 21,
             \\"id\\": 41,
-            \\"selector\\": \\"v1.0: body :: img#2\\",
+            \\"selector\\": \\"v1:body::img\\",
             \\"isVisible\\": false,
+            \\"isCSSVisible\\": true,
+            \\"isViewportVisible\\": false,
+            \\"hasSize\\": false,
             \\"isInteractive\\": false
           }
         }
@@ -14534,8 +14585,11 @@ exports[`record integration tests > should record images inside iframe with blob
                     },
                     \\"childNodes\\": [],
                     \\"id\\": 6,
-                    \\"selector\\": \\"v1.0: html :: head#1 > meta#1\\",
+                    \\"selector\\": \\"v1:html::head>meta#1\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14553,8 +14607,11 @@ exports[`record integration tests > should record images inside iframe with blob
                     },
                     \\"childNodes\\": [],
                     \\"id\\": 8,
-                    \\"selector\\": \\"v1.0: html :: head#1 > meta[name=\\\\\\"viewport\\\\\\"]#2\\",
+                    \\"selector\\": \\"v1:html::head>meta[n=\\\\\\"viewport\\\\\\"]\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14576,8 +14633,11 @@ exports[`record integration tests > should record images inside iframe with blob
                       }
                     ],
                     \\"id\\": 10,
-                    \\"selector\\": \\"v1.0: html :: head#1 > title#3\\",
+                    \\"selector\\": \\"v1:html::head>title\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14588,8 +14648,11 @@ exports[`record integration tests > should record images inside iframe with blob
                   }
                 ],
                 \\"id\\": 4,
-                \\"selector\\": \\"v1.0: html :: head#1\\",
+                \\"selector\\": \\"v1:html::head\\",
                 \\"isVisible\\": false,
+                \\"isCSSVisible\\": false,
+                \\"isViewportVisible\\": false,
+                \\"hasSize\\": false,
                 \\"isInteractive\\": false
               },
               {
@@ -14622,8 +14685,11 @@ exports[`record integration tests > should record images inside iframe with blob
                       }
                     ],
                     \\"id\\": 16,
-                    \\"selector\\": \\"v1.0: body :: script#1\\",
+                    \\"selector\\": \\"v1:body::script#1\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14645,8 +14711,11 @@ exports[`record integration tests > should record images inside iframe with blob
                       }
                     ],
                     \\"id\\": 19,
-                    \\"selector\\": \\"v1.0: body :: script#2\\",
+                    \\"selector\\": \\"v1:body::script#2\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14657,14 +14726,20 @@ exports[`record integration tests > should record images inside iframe with blob
                   }
                 ],
                 \\"id\\": 14,
-                \\"selector\\": \\"v1.0: html :: body#2\\",
+                \\"selector\\": \\"v1:html::body\\",
                 \\"isVisible\\": true,
+                \\"isCSSVisible\\": true,
+                \\"isViewportVisible\\": true,
+                \\"hasSize\\": true,
                 \\"isInteractive\\": false
               }
             ],
             \\"id\\": 3,
-            \\"selector\\": \\"v1.0: html :: html\\",
+            \\"selector\\": \\"v1:html::html\\",
             \\"isVisible\\": true,
+            \\"isCSSVisible\\": true,
+            \\"isViewportVisible\\": true,
+            \\"hasSize\\": true,
             \\"isInteractive\\": false
           }
         ],
@@ -14696,8 +14771,11 @@ exports[`record integration tests > should record images inside iframe with blob
             },
             \\"childNodes\\": [],
             \\"id\\": 22,
-            \\"selector\\": \\"v1.0: body :: iframe[id=\\\\\\"five\\\\\\"]\\",
+            \\"selector\\": \\"v1:body::iframe[i=\\\\\\"five\\\\\\"]\\",
             \\"isVisible\\": true,
+            \\"isCSSVisible\\": true,
+            \\"isViewportVisible\\": true,
+            \\"hasSize\\": true,
             \\"isInteractive\\": false
           }
         }
@@ -14728,8 +14806,11 @@ exports[`record integration tests > should record images inside iframe with blob
                     \\"childNodes\\": [],
                     \\"rootId\\": 23,
                     \\"id\\": 25,
-                    \\"selector\\": \\"v1.0: html :: head#1\\",
+                    \\"selector\\": \\"v1:html::head\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14739,15 +14820,21 @@ exports[`record integration tests > should record images inside iframe with blob
                     \\"childNodes\\": [],
                     \\"rootId\\": 23,
                     \\"id\\": 26,
-                    \\"selector\\": \\"v1.0: html :: body#2\\",
+                    \\"selector\\": \\"v1:html::body\\",
                     \\"isVisible\\": true,
+                    \\"isCSSVisible\\": true,
+                    \\"isViewportVisible\\": true,
+                    \\"hasSize\\": true,
                     \\"isInteractive\\": false
                   }
                 ],
                 \\"rootId\\": 23,
                 \\"id\\": 24,
-                \\"selector\\": \\"v1.0: html :: html\\",
+                \\"selector\\": \\"v1:html::html\\",
                 \\"isVisible\\": true,
+                \\"isCSSVisible\\": true,
+                \\"isViewportVisible\\": true,
+                \\"hasSize\\": true,
                 \\"isInteractive\\": false
               }
             ],
@@ -14810,8 +14897,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         \\"childNodes\\": [],
                         \\"rootId\\": 27,
                         \\"id\\": 32,
-                        \\"selector\\": \\"v1.0: html :: head#1 > meta#1\\",
+                        \\"selector\\": \\"v1:html::head>meta#1\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14831,8 +14921,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         \\"childNodes\\": [],
                         \\"rootId\\": 27,
                         \\"id\\": 34,
-                        \\"selector\\": \\"v1.0: html :: head#1 > meta#2\\",
+                        \\"selector\\": \\"v1:html::head>meta#2\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14852,8 +14945,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         \\"childNodes\\": [],
                         \\"rootId\\": 27,
                         \\"id\\": 36,
-                        \\"selector\\": \\"v1.0: html :: head#1 > meta[name=\\\\\\"viewport\\\\\\"]#3\\",
+                        \\"selector\\": \\"v1:html::head>meta[n=\\\\\\"viewport\\\\\\"]\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14878,8 +14974,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         ],
                         \\"rootId\\": 27,
                         \\"id\\": 38,
-                        \\"selector\\": \\"v1.0: html :: head#1 > title#4\\",
+                        \\"selector\\": \\"v1:html::head>title\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14892,8 +14991,11 @@ exports[`record integration tests > should record images inside iframe with blob
                     ],
                     \\"rootId\\": 27,
                     \\"id\\": 30,
-                    \\"selector\\": \\"v1.0: html :: head#1\\",
+                    \\"selector\\": \\"v1:html::head\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -14930,8 +15032,11 @@ exports[`record integration tests > should record images inside iframe with blob
                         ],
                         \\"rootId\\": 27,
                         \\"id\\": 44,
-                        \\"selector\\": \\"v1.0: body :: script#1\\",
+                        \\"selector\\": \\"v1:body::script\\",
                         \\"isVisible\\": false,
+                        \\"isCSSVisible\\": false,
+                        \\"isViewportVisible\\": false,
+                        \\"hasSize\\": false,
                         \\"isInteractive\\": false
                       },
                       {
@@ -14944,15 +15049,21 @@ exports[`record integration tests > should record images inside iframe with blob
                     ],
                     \\"rootId\\": 27,
                     \\"id\\": 42,
-                    \\"selector\\": \\"v1.0: html :: body#2\\",
+                    \\"selector\\": \\"v1:html::body\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": true,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   }
                 ],
                 \\"rootId\\": 27,
                 \\"id\\": 29,
-                \\"selector\\": \\"v1.0: html :: html\\",
+                \\"selector\\": \\"v1:html::html\\",
                 \\"isVisible\\": true,
+                \\"isCSSVisible\\": true,
+                \\"isViewportVisible\\": true,
+                \\"hasSize\\": true,
                 \\"isInteractive\\": false
               }
             ],
@@ -14983,13 +15094,16 @@ exports[`record integration tests > should record images inside iframe with blob
             \\"tagName\\": \\"img\\",
             \\"attributes\\": {
               \\"src\\": \\"blob:http://localhost:xxxx/...\\",
-              \\"rr_dataURL\\": \\"data:image/png;base64,...\\"
+              \\"rr_dataURL\\": \\"data:image/webp;base64,...\\"
             },
             \\"childNodes\\": [],
             \\"rootId\\": 27,
             \\"id\\": 47,
-            \\"selector\\": \\"v1.0: body :: img#2\\",
+            \\"selector\\": \\"v1:body::img\\",
             \\"isVisible\\": false,
+            \\"isCSSVisible\\": true,
+            \\"isViewportVisible\\": false,
+            \\"hasSize\\": false,
             \\"isInteractive\\": false
           }
         }
@@ -15060,8 +15174,11 @@ exports[`record integration tests > should record images with blob url 1`] = `
                     },
                     \\"childNodes\\": [],
                     \\"id\\": 6,
-                    \\"selector\\": \\"v1.0: html :: head#1 > meta#1\\",
+                    \\"selector\\": \\"v1:html::head>meta#1\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -15079,8 +15196,11 @@ exports[`record integration tests > should record images with blob url 1`] = `
                     },
                     \\"childNodes\\": [],
                     \\"id\\": 8,
-                    \\"selector\\": \\"v1.0: html :: head#1 > meta#2\\",
+                    \\"selector\\": \\"v1:html::head>meta#2\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -15098,8 +15218,11 @@ exports[`record integration tests > should record images with blob url 1`] = `
                     },
                     \\"childNodes\\": [],
                     \\"id\\": 10,
-                    \\"selector\\": \\"v1.0: html :: head#1 > meta[name=\\\\\\"viewport\\\\\\"]#3\\",
+                    \\"selector\\": \\"v1:html::head>meta[n=\\\\\\"viewport\\\\\\"]\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -15121,8 +15244,11 @@ exports[`record integration tests > should record images with blob url 1`] = `
                       }
                     ],
                     \\"id\\": 12,
-                    \\"selector\\": \\"v1.0: html :: head#1 > title#4\\",
+                    \\"selector\\": \\"v1:html::head>title\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -15133,8 +15259,11 @@ exports[`record integration tests > should record images with blob url 1`] = `
                   }
                 ],
                 \\"id\\": 4,
-                \\"selector\\": \\"v1.0: html :: head#1\\",
+                \\"selector\\": \\"v1:html::head\\",
                 \\"isVisible\\": false,
+                \\"isCSSVisible\\": false,
+                \\"isViewportVisible\\": false,
+                \\"hasSize\\": false,
                 \\"isInteractive\\": false
               },
               {
@@ -15167,8 +15296,11 @@ exports[`record integration tests > should record images with blob url 1`] = `
                       }
                     ],
                     \\"id\\": 18,
-                    \\"selector\\": \\"v1.0: body :: script#1\\",
+                    \\"selector\\": \\"v1:body::script#1\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -15190,8 +15322,11 @@ exports[`record integration tests > should record images with blob url 1`] = `
                       }
                     ],
                     \\"id\\": 21,
-                    \\"selector\\": \\"v1.0: body :: script#2\\",
+                    \\"selector\\": \\"v1:body::script#2\\",
                     \\"isVisible\\": false,
+                    \\"isCSSVisible\\": false,
+                    \\"isViewportVisible\\": false,
+                    \\"hasSize\\": false,
                     \\"isInteractive\\": false
                   },
                   {
@@ -15202,14 +15337,20 @@ exports[`record integration tests > should record images with blob url 1`] = `
                   }
                 ],
                 \\"id\\": 16,
-                \\"selector\\": \\"v1.0: html :: body#2\\",
+                \\"selector\\": \\"v1:html::body\\",
                 \\"isVisible\\": false,
+                \\"isCSSVisible\\": true,
+                \\"isViewportVisible\\": false,
+                \\"hasSize\\": false,
                 \\"isInteractive\\": false
               }
             ],
             \\"id\\": 3,
-            \\"selector\\": \\"v1.0: html :: html\\",
+            \\"selector\\": \\"v1:html::html\\",
             \\"isVisible\\": true,
+            \\"isCSSVisible\\": true,
+            \\"isViewportVisible\\": true,
+            \\"hasSize\\": true,
             \\"isInteractive\\": false
           }
         ],
@@ -15238,12 +15379,15 @@ exports[`record integration tests > should record images with blob url 1`] = `
             \\"tagName\\": \\"img\\",
             \\"attributes\\": {
               \\"src\\": \\"blob:http://localhost:xxxx/...\\",
-              \\"rr_dataURL\\": \\"data:image/png;base64,...\\"
+              \\"rr_dataURL\\": \\"data:image/webp;base64,...\\"
             },
             \\"childNodes\\": [],
             \\"id\\": 24,
-            \\"selector\\": \\"v1.0: body :: img#3\\",
+            \\"selector\\": \\"v1:body::img\\",
             \\"isVisible\\": false,
+            \\"isCSSVisible\\": true,
+            \\"isViewportVisible\\": false,
+            \\"hasSize\\": false,
             \\"isInteractive\\": false
           }
         }

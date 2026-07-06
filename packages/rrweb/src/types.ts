@@ -15,6 +15,7 @@ import type { NavigationManager } from './record/observers/navigation/navigation
 import type { StylesheetManager } from './record/stylesheet-manager';
 import type {
   DataURLOptions,
+  InlineImagesOptions,
   addedNodeMutation,
   blockClass,
   excludeAttribute,
@@ -79,7 +80,7 @@ export type recordOptions<T> = {
   flushCustomEvent?: 'before' | 'after';
   userTriggeredOnInput?: boolean;
   collectFonts?: boolean;
-  inlineImages?: boolean;
+  inlineImages?: boolean | InlineImagesOptions;
   plugins?: RecordPlugin[];
   selector?: boolean | SelectorOptions;
   trustSyntheticInput?: boolean;
@@ -121,7 +122,7 @@ export type observerParam = {
   sampling: SamplingStrategy;
   recordDOM: boolean;
   recordCanvas: boolean;
-  inlineImages: boolean;
+  inlineImages: boolean | InlineImagesOptions;
   userTriggeredOnInput: boolean;
   trustSyntheticInput: boolean;
   collectFonts: boolean;

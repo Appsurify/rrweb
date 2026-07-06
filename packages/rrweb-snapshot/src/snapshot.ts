@@ -16,6 +16,7 @@ import type {
   attributes,
   mediaAttributes,
   DataURLOptions,
+  InlineImagesOptions,
 } from '@appsurify-testmap/rrweb-types';
 import {
   Mirror,
@@ -68,6 +69,123 @@ function getValidTagName(element: HTMLElement): Lowercase<string> {
 
 let canvasService: HTMLCanvasElement | null;
 let canvasCtx: CanvasRenderingContext2D | null;
+
+/**
+ * Defaults applied when image inlining is enabled (`inlineImages: true` or a
+ * partial options object). WebP at q0.7 keeps photos visually intact at a
+ * fraction of the lossless-PNG weight; the 1920px cap bounds the encoded
+ * size of arbitrarily large originals.
+ */
+export const DEFAULT_INLINE_IMAGES_OPTIONS: Required<InlineImagesOptions> = {
+  type: 'image/webp',
+  quality: 0.7,
+  maxDimension: 1920,
+};
+
+/**
+ * Resolves the `inlineImages` record option to a full options object, or
+ * `false` when inlining is disabled.
+ * @remarks
+ * `inlineImages: true` keeps honoring `dataURLOptions` — the pre-existing
+ * channel that drove image encoding — so legacy configurations behave
+ * unchanged. Explicitly `undefined` fields never override the defaults.
+ */
+export function resolveInlineImagesOptions(
+  inlineImages: boolean | InlineImagesOptions | undefined,
+  dataURLOptions: DataURLOptions = {},
+): Required<InlineImagesOptions> | false {
+  if (!inlineImages) return false;
+  const overrides: InlineImagesOptions =
+    inlineImages === true ? dataURLOptions : inlineImages;
+  const resolved = { ...DEFAULT_INLINE_IMAGES_OPTIONS };
+  if (overrides.type !== undefined) resolved.type = overrides.type;
+  if (overrides.quality !== undefined) resolved.quality = overrides.quality;
+  if (overrides.maxDimension !== undefined)
+    resolved.maxDimension = overrides.maxDimension;
+  return resolved;
+}
+
+/**
+ * Target canvas dimensions for an image: capped at `maxDimension` on the
+ * longest side (aspect ratio preserved), never upscaled. `maxDimension <= 0`
+ * disables the cap.
+ */
+export function scaledImageSize(
+  naturalWidth: number,
+  naturalHeight: number,
+  maxDimension: number,
+): { width: number; height: number } {
+  const longestSide = Math.max(naturalWidth, naturalHeight);
+  const scale =
+    maxDimension > 0 && longestSide > maxDimension
+      ? maxDimension / longestSide
+      : 1;
+  return {
+    width: Math.max(1, Math.round(naturalWidth * scale)),
+    height: Math.max(1, Math.round(naturalHeight * scale)),
+  };
+}
+
+// `toDataURL` silently returns a PNG when the requested MIME type has no
+// encoder (per the HTML spec), so support is probed from the result prefix on
+// a 1x1 canvas and cached per type.
+const dataURLTypeSupport: Record<string, boolean> = {};
+function canEncodeDataURLType(doc: Document, type: string): boolean {
+  if (type === 'image/png') return true;
+  if (!(type in dataURLTypeSupport)) {
+    let supported = false;
+    try {
+      const probe = doc.createElement('canvas');
+      probe.width = 1;
+      probe.height = 1;
+      supported = probe.toDataURL(type).startsWith(`data:${type}`);
+    } catch {
+      supported = false;
+    }
+    dataURLTypeSupport[type] = supported;
+  }
+  return dataURLTypeSupport[type];
+}
+
+function hasTransparency(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): boolean {
+  try {
+    const data = ctx.getImageData(0, 0, width, height).data;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 255) return true;
+    }
+    return false;
+  } catch {
+    // Pixels unreadable — assume transparency so we stay on lossless PNG.
+    return true;
+  }
+}
+
+/**
+ * Encodes the drawn image with the requested type, falling back when the
+ * encoder is unavailable: lossy JPEG for fully opaque images (same quality),
+ * lossless PNG for images with transparency.
+ */
+function encodeInlinedImage(
+  doc: Document,
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  options: Required<InlineImagesOptions>,
+): string {
+  if (canEncodeDataURLType(doc, options.type)) {
+    return canvas.toDataURL(options.type, options.quality);
+  }
+  if (
+    options.type !== 'image/jpeg' &&
+    !hasTransparency(ctx, canvas.width, canvas.height)
+  ) {
+    return canvas.toDataURL('image/jpeg', options.quality);
+  }
+  return canvas.toDataURL();
+}
 
 // eslint-disable-next-line no-control-regex
 const SRCSET_NOT_SPACES = /^[^ \t\n\r\u000c]+/; // Don't use \s, to avoid matching non-breaking space
@@ -418,7 +536,7 @@ function serializeNode(
     maskTextFn: MaskTextFn | undefined;
     maskInputFn: MaskInputFn | undefined;
     dataURLOptions?: DataURLOptions;
-    inlineImages: boolean;
+    inlineImages: boolean | InlineImagesOptions;
     recordCanvas: boolean;
     keepIframeSrcFn: KeepIframeSrcFn;
     /**
@@ -572,7 +690,7 @@ function serializeElementNode(
     maskInputOptions: MaskInputOptions;
     maskInputFn: MaskInputFn | undefined;
     dataURLOptions?: DataURLOptions;
-    inlineImages: boolean;
+    inlineImages: boolean | InlineImagesOptions;
     recordCanvas: boolean;
     keepIframeSrcFn: KeepIframeSrcFn;
     /**
@@ -719,6 +837,10 @@ function serializeElementNode(
   }
   // save image offline
   if (tagName === 'img' && inlineImages) {
+    const inlineImagesOptions = resolveInlineImagesOptions(
+      inlineImages,
+      dataURLOptions,
+    ) as Required<InlineImagesOptions>; // inlineImages is truthy here
     if (!canvasService) {
       canvasService = doc.createElement('canvas');
       canvasCtx = canvasService.getContext('2d');
@@ -730,12 +852,23 @@ function serializeElementNode(
     const recordInlineImage = () => {
       image.removeEventListener('load', recordInlineImage);
       try {
-        canvasService!.width = image.naturalWidth;
-        canvasService!.height = image.naturalHeight;
-        canvasCtx!.drawImage(image, 0, 0);
-        attributes.rr_dataURL = canvasService!.toDataURL(
-          dataURLOptions.type,
-          dataURLOptions.quality,
+        const { width, height } = scaledImageSize(
+          image.naturalWidth,
+          image.naturalHeight,
+          inlineImagesOptions.maxDimension,
+        );
+        canvasService!.width = width;
+        canvasService!.height = height;
+        // Resizing a canvas resets its context state, so smoothing must be
+        // (re)configured after the dimension assignment.
+        canvasCtx!.imageSmoothingEnabled = true;
+        canvasCtx!.imageSmoothingQuality = 'high';
+        canvasCtx!.drawImage(image, 0, 0, width, height);
+        attributes.rr_dataURL = encodeInlinedImage(
+          doc,
+          canvasService!,
+          canvasCtx!,
+          inlineImagesOptions,
         );
       } catch (err) {
         if (image.crossOrigin !== 'anonymous') {
@@ -944,7 +1077,7 @@ export function serializeNodeWithId(
     slimDOMOptions: SlimDOMOptions;
     dataURLOptions?: DataURLOptions;
     keepIframeSrcFn?: KeepIframeSrcFn;
-    inlineImages?: boolean;
+    inlineImages?: boolean | InlineImagesOptions;
     recordCanvas?: boolean;
     preserveWhiteSpace?: boolean;
     onSerialize?: (n: Node) => unknown;
@@ -1319,7 +1452,7 @@ function snapshot(
     maskInputFn?: MaskInputFn;
     slimDOM?: 'all' | boolean | SlimDOMOptions;
     dataURLOptions?: DataURLOptions;
-    inlineImages?: boolean;
+    inlineImages?: boolean | InlineImagesOptions;
     recordCanvas?: boolean;
     preserveWhiteSpace?: boolean;
     onSerialize?: (n: Node) => unknown;
