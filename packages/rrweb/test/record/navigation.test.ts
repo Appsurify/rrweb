@@ -234,4 +234,68 @@ describe('navigation observer', () => {
     const latestMeta = allMetaEvents[allMetaEvents.length - 1];
     expect(latestMeta.data.href).toContain('/page-2');
   });
+
+  it('should snapshot a route left before it settled', async () => {
+    stopRecording = record({
+      emit: (event) => {
+        events.push(event as eventWithTime);
+      },
+    });
+
+    // Leave /route-a well inside the debounce+settle window (~250ms), the way an
+    // automated test clicks through routes. The old behaviour dropped the pending
+    // navigation here and /route-a never appeared in the recording at all.
+    window.history.pushState({}, '', '/route-a');
+    await wait(20);
+    window.history.pushState({}, '', '/route-b');
+    await wait(NAV_SETTLE_WAIT);
+
+    const hrefs = events
+      .filter((e) => e.type === EventType.Meta)
+      .map((e) => (e.data as { href: string }).href);
+
+    // /route-a is labelled with its own href even though location.href had
+    // already advanced to /route-b when its snapshot was taken.
+    expect(hrefs.some((h) => h.includes('/route-a'))).toBe(true);
+    expect(hrefs.some((h) => h.includes('/route-b'))).toBe(true);
+
+    // Every Meta must be backed by a FullSnapshot.
+    const metaCount = events.filter((e) => e.type === EventType.Meta).length;
+    const snapshotCount = events.filter(
+      (e) => e.type === EventType.FullSnapshot,
+    ).length;
+    expect(snapshotCount).toBe(metaCount);
+  });
+
+  it('should not snapshot per #fragment during scroll-spy churn', async () => {
+    stopRecording = record({
+      emit: (event) => {
+        events.push(event as eventWithTime);
+      },
+    });
+
+    // Settle on a route first so nothing is pending.
+    window.history.pushState({}, '', '/spy');
+    await wait(NAV_SETTLE_WAIT);
+    const snapshotsBefore = events.filter(
+      (e) => e.type === EventType.FullSnapshot,
+    ).length;
+
+    // Scroll-spy: replaceState a new #section on each scroll step. Each href is
+    // distinct, so same-URL coalescing cannot suppress these — only the
+    // fragment-change guard can. Without it each step would force a full DOM
+    // snapshot.
+    for (const section of ['#s1', '#s2', '#s3', '#s4', '#s5']) {
+      window.history.replaceState({}, '', `/spy${section}`);
+      await wait(10);
+    }
+    await wait(NAV_SETTLE_WAIT);
+
+    const snapshotsAfter = events.filter(
+      (e) => e.type === EventType.FullSnapshot,
+    ).length;
+
+    // At most the single settled snapshot for the final fragment — never one per step.
+    expect(snapshotsAfter - snapshotsBefore).toBeLessThanOrEqual(1);
+  });
 });

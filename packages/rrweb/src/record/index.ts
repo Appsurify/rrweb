@@ -53,7 +53,7 @@ const version = __APP_VERSION__;
 
 let wrappedEmit!: (e: eventWithoutTime, isCheckout?: boolean) => void;
 
-let takeFullSnapshot!: (isCheckout?: boolean) => void;
+let takeFullSnapshot!: (isCheckout?: boolean, hrefOverride?: string) => void;
 let canvasManager!: CanvasManager;
 let recording = false;
 
@@ -230,6 +230,10 @@ function record<T = eventWithTime>(
   let lastSignificantMutationTime = 0;
   const mutationGracePeriod = 500;
   let hadVisibilityCheckoutInGrace = false;
+  // href carried by the Meta of the FullSnapshot currently being emitted. Set by
+  // takeFullSnapshot, read when notifying NavigationManager so its same-URL
+  // coalescing keys off the route the snapshot actually depicts.
+  let currentSnapshotHref: string | null = null;
 
   const eventProcessor = (e: eventWithTime): T => {
     for (const plugin of plugins || []) {
@@ -307,7 +311,7 @@ function record<T = eventWithTime>(
       // Inform NavigationManager that a FS was just taken (regardless of
       // which path triggered it: init, executeCheckout, or NavigationManager
       // itself). Keeps same-URL coalescing accurate across all snapshot paths.
-      navigationManager?.markSnapshotTaken();
+      navigationManager?.markSnapshotTaken(currentSnapshotHref ?? undefined);
     } else if (e.type === EventType.IncrementalSnapshot) {
       // attach iframe should be considered as full snapshot
       if (
@@ -543,16 +547,23 @@ function record<T = eventWithTime>(
     });
   }
 
-  takeFullSnapshot = (isCheckout = false) => {
+  takeFullSnapshot = (isCheckout = false, hrefOverride?: string) => {
     if (!recordDOM) {
       return;
     }
     checkoutId++;
+    // hrefOverride lets NavigationManager label a snapshot with the route it
+    // belongs to rather than window.location.href. When an SPA leaves a route
+    // before it settled, the snapshot of the DOM we are about to lose is taken
+    // synchronously from inside the pushState/popstate handler — at which point
+    // location.href already points at the NEXT route while the DOM still holds
+    // the previous one. Without the override the two would be mismatched.
+    currentSnapshotHref = hrefOverride ?? window.location.href;
     wrappedEmit(
       {
         type: EventType.Meta,
         data: {
-          href: window.location.href,
+          href: currentSnapshotHref,
           width: getWindowWidth(),
           height: getWindowHeight(),
         },
@@ -646,7 +657,7 @@ function record<T = eventWithTime>(
     navigationManager = new NavigationManager({
       doc: document,
       config: navConfig,
-      onSnapshot: (isCheckout) => {
+      onSnapshot: (isCheckout, hrefOverride) => {
         // Cancel any pending threshold checkout to prevent duplicate snapshots
         if (checkoutPending) {
           if (checkoutDebounceTimer) {
@@ -662,7 +673,7 @@ function record<T = eventWithTime>(
           });
           visibilityManager?.unsetFrozen();
         }
-        takeFullSnapshot(isCheckout);
+        takeFullSnapshot(isCheckout, hrefOverride);
       },
     });
   }

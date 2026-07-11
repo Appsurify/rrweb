@@ -24,7 +24,6 @@ export default defineConfig({
     headless: true,
     testmap: {
       recordingOpts: {
-        checkoutEveryNvm: 5,
         maskInputOptions: { password: true },
         sampling: {
           mousemove: false,

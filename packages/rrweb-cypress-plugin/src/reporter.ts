@@ -171,7 +171,10 @@ export default function registerRRWebReportTasks(on: Cypress.PluginEvents, confi
         }
       };
       fs.mkdirSync(path.dirname(jsonFilePathRaw), { recursive: true });
-      fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw, null, 2), 'utf-8');
+      // Compact JSON — see the Playwright plugin: pretty-printing doubles the
+      // payload and can push large recordings past V8's 512 MB max string
+      // length, where JSON.stringify throws `RangeError: Invalid string length`.
+      fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw), 'utf-8');
       console.log(`[ui-coverage] Saved report to ${jsonFilePathRaw}`);
 
       return null;

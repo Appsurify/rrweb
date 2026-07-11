@@ -52,7 +52,10 @@ export const defaultRecordOptions: recordOptions<eventWithTime> = {
   recordCanvas: true,
   collectFonts: true,
   inlineImages: true,
-  checkoutEveryNvm: 20,
+  // checkoutEveryNvm intentionally unset — see the Cypress/Playwright plugins:
+  // with visibility.mode='none' it still counts IntersectionObserver activity
+  // via notifyActivity and fires spurious full-DOM checkouts, blowing up report
+  // size. NavigationManager alone handles route-change snapshots.
   maskInputOptions: { password: true },
   sampling: {
     mousemove: false,

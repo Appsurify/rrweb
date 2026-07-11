@@ -274,7 +274,10 @@ export class FsReporter implements Reporter {
   async saveReport(report: Report): Promise<void> {
     try {
       const filePath = this._uniquePath(this.reportPath(report));
-      writeFileAtomic(filePath, JSON.stringify(report, null, 2));
+      // Compact JSON — see the Playwright plugin: pretty-printing doubles the
+      // payload and can push large recordings past V8's 512 MB max string
+      // length, where JSON.stringify throws `RangeError: Invalid string length`.
+      writeFileAtomic(filePath, JSON.stringify(report));
     } catch (error) {
       // Recording/reporting must never break the user's tests.
       // eslint-disable-next-line no-console

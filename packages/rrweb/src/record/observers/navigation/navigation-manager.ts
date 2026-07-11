@@ -7,6 +7,27 @@ const DEFAULT_MAX_WAIT = 5000;
 const DEFAULT_DEBOUNCE = 100;
 const DEFAULT_SAME_URL_COALESCE_MS = 2000;
 
+/**
+ * True when `a` and `b` address the same document and differ only by their
+ * #fragment — i.e. this is an in-page anchor move, not a route change.
+ * Falls back to `false` (treat as a real navigation) if either href is not a
+ * parseable absolute URL, so an unexpected input can never suppress a snapshot.
+ */
+function isSameDocumentFragmentChange(a: string, b: string): boolean {
+  try {
+    const ua = new URL(a);
+    const ub = new URL(b);
+    return (
+      ua.origin === ub.origin &&
+      ua.pathname === ub.pathname &&
+      ua.search === ub.search &&
+      ua.hash !== ub.hash
+    );
+  } catch {
+    return false;
+  }
+}
+
 export class NavigationManager {
   private frozen = false;
   private locked = false;
@@ -31,12 +52,12 @@ export class NavigationManager {
   private lastSnapshotAt = 0;
 
   private doc: Document;
-  private onSnapshot: (isCheckout: boolean) => void;
+  private onSnapshot: (isCheckout: boolean, hrefOverride?: string) => void;
 
   constructor(options: {
     doc: Document;
     config: NavigationSamplingConfig;
-    onSnapshot: (isCheckout: boolean) => void;
+    onSnapshot: (isCheckout: boolean, hrefOverride?: string) => void;
   }) {
     const { doc, config, onSnapshot } = options;
     this.doc = doc;
@@ -63,11 +84,43 @@ export class NavigationManager {
     if (this.disabled) return;
     if (this.locked) return;
 
+    // A pending navigation for a DIFFERENT url means we are leaving a route
+    // that never got its snapshot: it was still inside the debounce+settle
+    // window (>= debounceMs + settleTimeout). Automated tests click through
+    // routes far faster than that, so dropping the pending here — as this used
+    // to do — silently lost every route the run passed through, leaving only
+    // the first page in the report.
+    //
+    // Flush it instead. This runs synchronously from the pushState/popstate
+    // handler, i.e. BEFORE the SPA re-renders for the new route, so the DOM
+    // still holds the route we are leaving. We label the snapshot with the
+    // pending route's own href (location.href already points at the next one).
+    //
+    // Exception: a change that only moves the #fragment (same path+query) is
+    // not treated as leaving a route. Scroll-spy widgets replaceState a new
+    // #section on every scroll step, and each of those URLs is distinct, so
+    // sameUrlCoalesceMs — which only matches identical hrefs — would not stop
+    // them; without this guard a fast scroll through N sections would force N
+    // full-DOM snapshots. Such a navigation still becomes pending below, so a
+    // route the user actually dwells on is captured once it settles.
+    if (
+      this.pendingNavigation &&
+      this.pendingNavigation.href !== data.href &&
+      !isSameDocumentFragmentChange(this.pendingNavigation.href, data.href)
+    ) {
+      this.flushPending(this.pendingNavigation.href);
+    }
+
     // Same-URL coalescing: if a snapshot for this URL was taken recently,
     // skip entirely. The SPA is bouncing on the same page (typical during
     // data hydration / replaceState patterns) — the DOM grows naturally and
     // either the active settle observer or the next legitimate navigation
     // will capture the final state.
+    //
+    // This must be evaluated AFTER the flush above: the flush moves
+    // lastSnapshotHref to the route being left, so a genuine return to an
+    // earlier URL (home → apartments → back to home) is no longer mistaken for
+    // a hydration bounce and suppressed.
     const now =
       typeof performance !== 'undefined' ? performance.now() : Date.now();
     if (
@@ -79,24 +132,15 @@ export class NavigationManager {
       return;
     }
 
-    if (this.pendingNavigation) {
-      // If pending is for the same URL: keep settling — DOM mutations during
-      // the active observer window will reset the settle timer naturally and
-      // the snapshot taken at the end will reflect the final hydrated state.
-      if (this.pendingNavigation.href === data.href) {
-        return;
-      }
-      // Different URL during pending: drop pending WITHOUT flushing. The
-      // intermediate URL had no chance to settle (otherwise it would already
-      // have produced a snapshot), so emitting a partial FullSnapshot for it
-      // is noise. The latest URL becomes the new pending.
-      this.cancelTimers();
-      this.disconnectSettlingObserver();
-      this.pendingNavigation = null;
-    } else {
-      this.cancelTimers();
-      this.disconnectSettlingObserver();
+    // Pending for the same URL: keep settling — DOM mutations during the active
+    // observer window reset the settle timer naturally and the snapshot taken at
+    // the end reflects the final hydrated state.
+    if (this.pendingNavigation && this.pendingNavigation.href === data.href) {
+      return;
     }
+
+    this.cancelTimers();
+    this.disconnectSettlingObserver();
 
     // Store as pending
     this.pendingNavigation = data;
@@ -107,6 +151,20 @@ export class NavigationManager {
     }
 
     this.startDebounce();
+  }
+
+  /**
+   * Snapshot the pending route immediately, labelled with `href` rather than
+   * location.href, and clear the pending state. Used when a navigation arrives
+   * before the pending route had a chance to settle.
+   */
+  private flushPending(href: string): void {
+    this.cancelTimers();
+    this.disconnectSettlingObserver();
+    this.pendingNavigation = null;
+    // onSnapshot -> takeFullSnapshot -> markSnapshotTaken(href) updates
+    // lastSnapshotHref/At, so we deliberately do not set them here.
+    this.onSnapshot(true, href);
   }
 
   cancelPending(): void {
@@ -121,9 +179,13 @@ export class NavigationManager {
    * navigation events targeting the same URL within the coalesce window
    * are correctly suppressed even when the snapshot did not originate here.
    */
-  markSnapshotTaken(): void {
+  markSnapshotTaken(href?: string): void {
     const win = this.doc.defaultView;
-    this.lastSnapshotHref = win ? win.location.href : null;
+    // `href` is the route the snapshot actually depicts. It differs from
+    // location.href when we flush the route being left (see flushPending), and
+    // keying the coalesce guard off location.href there would wrongly suppress
+    // the snapshot of the route we are navigating TO.
+    this.lastSnapshotHref = href ?? (win ? win.location.href : null);
     this.lastSnapshotAt =
       typeof performance !== 'undefined' ? performance.now() : Date.now();
   }
@@ -174,17 +236,19 @@ export class NavigationManager {
     // This handles the case where continuous DOM mutations (e.g. typing into
     // form fields) prevent the settle timer from completing before the
     // recording is stopped.
-    const hadPending = this.pendingNavigation !== null;
+    const pendingHref = this.pendingNavigation?.href ?? null;
     this.reset();
     this.disabled = true;
-    if (hadPending) {
+    if (pendingHref !== null) {
       // Record the URL of this final snapshot so a subsequent same-URL
       // navigation in a re-started recorder lifecycle would still coalesce.
-      const win = this.doc.defaultView;
-      this.lastSnapshotHref = win ? win.location.href : null;
+      this.lastSnapshotHref = pendingHref;
       this.lastSnapshotAt =
         typeof performance !== 'undefined' ? performance.now() : Date.now();
-      this.onSnapshot(true);
+      // At teardown the document has settled on the pending route, so its DOM
+      // and href agree; passing the href explicitly keeps this path consistent
+      // with flushPending rather than relying on location.href.
+      this.onSnapshot(true, pendingHref);
     }
   }
 

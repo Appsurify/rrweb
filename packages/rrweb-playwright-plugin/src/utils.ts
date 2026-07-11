@@ -34,7 +34,11 @@ export function saveRRWebReport(testRunResult: TestRunResult, outputReportDir?: 
   };
   fs.mkdirSync(reportDir, { recursive: true });
   fs.mkdirSync(path.dirname(jsonFilePathRaw), { recursive: true });
-  fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw, null, 2), 'utf-8');
+  // Compact JSON: the report is machine-read by the ui_report converter, never
+  // by a human. Pretty-printing doubled the payload (measured 2.06x) and pushed
+  // large recordings past V8's 512 MB max string length, where JSON.stringify
+  // throws `RangeError: Invalid string length` and no report is written at all.
+  fs.writeFileSync(jsonFilePathRaw, JSON.stringify(reportRaw), 'utf-8');
   console.log(`[ui-coverage] Saved report to ${jsonFilePathRaw}`);
 }
 
