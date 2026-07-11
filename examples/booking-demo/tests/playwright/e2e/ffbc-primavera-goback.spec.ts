@@ -51,30 +51,41 @@ test('home page footer Terms of Use and Privacy links are visible', async ({ pag
 test('About Us submenu expands and shows Join Us link', async ({ page }) => {
   await page.goto('https://ffbc.org/');
 
-  const aboutUs = page.getByLabel('Main').getByRole('link', { name: 'About Us', exact: true });
-  await aboutUs.hover();
+  const mainNav = page.getByLabel('Main');
+  await mainNav.getByRole('link', { name: 'About Us', exact: true }).hover();
 
-  await expect(page.getByRole('link', { name: 'Join Us' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Club Events' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Club Contacts' })).toBeVisible();
+  // Scope to the main nav: these link names also occur elsewhere on the page
+  // (footer, body copy), and an unscoped getByRole matches them too — Playwright
+  // then fails with a strict mode violation instead of checking the submenu.
+  await expect(mainNav.getByRole('link', { name: 'Join Us', exact: true })).toBeVisible();
+  await expect(mainNav.getByRole('link', { name: 'Club Events', exact: true })).toBeVisible();
+  await expect(mainNav.getByRole('link', { name: 'Club Contacts', exact: true })).toBeVisible();
 });
 
 test('Rides submenu expands and shows Ride Calendar link', async ({ page }) => {
   await page.goto('https://ffbc.org/');
 
-  await page.getByLabel('Main').getByRole('link', { name: 'Rides', exact: true }).hover();
+  const mainNav = page.getByLabel('Main');
+  await mainNav.getByRole('link', { name: 'Rides', exact: true }).hover();
 
-  await expect(page.getByRole('link', { name: 'Ride Calendar' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Ride Information and Policies' })).toBeVisible();
+  await expect(mainNav.getByRole('link', { name: 'Ride Calendar', exact: true })).toBeVisible();
+  await expect(
+    mainNav.getByRole('link', { name: 'Ride Information and Policies', exact: true }),
+  ).toBeVisible();
 });
 
 test('Membership submenu expands and shows Member Login link', async ({ page }) => {
   await page.goto('https://ffbc.org/');
 
-  await page.getByLabel('Main').getByRole('link', { name: 'Membership', exact: true }).hover();
+  const mainNav = page.getByLabel('Main');
+  await mainNav.getByRole('link', { name: 'Membership', exact: true }).hover();
 
-  await expect(page.getByRole('link', { name: /Member Login/i })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Membership Application/i })).toBeVisible();
+  await expect(mainNav.getByRole('link', { name: /Member Login/i }).first()).toBeVisible();
+  // The submenu lists several application/renewal variants; assert the group is
+  // present rather than pinning one wording the club keeps changing.
+  await expect(
+    mainNav.getByRole('link', { name: /Membership Application/i }).first(),
+  ).toBeVisible();
 });
 
 // ── Primavera Century page ──────────────────────────────────────────────────
@@ -89,13 +100,16 @@ test('Primavera Century page loads and shows event date', async ({ page }) => {
 test('Primavera page Registration link is visible', async ({ page }) => {
   await page.goto('https://ffbc.org/primavera/');
 
-  await expect(page.getByRole('link', { name: 'Registration' })).toBeVisible();
+  // exact: true — Playwright matches the accessible name as a SUBSTRING by
+  // default, so a bare 'Registration' also hits "Membership Registration" and
+  // "Transfer ride registration" and trips strict mode.
+  await expect(page.getByRole('link', { name: 'Registration', exact: true })).toBeVisible();
 });
 
 test('Primavera page Routes link is visible', async ({ page }) => {
   await page.goto('https://ffbc.org/primavera/');
 
-  await expect(page.getByRole('link', { name: 'Routes' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Routes', exact: true })).toBeVisible();
 });
 
 test('Primavera page FAQs link is visible', async ({ page }) => {
@@ -128,10 +142,13 @@ test('Primavera page Giving Back link is visible', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Giving Back' })).toBeVisible();
 });
 
-test('Primavera page contact email link is visible', async ({ page }) => {
+test('Primavera page contact link is visible', async ({ page }) => {
   await page.goto('https://ffbc.org/primavera/');
 
-  await expect(page.getByRole('link', { name: /primavera@ffbc\.org/i })).toBeVisible();
+  // The club removed the primavera@ffbc.org mailto: the page carries no
+  // @ffbc.org address at all any more, only a "Contact Us" link. Assert the
+  // contact route that actually exists.
+  await expect(page.getByRole('link', { name: 'Contact Us', exact: true }).first()).toBeVisible();
 });
 
 test('Primavera page Photo and Videos link is visible', async ({ page }) => {
