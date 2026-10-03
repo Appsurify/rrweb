@@ -1,0 +1,16 @@
+---
+name: rrweb-regression
+description: Diagnose and verify Testmap rrweb recorder, replay, SEQL selector and automation-report regressions using local event fixtures and focused package checks.
+---
+
+Read root AGENTS.md for commands and constraints. Start from the failing event/report or minimal local HTML fixture and the relevant package's current tests.
+
+1. Record BASE, changed package, exact reproduction and expected vs actual behavior. Use a dedicated temporary output directory; reporters remove configured run output. Check fixture/spec destinations before executing browser tests.
+2. Trace the first divergence: DOM serialization/Mirror/selector → recorder observer/mutation/navigation/visibility → emitted event and sequential ID → automation bridge/stop/flush → `{events, metadata}` save/ZIP → backend page/snapshot conversion → frontend replay. Avoid changing downstream symptoms before proving the owning layer.
+3. For navigation verify initial and destination META/FullSnapshot pairs, reload vs same-document handling, stop flushing before context/driver closure, eager Selenium head handling, ID order and no leaked recorder between tests. Relevant existing regressions: `packages/rrweb/test/record/navigation.test.ts`, `visibility-integration.test.ts`, Selenium `test/navigation.test.ts`, `eager-head.test.ts`, recorder/reporter/adapter tests. Fake Selenium tests prove lifecycle logic, not real injected UMD correctness.
+4. For selector changes compare serialized `selector` and incremental resolution, mirror caching, null/false/undefined options, text-node closest element, shadow/iframe boundaries and fallback behavior. Check both snapshot and recorder defaults; they need not be identical. Include representative SEQL identity fixtures and coordinate with google-custom-events/backend consumers before accepting changed identity.
+5. Add a failing regression in the existing harness; fix the narrowest layer. Retain snapshot format and single concurrency. Inspect every snapshot/visual golden delta; update only expected outputs within task scope.
+6. Run direct selected tests without rebuilding when artifacts are current. If source dependencies or embedded UMD changed, rebuild affected upstream packages explicitly; Playwright/Selenium `devBuild` alone is insufficient. Run package type checks/lint and selected replay/consumer tests appropriate to the changed contract. Broaden only for actual impacted packages.
+7. Existing analyzers in `examples/booking-demo/scripts` can diagnose local reports. `analyze_goback_capture.py --file <local-report>` reads a report and prints timeline/pairing diagnosis; do not publish sensitive event data. `validate_selenium_report.py --dir <local-output> --no-convert` is structural only and requires Python `rich`; converter validation additionally requires compatible local backend imports/dependencies. Inspect script behavior before use; distinguish skipped conversion from successful compatibility validation.
+
+Finish with HANDOFF: BASE(s), files, first divergent event, changed contract/options, before/after regression evidence, exact checks and prerequisites, expected golden deltas, browser/consumer validation gaps. Do not infer coverage success from ZIP existence or fake-driver tests alone.
