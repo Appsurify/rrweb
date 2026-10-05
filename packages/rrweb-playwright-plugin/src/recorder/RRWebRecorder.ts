@@ -232,6 +232,24 @@ export class RRWebRecorder {
     }
   }
 
+  /**
+   * Take a checkout FullSnapshot of the current document. Returns false when
+   * nothing is recording on it (or the page went away mid-call).
+   */
+  public async takeFullSnapshot(): Promise<boolean> {
+    if (!this.page || this.page.isClosed()) return false;
+    try {
+      return await this.page.evaluate(() => {
+        const r = window.rrweb?.record;
+        if (!window.stopFn || !r?.isRecording?.()) return false;
+        r.takeFullSnapshot(true);
+        return true;
+      });
+    } catch {
+      return false;
+    }
+  }
+
   public async reset() {
     this.eventCounter = 0;
     this.events = [];

@@ -12,7 +12,7 @@ export default defineConfig({
   clean: true,
   bundle: true,
   minify: true,
-  dts: true,
+  dts: { resolve: [/^@appsurify-testmap\//] },
   noExternal: ['rrweb'],
   entry: ['src/index.ts', 'src/reporter.ts'],
   format: ['cjs', 'esm'],

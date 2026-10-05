@@ -6,6 +6,7 @@ import type {
   ConsoleMessage,
 } from '@playwright/test';
 import RRWebRecorder from './recorder';
+import type { RecorderEvent } from './recorder/types';
 import defaultRecordOptions from './recorder';
 
 import {
@@ -17,10 +18,25 @@ import {
   getCurrentTestContext,
   setCurrentTestContext,
 } from './runtime';
+import {
+  NetworkTracker,
+  resolveSettleOptions,
+  settlePage,
+} from './settle';
 
 import type {
-  TestmapConfig
-} from './types';
+  TestmapConfig,
+  TestmapRecordingOptions,
+  SettleBeforeStopOptions,
+} from './config';
+
+export type { TestmapConfig, TestmapRecordingOptions, SettleBeforeStopOptions };
+
+declare module '@playwright/test' {
+  interface PlaywrightTestOptions {
+    testmap?: TestmapConfig;
+  }
+}
 
 
 const test = base.extend<{}>({
@@ -38,9 +54,8 @@ const test = base.extend<{}>({
 
   page: async ({ page }, use, testInfo) => {
 
-    type ExtendedUse = typeof testInfo.project.use & { testmap?: TestmapConfig };
-    const pwConfig = testInfo.project.use as ExtendedUse;
-    const testmapConfig = pwConfig.testmap ?? {};
+    const testmapConfig: TestmapConfig = testInfo.project.use.testmap ?? {};
+    const settleOptions = resolveSettleOptions(testmapConfig.settleBeforeStop);
     const recordingOpts =
       typeof testmapConfig === 'object' && 'recordingOpts' in testmapConfig
         ? testmapConfig.recordingOpts
@@ -63,6 +78,7 @@ const test = base.extend<{}>({
       },
     });
     await recorder.inject(page);
+    const network = settleOptions ? new NetworkTracker(page) : null;
 
     // eslint-disable-next-line @typescript-eslint/require-await
     page.on('console', async (consoleMessage: ConsoleMessage) => {
@@ -181,7 +197,8 @@ const test = base.extend<{}>({
     // Stop the recorder exactly once. recorder.stop() invokes window.stopFn(),
     // which runs rrweb's NavigationManager.destroy() — the synchronous flush of
     // any pending post-navigation FullSnapshot (e.g. the destination route of a
-    // page.goBack() on an SPA). If stop() never runs, that snapshot is lost.
+    // page.goBack() on an SPA) — and executes a debounced checkout that is
+    // still waiting on its timer. If stop() never runs, that snapshot is lost.
     let recorderStopped = false;
     const stopRecorder = async () => {
       if (recorderStopped) return;
@@ -194,6 +211,23 @@ const test = base.extend<{}>({
       // would save a report that ends at the page the test navigated AWAY
       // from. Capture the current document first.
       await ensureCurrentPageCaptured();
+      // A test usually ends on an assertion that is satisfied by the first
+      // paint (URL, heading) while API data is still loading. Let the page
+      // settle, then re-snapshot it if it changed, so the report's last
+      // FullSnapshot shows the loaded page and not its skeleton placeholders.
+      // Skipped for failed tests: the page is in an unknown state and the
+      // wait would only delay the failure report.
+      if (
+        settleOptions &&
+        network &&
+        testInfo.status === 'passed' &&
+        !page.isClosed()
+      ) {
+        await settlePage(page, network, settleOptions);
+        if (hasMutationsSinceLastFullSnapshot(testRunContext?.recorderEvents)) {
+          await recorder.takeFullSnapshot();
+        }
+      }
       // Give the browser one rAF tick so the last user interaction's
       // mutation/scroll events emit before we tear down. Do NOT gate on
       // isRecordingReady — recorder.stop() awaits any in-flight start()
@@ -204,41 +238,22 @@ const test = base.extend<{}>({
       await recorder.stop();
     };
 
-    // Best-effort EARLY stop via Playwright internals: when available, this
-    // fires right after the test body, before other teardown. It is purely an
-    // optimization — the authoritative stop happens in the fixture teardown
-    // below, which does not depend on any private API. These internal hooks
-    // have shifted across Playwright versions (the names changed at 1.58 and
-    // the callback silently stopped firing by 1.60), so relying on them alone
-    // is what previously dropped the post-goBack snapshot on newer Playwright.
-    if ('_onDidFinishTestFunctionCallback' in testInfo) {
-      // @ts-ignore
-      const prev = testInfo._onDidFinishTestFunctionCallback as (() => Promise<void> | void) | undefined;
-      // @ts-ignore
-      testInfo._onDidFinishTestFunctionCallback = async () => {
-        await stopRecorder();
-        await prev?.();
-      };
-      // @ts-ignore — legacy method
-    } else if (typeof testInfo._onDidFinishTestFunction === 'function') {
-      // @ts-ignore
-      const originalDidFinish = testInfo._onDidFinishTestFunction.bind(testInfo);
-      // @ts-ignore
-      testInfo._onDidFinishTestFunction = async () => {
-        await stopRecorder();
-        await originalDidFinish();
-      };
-    }
+    // Where the recorder stops: in this fixture's teardown, i.e. AFTER the
+    // test's afterEach hooks, so whatever they do to the page is recorded too.
+    // There is intentionally no early stop via Playwright internals
+    // (testInfo._onDidFinishTestFunctionCallback / _onDidFinishTestFunction /
+    // _onDidFinishTestFunctionCallbacks). Those fire BEFORE afterEach, their
+    // shape changed across releases (single callback ≤1.58 —
+    // a slot that Playwright's artifacts recorder also assigns —
+    // a Set from 1.60), and hooking them made the stop point, and therefore
+    // what the report contains, depend on the installed Playwright version.
+    // Teardown runs on every version while the page is still open (the
+    // context fixture closes it later).
 
     console.log(`[${Date.now()}] [🟢 TEST START] ${testInfo.title}`);
 
     await use(page);
 
-    // Authoritative stop: runs on every test regardless of Playwright version,
-    // while the page is still open (the context fixture closes later, after
-    // this page fixture tears down). This is the reliable replacement for the
-    // private-API hook above — without it, newer Playwright never stops the
-    // recorder and the post-goBack/destination snapshot is dropped.
     await stopRecorder();
 
     // Teardown: save the per-test rrweb report. This is intentionally inside
@@ -266,6 +281,27 @@ const test = base.extend<{}>({
     }
   },
 });
+
+// Numeric values of EventType.FullSnapshot / IncrementalSnapshot and
+// IncrementalSource.Mutation; importing the enums would bundle rrweb-types.
+const FULL_SNAPSHOT = 2;
+const INCREMENTAL_SNAPSHOT = 3;
+const MUTATION_SOURCE = 0;
+
+function hasMutationsSinceLastFullSnapshot(events: RecorderEvent[] | undefined): boolean {
+  if (!events) return false;
+  for (let i = events.length - 1; i >= 0; i--) {
+    const event = events[i];
+    if (event.type === FULL_SNAPSHOT) return false;
+    if (
+      event.type === INCREMENTAL_SNAPSHOT &&
+      (event.data as { source?: number }).source === MUTATION_SOURCE
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export { test, expect };
 
