@@ -934,9 +934,29 @@ function record<T = eventWithTime>(
           }
         }
       }
-      if (checkoutDebounceTimer) {
-        clearTimeout(checkoutDebounceTimer);
-        checkoutDebounceTimer = null;
+      // A debounced checkout still waiting on its timer means mutation buffers
+      // are frozen and the DOM has changed since the last FullSnapshot.
+      // Just clearing the timer would drop both the frozen mutations and the
+      // snapshot — the final, settled page state would never be recorded.
+      // Run the checkout synchronously instead: the FullSnapshot captures the
+      // live DOM, so the frozen mutations it supersedes can be discarded.
+      if (recording && checkoutPending) {
+        if (checkoutDebounceTimer) {
+          clearTimeout(checkoutDebounceTimer);
+        }
+        executeCheckout();
+      } else {
+        if (checkoutDebounceTimer) {
+          clearTimeout(checkoutDebounceTimer);
+          checkoutDebounceTimer = null;
+        }
+        // Frozen without a pending checkout (e.g. record.freezePage()):
+        // emit what the buffers hold before observers are torn down.
+        if (recording && mutationBuffers[0]?.isFrozen()) {
+          mutationBuffers.forEach((buf) => buf.unfreeze());
+          visibilityManager?.unfreeze();
+          navigationManager?.unfreeze();
+        }
       }
       flushCustomEventQueue();
       handlers.forEach((h) => h());
