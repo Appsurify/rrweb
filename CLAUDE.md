@@ -234,7 +234,7 @@ yarn test:update
 
 ### Test Configuration
 - Tests run with `maxConcurrency: 1` and `fileParallelism: false` to prevent race conditions
-- Puppeteer can run headless (`PUPPETEER_HEADLESS=true`) or headful for debugging
+- Puppeteer runs headless by default (any way of running tests, incl. plain `npx vitest` and the IDE); set `PUPPETEER_HEADLESS=false` (or `0`) to watch tests in a visible browser window
 - Old snapshot format is preserved (pre-Jest 29 style)
 
 ## Code Style

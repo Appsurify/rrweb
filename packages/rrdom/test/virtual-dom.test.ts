@@ -28,6 +28,11 @@ import {
   BaseRRNode as RRNode,
 } from '../src';
 
+// Headless by default; PUPPETEER_HEADLESS=false (or 0) opens a visible window.
+const headless = !['false', '0'].includes(
+  process.env.PUPPETEER_HEADLESS?.toLowerCase() ?? '',
+);
+
 const printRRDomCode = `
 /**
  * Print the RRDom as a string.
@@ -242,7 +247,7 @@ describe('RRDocument for browser environment', () => {
     let page: puppeteer.Page;
 
     beforeAll(async () => {
-      browser = await puppeteer.launch();
+      browser = await puppeteer.launch({ headless });
       code = fs.readFileSync(
         path.resolve(__dirname, '../dist/rrdom.umd.cjs'),
         'utf8',

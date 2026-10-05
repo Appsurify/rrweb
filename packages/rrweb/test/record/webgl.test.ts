@@ -12,6 +12,7 @@ import {
 } from '@appsurify-testmap/rrweb-types';
 import {
   assertSnapshot,
+  isHeadful,
   launchPuppeteer,
   stripBase64,
   waitForRAF,
@@ -46,7 +47,7 @@ const setup = function (
   beforeAll(async () => {
     // Use old headless mode for WebGL support
     ctx.browser = await launchPuppeteer({
-      headless: process.env.PUPPETEER_HEADLESS ? true : false,
+      headless: !isHeadful(),
     });
   });
 

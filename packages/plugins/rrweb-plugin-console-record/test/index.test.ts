@@ -1,5 +1,5 @@
 import { describe, it, beforeAll, afterAll, expect, vi } from 'vitest';
-import { stringifySnapshots } from '../../../rrweb/test/utils';
+import { isHeadful, stringifySnapshots } from '../../../rrweb/test/utils';
 import { createServer, ViteDevServer } from 'vite';
 import * as puppeteer from 'puppeteer';
 import type { Browser, Page } from 'puppeteer';
@@ -9,7 +9,7 @@ export async function launchPuppeteer(
   options?: Parameters<(typeof puppeteer)['launch']>[0],
 ) {
   return await puppeteer.launch({
-    headless: process.env.PUPPETEER_HEADLESS ? true : false,
+    headless: !isHeadful(),
     defaultViewport: {
       width: 1920,
       height: 1080,

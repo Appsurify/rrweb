@@ -16,6 +16,11 @@ import {
 
 import { getServerURL, waitForRAF } from './utils';
 
+// Headless by default; PUPPETEER_HEADLESS=false (or 0) opens a visible window.
+const headless = !['false', '0'].includes(
+  process.env.PUPPETEER_HEADLESS?.toLowerCase() ?? '',
+);
+
 const htmlFolder = path.join(__dirname, 'html');
 const htmls = fs.readdirSync(htmlFolder).map((filePath) => {
   const raw = fs.readFileSync(path.resolve(htmlFolder, filePath), 'utf-8');
@@ -102,7 +107,7 @@ describe('integration tests', function (this: ISuite) {
     server = await startServer();
     serverURL = getServerURL(server);
     browser = await puppeteer.launch({
-      // headless: false,
+      headless,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
@@ -534,7 +539,7 @@ describe('iframe integration tests', function (this: ISuite) {
     server = await startServer();
     serverURL = getServerURL(server);
     browser = await puppeteer.launch({
-      // headless: false,
+      headless,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
@@ -579,7 +584,7 @@ describe('dialog integration tests', function (this: ISuite) {
     server = await startServer();
     serverURL = getServerURL(server);
     browser = await puppeteer.launch({
-      // headless: false,
+      headless,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
@@ -626,7 +631,7 @@ describe('shadow DOM integration tests', function (this: ISuite) {
     server = await startServer();
     serverURL = getServerURL(server);
     browser = await puppeteer.launch({
-      // headless: false,
+      headless,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 

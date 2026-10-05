@@ -16,11 +16,20 @@ import * as url from 'url';
 import * as fs from 'fs';
 import { attributes } from "happy-dom/lib/PropertySymbol.d.ts.js";
 
+/**
+ * Browser tests run headless by default. Set PUPPETEER_HEADLESS=false (or 0)
+ * to watch them in a visible window.
+ */
+export function isHeadful(): boolean {
+  const value = process.env.PUPPETEER_HEADLESS?.toLowerCase();
+  return value === 'false' || value === '0';
+}
+
 export async function launchPuppeteer(
   options?: Parameters<(typeof puppeteer)['launch']>[0],
 ) {
   return await puppeteer.launch({
-    headless: process.env.PUPPETEER_HEADLESS ? 'new' : false,
+    headless: !isHeadful(),
     defaultViewport: {
       width: 1920,
       height: 1080,

@@ -33,6 +33,11 @@ import {
   IncrementalSource,
 } from '@appsurify-testmap/rrweb-types';
 
+// Headless by default; PUPPETEER_HEADLESS=false (or 0) opens a visible window.
+const headless = !['false', '0'].includes(
+  process.env.PUPPETEER_HEADLESS?.toLowerCase() ?? '',
+);
+
 const elementSn = {
   type: RRNodeType.Element,
   tagName: 'DIV',
@@ -1414,6 +1419,7 @@ describe('diff algorithm for rrdom', () => {
        * This test result executed in JSDom is different from that in real browser so we use puppeteer as test environment.
        */
       const browser = await puppeteer.launch({
+        headless,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
       const page = await browser.newPage();
