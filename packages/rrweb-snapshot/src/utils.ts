@@ -876,6 +876,16 @@ function hasEventListeners(n: Node): boolean {
   return n instanceof Element && interactiveElementsRegistry.has(n);
 }
 
+// A listener alone does not make an element a user target: with computed
+// `pointer-events: none` the pointer passes through it (an empty Radix toast
+// viewport, the value span of a Radix select). Native controls and roles are
+// checked separately and stay interactive, e.g. shadcn
+// `disabled:pointer-events-none` buttons.
+function hasPointerEventsNone(element: Element): boolean {
+  const win = element.ownerDocument?.defaultView ?? window;
+  return win.getComputedStyle?.(element)?.pointerEvents === 'none';
+}
+
 export function isElementInteractive(n: Node): boolean {
 
   if (n.nodeType === Node.ELEMENT_NODE) {
@@ -893,7 +903,7 @@ export function isElementInteractive(n: Node): boolean {
       element.getAttribute('role') || ''
     );
     const result =
-      hasEventListeners(element) ||
+      (hasEventListeners(element) && !hasPointerEventsNone(element)) ||
       hasTabIndex ||
       hasRoleInteractive ||
       (element instanceof HTMLAnchorElement && element.hasAttribute('href')) ||

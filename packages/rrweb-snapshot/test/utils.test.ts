@@ -8,6 +8,7 @@ import {
   fixSafariColons,
   isNodeMetaEqual,
   createMirror,
+  isElementInteractive,
 } from '../src/utils';
 import { NodeType } from '@appsurify-testmap/rrweb-types';
 import type { serializedNode, serializedNodeWithId } from '@appsurify-testmap/rrweb-types';
@@ -279,6 +280,55 @@ describe('utils', () => {
 
       const out3 = fixSafariColons('[data-aa\\:other] { color: red; }');
       expect(out3).toEqual('[data-aa\\:other] { color: red; }');
+    });
+  });
+
+  describe('isElementInteractive()', () => {
+    const withListener = (el: Element) => {
+      el.addEventListener('keydown', () => undefined);
+      document.body.appendChild(el);
+      return el;
+    };
+
+    it('keeps an element with a listener interactive', () => {
+      const el = withListener(document.createElement('ol'));
+      expect(isElementInteractive(el)).toBe(true);
+    });
+
+    it('ignores a listener under inline pointer-events: none', () => {
+      const el = withListener(document.createElement('ol'));
+      (el as HTMLElement).style.pointerEvents = 'none';
+      expect(isElementInteractive(el)).toBe(false);
+    });
+
+    it('ignores a listener under pointer-events: none from a stylesheet', () => {
+      const style = document.createElement('style');
+      style.textContent = '.pointer-events-none { pointer-events: none; }';
+      document.head.appendChild(style);
+      const el = withListener(document.createElement('span'));
+      el.className = 'pointer-events-none';
+      expect(isElementInteractive(el)).toBe(false);
+    });
+
+    it('keeps a native control under pointer-events: none', () => {
+      const button = withListener(document.createElement('button'));
+      (button as HTMLElement).style.pointerEvents = 'none';
+      (button as HTMLButtonElement).disabled = true;
+      expect(isElementInteractive(button)).toBe(true);
+    });
+
+    it('keeps an interactive role under pointer-events: none', () => {
+      const item = withListener(document.createElement('div'));
+      item.setAttribute('role', 'menuitem');
+      (item as HTMLElement).style.pointerEvents = 'none';
+      expect(isElementInteractive(item)).toBe(true);
+    });
+
+    it('keeps a positive tabindex under pointer-events: none', () => {
+      const el = withListener(document.createElement('div'));
+      el.setAttribute('tabindex', '0');
+      (el as HTMLElement).style.pointerEvents = 'none';
+      expect(isElementInteractive(el)).toBe(true);
     });
   });
 
